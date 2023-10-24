@@ -106,6 +106,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
 
   auto traction_end =
       this->tractions(el_type, ghost_type).end(spatial_dimension);
+  auto penetration_it = this->penetration(el_type, ghost_type).begin();
 
   const Array<Real> & sigma_c_array = this->sigma_c_eff(el_type, ghost_type);
   Array<Real> & delta_max_array = this->delta_max(el_type, ghost_type);
@@ -139,7 +140,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
   /// loop on each quadrature point
   for (UInt q = 0; traction_it != traction_end; ++traction_it, ++opening_it,
             ++normal_it, ++contact_traction_it, ++insertion_stress_it,
-            ++contact_opening_it, ++q) {
+            ++contact_opening_it, ++q, ++penetration_it) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
@@ -159,13 +160,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     Real delta =
         tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
-    bool penetration = normal_opening_norm < -tolerance;
-    if (not this->contact_after_breaking and
-        Math::are_float_equal(damage_array(q), 1.)) {
-      penetration = false;
-    }
-
-    if (penetration) {
+    if (*penetration_it) {
       /// use penalty coefficient in case of penetration
       *contact_traction_it = normal_opening;
       *contact_traction_it *= this->penalty;
@@ -214,7 +209,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
       traction_it->zero();
       // just inserted element case
     } else if (Math::are_float_equal(damage_array(q), 0.)) {
-      if (penetration) {
+      if (*penetration_it) {
         traction_it->zero();
       } else {
         *traction_it = *insertion_stress_it;

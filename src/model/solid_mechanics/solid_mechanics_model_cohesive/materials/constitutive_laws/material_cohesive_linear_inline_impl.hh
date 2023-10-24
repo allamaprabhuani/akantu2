@@ -102,12 +102,6 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
   Real delta =
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
-  penetration = normal_opening_norm / delta_c < -Math::getTolerance();
-  // penetration = normal_opening_norm < 0.;
-  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
-    penetration = false;
-  }
-
   if (penetration) {
     /// use penalty coefficient in case of penetration
     contact_traction = normal_opening;
@@ -172,8 +166,6 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
    * of penetration, in the array "opening" there are only the
    * tangential components.
    */
-  opening += contact_opening;
-
   /// compute normal and tangential opening vectors
   normal_opening_norm = opening.dot(normal);
   normal_opening = normal;
@@ -185,11 +177,6 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
 
   Real delta =
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
-
-  penetration = normal_opening_norm < 0.0;
-  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
-    penetration = false;
-  }
 
   Real derivative = 0; // derivative = d(t/delta)/ddelta
   Real t = 0;

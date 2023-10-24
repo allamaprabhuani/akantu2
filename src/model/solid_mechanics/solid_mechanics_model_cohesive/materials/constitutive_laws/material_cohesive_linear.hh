@@ -83,6 +83,12 @@ protected:
   void computeTraction(const Array<Real> & normal, ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
+  /// compute fact of facets interpenetrating into each other
+  void checkPenetration(const Array<Real> & opening,
+                        const Array<Real> & normal, Array<bool> & penetrations,
+                        ElementType el_type,
+                        GhostType ghost_type = _not_ghost) override;
+
   /// compute tangent stiffness matrix
   void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
                               const Array<Real> & normal,

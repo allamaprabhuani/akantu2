@@ -90,8 +90,17 @@ public:
   UInt addFacet(const Element & element);
 
   /// compute the normal
-  void computeNormal(const Array<Real> & position, Array<Real> & normal,
-                     ElementType type, GhostType ghost_type);
+  virtual void computeNormal(const Array<Real> & position, Array<Real> & normal,
+                             ElementType type, GhostType ghost_type);
+
+  /// compute the normal
+  virtual void computeBasis(const Array<Real> & position, Array<Real> & basis,
+                            ElementType type, GhostType ghost_type);
+
+  /// compute the opening
+  virtual void computeOpening(const Array<Real> & displacement,
+                              Array<Real> & opening, ElementType type,
+                              GhostType ghost_type);
 
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
@@ -100,10 +109,6 @@ protected:
                                       GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
-
-  /// compute the opening
-  void computeOpening(const Array<Real> & displacement, Array<Real> & opening,
-                      ElementType type, GhostType ghost_type);
 
   template <ElementType type>
   void computeNormal(const Array<Real> & position, Array<Real> & normal,
@@ -115,6 +120,13 @@ protected:
   /// constitutive law
   virtual void computeTraction(const Array<Real> & normal, ElementType el_type,
                                GhostType ghost_type = _not_ghost) = 0;
+
+  /// compute fact of facets interpenetrating into each other
+  virtual void checkPenetration(const Array<Real> & /*opening*/,
+                                const Array<Real> & /*normal*/,
+                                Array<bool> & /*penetrations*/,
+                                ElementType /*el_type*/,
+                                GhostType /*ghost_type*/ = _not_ghost) {}
 
   /// parallelism functions
   inline UInt getNbData(const Array<Element> & elements,
@@ -138,6 +150,9 @@ public:
   /// get the opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening, Real);
 
+  /// get the penetration
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Penetration, penetration, bool);
+
   /// get the traction
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Traction, tractions, Real);
 
@@ -149,7 +164,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
   AKANTU_GET_MACRO(FacetFilter, facet_filter,
                    const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO(NormalsAtQuads, normal, const Array<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsAtQuads, normal, Real);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
 
@@ -204,6 +219,9 @@ protected:
   /// maximum displacement
   CohesiveInternalField<Real> delta_max;
 
+  /// maximum displacement
+  CohesiveInternalField<bool> penetration;
+
   /// tell if the previous delta_max state is needed (in iterative schemes)
   bool use_previous_delta_max;
 
@@ -222,8 +240,8 @@ protected:
   /// critical displacement
   Real delta_c;
 
-  /// array to temporarily store the normals
-  Array<Real> normal;
+  /// normals
+  CohesiveInternalField<Real> normal;
 };
 
 } // namespace akantu

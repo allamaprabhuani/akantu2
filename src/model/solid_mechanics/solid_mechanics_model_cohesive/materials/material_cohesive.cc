@@ -54,10 +54,11 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       total_energy("total_energy", *this), opening("opening", *this),
       tractions("tractions", *this),
       contact_tractions("contact_tractions", *this),
-      contact_opening("contact_opening", *this), delta_max("delta_max", *this),
+      contact_opening("contact_opening", *this),
+      penetration("penetration", *this), delta_max("delta_max", *this),
       use_previous_delta_max(false), use_previous_opening(false),
       damage("damage", *this), sigma_c("sigma_c", *this),
-      normal(0, spatial_dimension, "normal") {
+      normal("normal", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -90,13 +91,18 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->tractions.initializeHistory();
 
   this->contact_tractions.initialize(spatial_dimension);
+  this->contact_tractions.initializeHistory();
   this->contact_opening.initialize(spatial_dimension);
+  this->contact_opening.initializeHistory();
+
+  this->penetration.initialize(1);
 
   this->opening.initialize(spatial_dimension);
   this->opening.initializeHistory();
 
   this->delta_max.initialize(1);
   this->damage.initialize(1);
+  this->normal.initialize(spatial_dimension);
 
   if (this->model->getIsExtrinsic()) {
     this->sigma_c.initialize(1);
@@ -270,17 +276,23 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     //    Array<Real> * normal = new Array<Real>(nb_element *
     //    nb_quadrature_points, spatial_dimension, "normal");
-    normal.resize(nb_quadrature_points);
+    // normal.resize(nb_quadrature_points);
 
-    computeNormal(model->getCurrentPosition(), normal, type, ghost_type);
+    computeNormal(model->getCurrentPosition(), normal(type, ghost_type), type,
+                  ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
-    // computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
-    // ghost_type);
+    computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
+                   ghost_type);
+
+    /// check if self-penetration is taking place
+    checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
+                     penetration(type, ghost_type), type, ghost_type);
 
     tangent_stiffness_matrix->zero();
 
-    computeTangentTraction(type, *tangent_stiffness_matrix, normal, ghost_type);
+    computeTangentTraction(type, *tangent_stiffness_matrix,
+                           normal(type, ghost_type), ghost_type);
 
     // delete normal;
 
@@ -373,17 +385,22 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     UInt nb_quadrature_points =
         nb_element * fem_cohesive.getNbIntegrationPoints(type, ghost_type);
 
-    normal.resize(nb_quadrature_points);
+    // normal.resize(nb_quadrature_points);
 
     /// compute normals @f$\mathbf{n}@f$
-    computeNormal(model->getCurrentPosition(), normal, type, ghost_type);
+    computeNormal(model->getCurrentPosition(), normal(type, ghost_type), type,
+                  ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
+    /// check if self-penetration is taking place
+    checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
+                     penetration(type, ghost_type), type, ghost_type);
+
     /// compute traction @f$\mathbf{t}@f$
-    computeTraction(normal, type, ghost_type);
+    computeTraction(normal(type, ghost_type), type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
@@ -398,7 +415,7 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
   auto & fem_cohesive =
       this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
 
-  normal.zero();
+  // normal.zero();
 
 #define COMPUTE_NORMAL(type)                                                   \
   fem_cohesive.getShapeFunctions()                                             \
@@ -410,7 +427,28 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
 
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::computeBasis(const Array<Real> & position,
+                                    Array<Real> & basis, ElementType type,
+                                    GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
+  auto & fem_cohesive =
+      this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
+
+  // normal.zero();
+
+#define COMPUTE_BASIS(type)                                                    \
+  fem_cohesive.getShapeFunctions()                                             \
+      .computeAllignedBasisOnIntegrationPoints<type,                           \
+                                               CohesiveReduceFunctionMean>(    \
+          position, basis, ghost_type, element_filter(type, ghost_type));
+
+  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_BASIS);
+#undef COMPUTE_BASIS
+
+  AKANTU_DEBUG_OUT();
+}
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::computeOpening(const Array<Real> & displacement,
                                       Array<Real> & opening, ElementType type,
