@@ -167,10 +167,10 @@ public:
            method == _explicit_consistent_mass;
   }
 
-protected:
   /// update the current position vector
   void updateCurrentPosition();
 
+protected:
   /* ------------------------------------------------------------------------ */
   /* Materials (solid_mechanics_model_material.cc)                            */
   /* ------------------------------------------------------------------------ */
