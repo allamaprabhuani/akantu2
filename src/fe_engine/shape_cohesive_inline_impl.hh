@@ -566,36 +566,28 @@ void ShapeLagrange<_ek_cohesive>::computeAllignedBasisOnIntegrationPoints(
         u, tangents_u, spatial_dimension, ghost_type, filter_elements);
   }
 
-  Real * tangent = tangents_u.storage();
-  Real * basis_storage = basis_u.storage();
   for (auto && data :
        zip(make_view(basis_u, spatial_dimension, spatial_dimension),
            make_view(tangents_u, spatial_dimension, (spatial_dimension - 1)))) {
     auto && basis = std::get<0>(data);
     auto && tangents = std::get<1>(data);
     for (auto i : arange(spatial_dimension - 1)) {
-      basis(i) = tangents(i);
       Vector<Real> basis_vec(basis(i), false);
+      basis_vec.copy(tangents(i));
       basis_vec /= basis_vec.norm();
     }
 
     if (spatial_dimension == 3) {
-      Vector<Real> normal(spatial_dimension);
-      Math::vectorProduct3(tangent, tangent + spatial_dimension,
-                           basis_storage + 2 * spatial_dimension);
+      Math::vectorProduct3(tangents(0), tangents(1), basis(2));
       Vector<Real> basis_vec(basis(2), false);
       basis_vec /= basis_vec.norm();
-      tangent += spatial_dimension * 2;
-      basis_storage += spatial_dimension * 2;
     } else if (spatial_dimension == 2) {
-      Vector<Real> a1(tangent, spatial_dimension);
       Vector<Real> basis_vec(basis(1), false);
 
-      basis_vec(0) = -a1(1);
-      basis_vec(1) = a1(0);
+      basis_vec(0) = -tangents(0, 1);
+      basis_vec(1) = tangents(0, 0);
       basis_vec /= basis_vec.norm();
 
-      tangent += spatial_dimension;
     }
 
     else if (spatial_dimension == 1) {
