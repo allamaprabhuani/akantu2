@@ -50,6 +50,9 @@
 #include "mesh_utils_distribution.hh"
 #include "node_synchronizer.hh"
 #include "periodic_node_synchronizer.hh"
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#include "cohesive_element_inserter.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -106,6 +109,54 @@ Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
   }
 
   this->computeBoundingBox();
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+void Mesh::sendEvent<MeshIsDistributedEvent>(MeshIsDistributedEvent & event) {
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+}
+
+/* -------------------------------------------------------------------------- */
+template <> void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
+  this->computeBoundingBox();
+  this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
+
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
+    // nodes might have changed in the connectivity
+    const auto & mesh_to_mesh_facet =
+        this->getData<Element>("mesh_to_mesh_facet");
+
+    for (auto ghost_type : ghost_types) {
+      for (auto type : connectivities.elementTypes(_spatial_dimension =
+                                                       spatial_dimension - 1,
+                       _ghost_type = ghost_type)) {
+        auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+        if (not mesh_to_mesh_facet.exists(type, ghost_type)) {
+          continue;
+        }
+
+        const auto & mesh_to_mesh_facet_type =
+            mesh_to_mesh_facet(type, ghost_type);
+        auto && mesh_facet_conn_it =
+            make_view(mesh_facets->connectivities(type, ghost_type),
+                      nb_nodes_per_element)
+                .begin();
+
+        for (auto && [el, conn] : enumerate(make_view(
+                 connectivities(type, ghost_type), nb_nodes_per_element))) {
+          if (mesh_to_mesh_facet_type(el) == ElementNull)
+            continue;
+          conn = mesh_facets->connectivities.get(mesh_to_mesh_facet_type(el));
+        }
+      }
+    }
+  }
+#endif
+
+  GroupManager::onNodesAdded(event.getList(), event);
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -246,23 +297,37 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         }
 
         Vector<Real> barycenter_facet(spatial_dimension);
-
-        auto range = enumerate(make_view(
-            barycenters(element.type, element.ghost_type), spatial_dimension));
 #ifndef AKANTU_NDEBUG
         auto min_dist = std::numeric_limits<Real>::max();
 #endif
-        // this is a spacial search coded the most inefficient way.
-        auto facet =
-            std::find_if(range.begin(), range.end(), [&](auto && data) {
-              auto norm_distance = barycenter.distance(std::get<1>(data));
-#ifndef AKANTU_NDEBUG
-              min_dist = std::min(min_dist, norm_distance);
-#endif
-              return (norm_distance < tolerance);
-            });
 
-        if (facet == range.end()) {
+        auto facet_element = ElementNull;
+        for (auto facet_ghost_type : ghost_types) {
+          if (not barycenters.exists(element.type, facet_ghost_type)) {
+            continue;
+          }
+          auto range = enumerate(make_view(
+              barycenters(element.type, facet_ghost_type), spatial_dimension));
+
+          // this is a spacial search coded the most inefficient way.
+          auto facet =
+              std::find_if(range.begin(), range.end(), [&](auto && data) {
+                auto norm_distance = barycenter.distance(std::get<1>(data));
+#ifndef AKANTU_NDEBUG
+                min_dist = std::min(min_dist, norm_distance);
+#endif
+                return (norm_distance < tolerance);
+              });
+
+          if (facet != range.end()) {
+            // set physical name
+            facet_element =
+                Element{element.type, std::get<0>(*facet), element.ghost_type};
+            continue;
+          }
+        }
+
+        if (facet_element == ElementNull) {
           AKANTU_DEBUG_INFO("The element "
                             << element
                             << " did not find its associated facet in the "
@@ -272,11 +337,7 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
           return;
         }
 
-        // set physical name
-        auto && facet_element = Element{element.type, UInt(std::get<0>(*facet)),
-                                        element.ghost_type};
         phys_data(facet_element) = mesh_phys_data(element);
-
         mesh_to_mesh_facet(element) = facet_element;
       },
       _spatial_dimension = spatial_dimension - 1);

@@ -38,6 +38,10 @@
 #include "element_class.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#include "cohesive_element_inserter.hh"
+#endif
+/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MESH_INLINE_IMPL_HH_
 #define AKANTU_MESH_INLINE_IMPL_HH_
@@ -72,14 +76,6 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
   this->fillNodesToElements();
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
-}
-
-/* -------------------------------------------------------------------------- */
-template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
-  this->computeBoundingBox();
-  this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
-  GroupManager::onNodesAdded(event.getList(), event);
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
