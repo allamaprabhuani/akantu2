@@ -558,6 +558,32 @@ inline InternalField<UInt> & Material::getInternal(const ID & int_id) {
   }
   return *it->second;
 }
+/* -------------------------------------------------------------------------- */
+template <>
+inline const InternalField<bool> &
+Material::getInternal(const ID & int_id) const {
+  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
+  if (it == internal_vectors_bool.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline InternalField<bool> & Material::getInternal(const ID & int_id) {
+  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
+  if (it == internal_vectors_bool.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
