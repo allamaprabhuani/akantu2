@@ -212,7 +212,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
 
     Matrix<Real> A(spatial_dimension * size_of_shapes,
                    spatial_dimension * nb_nodes_per_element);
-
+    A.zero();
     for (Int i = 0; i < spatial_dimension * size_of_shapes; ++i) {
       A(i, i) = 1;
       A(i, i + spatial_dimension * size_of_shapes) = -1;
@@ -257,9 +257,9 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     auto at_nt_dul_n = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_at_nt_dul_n, "A^t*N^t*Dul*N");
 
-    Matrix<Real> N(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    Matrix<Real> N(spatial_dimension, spatial_dimension * size_of_shapes);
 
-    for (auto && data :
+    for (auto && [At_Nt_Duu_N_A,Duu,Nt_Dll_N,Dll,At_Nt_Dul_N,shapes] :
          zip(make_view(*at_nt_duu_n_a, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * nb_nodes_per_element),
              make_view(*tangent_stiffness_matrix_uu, spatial_dimension,
@@ -271,13 +271,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
              make_view(*at_nt_dul_n, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * size_of_shapes),
              make_view(*shapes_filtered, size_of_shapes))) {
-
-      auto && At_Nt_Duu_N_A = std::get<0>(data);
-      auto && Duu = std::get<1>(data);
-      auto && Nt_Dll_N = std::get<2>(data);
-      auto && Dll = std::get<3>(data);
-      auto && At_Nt_Dul_N = std::get<4>(data);
-      auto && shapes = std::get<5>(data);
       N.zero();
       /**
        * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
