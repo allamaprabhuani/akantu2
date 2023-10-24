@@ -64,6 +64,8 @@ public:
   /// the dof manager
   virtual void solve(SolverCallback & callback) = 0;
 
+  AKANTU_GET_MACRO(NonLinearSolverType, non_linear_solver_type,
+                   NonLinearSolverType);
   /// intercept the call to set for options
   template <typename T> void set(const ID & param, T && t) {
     if (has_internal_set_param) {
