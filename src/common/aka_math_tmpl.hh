@@ -610,6 +610,14 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
+  inline void vectorProduct3(const Vector<Real> v1, const Vector<Real> v2,
+                             Vector<Real> res) {
+    res[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    res[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+  }
+
+  /* ------------------------------------------------------------------------ */
   inline Real vectorDot2(const Real * v1, const Real * v2) {
     return (v1[0] * v2[0] + v1[1] * v2[1]);
   }
