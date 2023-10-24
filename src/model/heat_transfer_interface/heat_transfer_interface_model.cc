@@ -79,7 +79,7 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
     std::shared_ptr<DOFManager> dof_manager)
     : HeatTransferModel(mesh, dim, id,
                         ModelType::_heat_transfer_interface_model, dof_manager),
-      temperature_on_qpoints("opening_on_qpoints", id),
+      temperature_on_qpoints("temperature_on_qpoints", id),
       opening_on_qpoints("opening_on_qpoints", id),
       opening_rate("opening_rate", id), k_long_w("k_long_w", id) /*,
        k_perp_over_w("k_perp_over_w", id)*/
@@ -502,6 +502,7 @@ void HeatTransferInterfaceModel::assembleInternalHeatRate() {
 
   Parent::assembleInternalHeatRate();
 
+  computeTempOnQpoints(_not_ghost); // for visualisation only
   computeGradAndDeltaT(_not_ghost);
   // communicate the stresses
   AKANTU_DEBUG_INFO("Send data for residual assembly");

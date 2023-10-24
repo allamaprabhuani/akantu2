@@ -89,14 +89,6 @@ public:
   /// assemble the conductivity matrix
   void assembleConductivityMatrix() override;
 
-  // /// compute normals on cohesive elements
-  // void computeNormal(const Array<Real> & position, Array<Real> & normal,
-  //                    ElementType type, GhostType ghost_type = _not_ghost);
-
-  // /// compute basis alliged with cohesive elements
-  // void computeBasis(const Array<Real> & position, Array<Real> & basis,
-  //                   ElementType type, GhostType ghost_type = _not_ghost);
-
   /// assemble the capacity matrix
   void assembleCapacity() override;
 
@@ -104,15 +96,6 @@ public:
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
 public:
-  // /// asign material properties to physical groups
-  // void assignPropertyToPhysicalGroup(const std::string & property_name,
-  //                                    const std::string & group_name,
-  //                                    Real value);
-  // /// asign material properties to physical groups
-  // void assignPropertyToPhysicalGroup(const std::string & property_name,
-  //                                    const std::string & group_name,
-  //                                    Matrix<Real> cond_matrix);
-
   /// given nodal positions, this function computes and updates normal openings
   /// at quads of cohesives
   void updateNormalOpeningAtQuadraturePoints(Array<Real> positions,
