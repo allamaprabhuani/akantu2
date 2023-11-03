@@ -13,3 +13,8 @@ Plane Surface(6) = {5};
 Physical Surface(7) = {6};
 
 Transfinite Line {1, 2, 3, 4} = 3;
+
+
+Physical Curve("left", 8) = {2};
+Physical Curve("right", 9) = {4};
+Physical Point("point", 10) = {3};
