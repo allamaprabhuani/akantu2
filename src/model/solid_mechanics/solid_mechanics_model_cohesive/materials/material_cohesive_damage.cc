@@ -314,19 +314,16 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     fem_cohesive.integrate(*at_nt_dul_n, *Kul_e, size_at_nt_dul_n, type,
                            ghost_type, elem_filter);
 
-    model->getDOFManager().getMatrix("K").saveMatrix("matrix_begin.dat");
-
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
-    model->getDOFManager().getMatrix("K").saveMatrix("matrix_after_uu.dat");
+    auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
+    auto conn = make_view(connectivity, connectivity.getNbComponent()).begin();
 
     auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-//    model->getDOFManager().assembleElementalMatricesToMatrix(
-//        "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type, _symmetric, elem_filter);
+    //    model->getDOFManager().assembleElementalMatricesToMatrix(
+    //        "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type, _symmetric, elem_filter);
 
-    auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
-    auto conn = make_view(connectivity, connectivity.getNbComponent() / 2, 2).begin();
     auto lambda_conn = make_view(lambda_connectivity, lambda_connectivity.getNbComponent()).begin();
 
     /// Assemble Kll_e
@@ -340,12 +337,15 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         auto N = lda_conn_el.rows();
         for (Int m = 0; m < N; ++m) {
             auto ldai = lda_conn_el(m);
-            for (Int n = 0; n < N; ++n) {
+            for (Int n = m; n < N; ++n) {
                 auto ldaj = lda_conn_el(n);
                 for (Int k = 0; k < spatial_dimension; ++k)
                 {
-                    auto && term_ll_ij = term_ll(ldai*spatial_dimension+k,ldaj*spatial_dimension+k);
-                    term_ll_ij = kll_e(m*spatial_dimension+k,n*spatial_dimension+k);
+                    for (Int l = 0; l < spatial_dimension; ++l)
+                    {
+                        auto && term_ll_ij = term_ll(ldai*spatial_dimension+k,ldaj*spatial_dimension+l);
+                        term_ll_ij = kll_e(m*spatial_dimension+k,n*spatial_dimension+l);
+                    }
                 }
             }
         }
@@ -354,9 +354,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     for_each_element(nb_element, elem_filter, compute_ll);
 
     model->getDOFManager().assemblePreassembledMatrix("K",term_ll);
-
-    model->getDOFManager().getMatrix("K").saveMatrix("matrix_after_ll.dat");
-
 
     /// Assemble Klu_e
     TermsToAssemble term_ul("displacement","lambda");
@@ -371,15 +368,15 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
         auto N = lda_conn_el.rows();
         for (Int m = 0; m < M; ++m) {
             for (Int n = 0; n < N; ++n) {
-                auto node_plus = u_conn_el(m,0);
-                auto node_minus = u_conn_el(m,1);
+                auto u = u_conn_el(m);
                 auto lda = lda_conn_el(n);
                 for (Int k = 0; k < spatial_dimension; ++k)
                 {
-                    auto && term_ul_plus = term_ul(node_plus*spatial_dimension+k,lda*spatial_dimension+k);
-                    term_ul_plus = kul_e(m,n);
-                    auto && term_ul_minus = term_ul(node_minus*spatial_dimension+k,lda*spatial_dimension+k);
-                    term_ul_minus = kul_e(m+spatial_dimension * size_of_shapes,n);
+                    for (Int l = 0; l < spatial_dimension; ++l)
+                    {
+                        auto && term_ul_ij = term_ul(u*spatial_dimension+k,lda*spatial_dimension+l);
+                        term_ul_ij = kul_e(m*spatial_dimension+k,n*spatial_dimension+l);
+                    }
                 }
             }
         }
@@ -388,10 +385,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(GhostType ghost_type) 
     for_each_element(nb_element, elem_filter, compute_ul);
 
     model->getDOFManager().assemblePreassembledMatrix("K",term_ul);
-
-    model->getDOFManager().getMatrix("K").saveMatrix("matrix_after_ul.dat");
-
-
   }
 
   AKANTU_DEBUG_OUT();
@@ -446,10 +439,27 @@ template <Int dim>
 void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
 
-  computeLambdaOnQuad(el_type, ghost_type);
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    this->computeTractionOnQuad(args);
-  }
+    for (const auto & type : getElementFilter().elementTypes(
+             spatial_dimension, ghost_type, _ek_cohesive)) {
+        auto & elem_filter = getElementFilter(type, ghost_type);
+        auto nb_element = elem_filter.size();
+        if (nb_element == 0) {
+            continue;
+        }
+
+        /// compute normals @f$\mathbf{n}@f$
+        computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+                      ghost_type);
+
+        /// compute openings @f$\mathbf{\delta}@f$
+        computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
+                       ghost_type);
+
+        computeLambdaOnQuad(el_type, ghost_type);
+        for (auto && args : getArguments(el_type, ghost_type)) {
+            this->computeTractionOnQuad(args);
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */

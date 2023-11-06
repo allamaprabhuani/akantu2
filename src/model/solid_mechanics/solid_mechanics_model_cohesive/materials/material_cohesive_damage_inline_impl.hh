@@ -43,7 +43,8 @@ inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(Args && args) {
 
     traction = lambda - (opening*k);
     /// TODO : COMPUTE augmented_compliance
-    Real augmented_compliance(0.);
+    Real d(0.0);
+    Real augmented_compliance = d/k;
     err_opening = opening-lambda*augmented_compliance;
 }
 
@@ -55,7 +56,8 @@ inline void MaterialCohesiveDamage<dim>::computeTangentTractionOnQuad(Eigen::Mat
                                                                       Args && args) {
     /// TODO : COMPUTE augmented_compliance
     /// TODO : check basis
-    Real augmented_compliance(0.);
+    Real d(0.0);
+    Real augmented_compliance = d/k;
     for(Int i = 0; i < dim; ++i)
     {
         tangent_uu(i,i) = -k;
