@@ -248,7 +248,8 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     init_node = node;
   }
 
-  lambda = std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
+  lambda = std::make_unique<Array<Real>>(0, spatial_dimension, "lambda");
+  lambda_blocked_dofs = std::make_unique<Array<bool>>(0, spatial_dimension, "lambda_blocked_dofs");
 
   if (lambda) {
     mesh.getElementalData<Idx>("initial_nodes_connectivities");
@@ -265,9 +266,9 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
 
   if (lambda) {
     auto & dof_manager = this->getDOFManager();
-    this->allocNodalField(this->lambda, spatial_dimension, "lambda");
     if (!dof_manager.hasDOFs("lambda")) {
         dof_manager.registerDOFs("lambda", *this->lambda, _dst_generic);
+        dof_manager.registerBlockedDOFs("lambda", *this->lambda_blocked_dofs);
     }
   }
 
@@ -628,7 +629,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
   copy(getDOFManager().getSolution("displacement"));
 
-  copy(initial_nodes);
+  copy(initial_nodes);  this->allocNodalField(this->blocked_dofs, spatial_dimension, "blocked_dofs");
+
 
   // correct connectivities
   if (lambda) {
@@ -664,7 +666,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
       }
     }
 
-    lambda->resize(lambda_id);
+    lambda->resize(lambda_id, 0.);
+    lambda_blocked_dofs->resize(lambda_id, false);
   }
 
   AKANTU_DEBUG_OUT();
@@ -689,6 +692,47 @@ void SolidMechanicsModelCohesive::afterSolveStep(bool converged) {
   SolidMechanicsModel::afterSolveStep(converged);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
+    const TimeStepSolverType & type) const {
+  ModelSolverOptions options = SolidMechanicsModel::getDefaultSolverOptions(type);
+
+  switch (type) {
+  case TimeStepSolverType::_dynamic_lumped: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["lambda"] =
+        IntegrationSchemeType::_central_difference;
+    options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+    break;
+  }
+  case TimeStepSolverType::_static: {
+    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+    options.integration_scheme_type["lambda"] =
+        IntegrationSchemeType::_pseudo_time;
+    options.solution_type["lambda"] = IntegrationScheme::_not_defined;
+    break;
+  }
+  case TimeStepSolverType::_dynamic: {
+    if (this->method == _explicit_consistent_mass) {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["lambda"] =
+          IntegrationSchemeType::_central_difference;
+      options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+    } else {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["lambda"] =
+          IntegrationSchemeType::_trapezoidal_rule_2;
+      options.solution_type["lambda"] = IntegrationScheme::_displacement;
+    }
+    break;
+  }
+  default:
+    AKANTU_EXCEPTION(type << " is not a valid time step solver type");
+  }
+
+  return options;
 }
 
 /* -------------------------------------------------------------------------- */
