@@ -21,6 +21,7 @@
 /* -------------------------------------------------------------------------- */
 #include "element_group.hh"
 #include "mesh_iterators.hh"
+#include "non_linear_solver.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
@@ -45,6 +46,10 @@ int main(int argc, char * argv[]) {
   model.initFull(_analysis_method = _static,
                  _is_extrinsic = false);
 
+  auto & solver = model.getNonLinearSolver();
+  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+  solver.set("max_iterations", 1);
+
   model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "point");
 
@@ -64,7 +69,9 @@ int main(int argc, char * argv[]) {
   /// Main loop
   for (Int s = 1; s <= max_steps; ++s) {
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _x), "right");
+    debug::setDebugLevel(dblDump);
     model.solveStep();
+    debug::setDebugLevel(dblWarning);
 
     if (s % 1 == 0) {
       model.dump();
