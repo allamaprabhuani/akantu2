@@ -121,7 +121,7 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
                   type, ghost_type, elem_filter);
 
     handler.getDOFManager().assembleElementalArrayLocalArray(
-        int_nt_driving_force, internal_force, type, ghost_type, -1,
+        "damage", int_nt_driving_force, internal_force, type, ghost_type, -1,
         elem_filter);
 
     // damage_energy_on_qpoints = gc*l0 = scalar
@@ -136,7 +136,7 @@ void PhaseField::assembleInternalForces(GhostType ghost_type) {
                   nb_nodes_per_element, type, ghost_type, elem_filter);
 
     handler.getDOFManager().assembleElementalArrayLocalArray(
-        int_bt_driving_energy, internal_force, type, ghost_type, -1,
+        "damage", int_bt_driving_energy, internal_force, type, ghost_type, -1,
         elem_filter);
   }
 }

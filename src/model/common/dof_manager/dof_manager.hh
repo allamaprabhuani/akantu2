@@ -21,6 +21,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "mesh.hh"
+#include "non_linear_solver.hh"
+#include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
 #include <set>
@@ -49,8 +51,7 @@ protected:
 
 public:
   DOFManager(const ID & id = "dof_manager");
-  DOFManager(Mesh & mesh, const ID & id = "dof_manager");
-  ~DOFManager() override;
+  ~DOFManager() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -63,7 +64,7 @@ public:
   /// the dof as an implied type of _dst_nodal and is defined only on a subset
   /// of nodes
   virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                            const ID & support_group);
+                            Mesh & mesh, const ID & support_group = "__mesh__");
 
   /// register an array of previous values of the degree of freedom
   virtual void registerDOFsPrevious(const ID & dof_id,
@@ -99,19 +100,9 @@ public:
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalArrayLocalArray(
-      const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-      ElementType type, GhostType ghost_type, Real scale_factor = 1.,
-      const Array<Int> & filter_elements = empty_filter);
-
-  /**
-   * Assemble elementary values to a local array of the size nb_nodes *
-   * nb_dof_per_node. The dof number is implicitly considered as
-   * conn(el, n) * nb_nodes_per_element + d.
-   * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
-   **/
-  virtual void assembleElementalArrayLocalArray(
-      const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-      const Array<Idx> & connectivity, Real scale_factor = 1.,
+      const ID & dof_id, const Array<Real> & elementary_vect,
+      Array<Real> & array_assembeled, ElementType type, GhostType ghost_type,
+      Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
   /**
@@ -125,32 +116,12 @@ public:
       const Array<Int> & filter_elements = empty_filter);
 
   /**
-   * Assemble elementary values to the global residual array. The dof number is
-   * implicitly considered as conn(el, n) * nb_nodes_per_element + d.
-   * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
-   **/
-  virtual void assembleElementalArrayToResidual(
-      const ID & dof_id, const Array<Real> & elementary_vect,
-      const Array<Idx> & connectivity, Real scale_factor = 1.,
-      const Array<Int> & filter_elements = empty_filter);
-
-  /**
    * Assemble elementary values to a global array corresponding to a lumped
    * matrix
    */
   virtual void assembleElementalArrayToLumpedMatrix(
       const ID & dof_id, const Array<Real> & elementary_vect,
       const ID & lumped_mtx, ElementType type, GhostType ghost_type,
-      Real scale_factor = 1.,
-      const Array<Int> & filter_elements = empty_filter);
-
-  /**
-   * Assemble elementary values to a global array corresponding to a lumped
-   * matrix
-   */
-  virtual void assembleElementalArrayToLumpedMatrix(
-      const ID & dof_id, const Array<Real> & elementary_vect,
-      const ID & lumped_mtx, const Array<Idx> & connectivity,
       Real scale_factor = 1.,
       const Array<Int> & filter_elements = empty_filter);
 
@@ -165,18 +136,6 @@ public:
       GhostType ghost_type = _not_ghost,
       const MatrixType & elemental_matrix_type = _symmetric,
       const Array<Int> & filter_elements = empty_filter);
-
-  /**
-   * Assemble elementary values to the global residual array. The dof number is
-   * implicitly considered as conn(el, n) * nb_nodes_per_element + d.  With 0 <
-   * n < nb_nodes_per_element and 0 < d < nb_dof_per_node
-   **/
-  virtual void assembleElementalMatricesToMatrix(
-      const ID & matrix_id, const ID & dof_id,
-      const Array<Real> & elementary_mat, const Array<Idx> & connectivity,
-      ElementType type, GhostType ghost_type = _not_ghost,
-      const MatrixType & elemental_matrix_type = _symmetric,
-      const Array<Int> & filter_elements = empty_filter) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
   virtual void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
@@ -257,11 +216,12 @@ protected:
   void assemblePreassembledMatrix_(Mat & A, const TermsToAssemble & terms);
 
   template <typename Mat>
-  void assembleElementalMatricesToMatrix_(
-      Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
-      const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
-      const MatrixType & elemental_matrix_type,
-      const Array<Idx> & filter_elements);
+  void
+  assembleElementalMatricesToMatrix_(Mat & A, const ID & dof_id,
+                                     const Array<Real> & elementary_mat,
+                                     ElementType type, GhostType ghost_type,
+                                     const MatrixType & elemental_matrix_type,
+                                     const Array<Idx> & filter_elements);
 
   template <typename Vec>
   void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
@@ -511,12 +471,7 @@ public:
   bool hasTimeStepSolver(const ID & solver_id) const;
 
   /* ------------------------------------------------------------------------ */
-  const Mesh & getMesh() {
-    if (mesh != nullptr) {
-      return *mesh;
-    }
-    AKANTU_EXCEPTION("No mesh registered in this dof manager");
-  }
+  const Mesh & getMesh(const ID & dof_id) const;
 
   /* ------------------------------------------------------------------------ */
   AKANTU_GET_MACRO_AUTO(Communicator, communicator);
@@ -538,10 +493,6 @@ protected:
   virtual std::pair<Int, Int> updateNodalDOFs(const ID & dof_id,
                                               const Array<Idx> & nodes_list);
 
-  template <typename Func>
-  auto countDOFsForNodes(const DOFData & dof_data, Int nb_nodes,
-                         Func && getNode);
-
   void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
                       Int nb_new_pure_local, Int nb_nodes,
                       const std::function<Idx(Idx)> & getNode);
@@ -555,30 +506,6 @@ protected:
   /// cleaning matrices profiles
   virtual void resizeGlobalArrays();
 
-public:
-  /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<Idx> & nodes_list,
-                    const NewNodesEvent & event) override;
-  /// function to implement to react on  akantu::RemovedNodesEvent
-  void onNodesRemoved(const Array<Idx> & nodes_list,
-                      const Array<Idx> & new_numbering,
-                      const RemovedNodesEvent & event) override;
-  /// function to implement to react on  akantu::NewElementsEvent
-  void onElementsAdded(const Array<Element> & elements_list,
-                       const NewElementsEvent & event) override;
-  /// function to implement to react on  akantu::RemovedElementsEvent
-  void onElementsRemoved(const Array<Element> & elements_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const RemovedElementsEvent & event) override;
-  /// function to implement to react on  akantu::ChangedElementsEvent
-  void onElementsChanged(const Array<Element> & old_elements_list,
-                         const Array<Element> & new_elements_list,
-                         const ElementTypeMapArray<Idx> & new_numbering,
-                         const ChangedElementsEvent & event) override;
-
-  /// function to implement to react on  akantu::MeshIsDistributedEvent
-  void onMeshIsDistributed(const MeshIsDistributedEvent & event) override;
-
 protected:
   inline DOFData & getDOFData(const ID & dof_id);
   inline const DOFData & getDOFData(const ID & dof_id) const;
@@ -589,16 +516,36 @@ protected:
 
   virtual std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) = 0;
 
+public:
+  /// function to implement to react on  akantu::NewNodesEvent
+  void onNodesAdded(const Array<Idx> & nodes_list,
+                    const NewNodesEvent & event) override;
+
+  /// function to implement to react on  akantu::MeshIsDistributedEvent
+  void onMeshIsDistributed(const MeshIsDistributedEvent & event) override;
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// dof representations in the dof manager
-  struct DOFData {
+  struct DOFData : public MeshEventHandler {
     DOFData() = delete;
     explicit DOFData(const ID & dof_id);
-    virtual ~DOFData();
 
+    template <typename Func>
+    [[nodiscard]] auto countDOFsForNodes(Int nb_nodes, Func && get_node) const;
+
+    virtual Array<Idx> & getLocalEquationsNumbers() {
+      return local_equation_number;
+    }
+
+    /// function to implement to react on  akantu::NewNodesEvent
+    void onNodesAdded(const Array<Idx> & nodes_list,
+                      const NewNodesEvent & event) override;
+
+  public:
+    ID dof_id;
     /// DOF support type (nodal, general) this is needed to determine how the
     /// dof are shared among processors
     DOFSupportType support_type;
@@ -639,12 +586,13 @@ protected:
     /// local numbering equation numbers
     Array<Idx> local_equation_number;
 
+    /// reference to the underlying mesh
+    const Mesh * mesh{nullptr};
+
+    DOFManager * dof_manager{nullptr};
+
     /// associated node for _dst_nodal dofs only
     Array<Idx> associated_nodes;
-
-    virtual Array<Idx> & getLocalEquationsNumbers() {
-      return local_equation_number;
-    }
   };
 
   /// type to store dofs information
@@ -678,9 +626,6 @@ protected:
 
   /// time step solvers storage
   TimeStepSolversMap time_step_solvers;
-
-  /// reference to the underlying mesh
-  Mesh * mesh{nullptr};
 
   /// Total number of degrees of freedom (size with the ghosts)
   Int local_system_size{0};
@@ -737,10 +682,12 @@ protected:
 private:
   /// This is for unit testing
   friend class DOFManagerTester;
+
+  std::set<const Mesh *> registered_meshes;
 };
 
 using DefaultDOFManagerFactory = Factory<DOFManager, ID, const ID &>;
-using DOFManagerFactory = Factory<DOFManager, ID, Mesh &, const ID &>;
+using DOFManagerFactory = Factory<DOFManager, ID, const ID &>;
 
 } // namespace akantu
 

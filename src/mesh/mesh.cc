@@ -563,7 +563,7 @@ void Mesh::distributeImpl(
 
   this->computeBoundingBox();
 
-  MeshIsDistributedEvent event(AKANTU_CURRENT_FUNCTION);
+  MeshIsDistributedEvent event(mesh, AKANTU_CURRENT_FUNCTION);
   this->sendEvent(event);
 }
 

@@ -248,14 +248,14 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     init_node = node;
   }
 
-  lambda = std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
+  lambda =
+      std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
+  lambda_mesh = std::make_unique<Mesh>(spatial_dimension,
+                                       mesh.getCommunicator(), "lambda_mesh");
 
-  if (lambda) {
-    mesh.getElementalData<Idx>("initial_nodes_connectivities");
-    mesh.getElementalData<Idx>("lambda_connectivities");
-    auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
-    nodes_to_lambda.resize(mesh.getNbNodes(), -1);
-  }
+  mesh.getElementalData<Idx>("initial_nodes_connectivities");
+  auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+  nodes_to_lambda.resize(mesh.getNbNodes(), -1);
 
   if (is_extrinsic) {
     this->initAutomaticInsertion();
@@ -267,7 +267,7 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     auto & dof_manager = this->getDOFManager();
     this->allocNodalField(this->lambda, spatial_dimension, "lambda");
     if (!dof_manager.hasDOFs("lambda")) {
-        dof_manager.registerDOFs("lambda", *this->lambda, _dst_generic);
+      dof_manager.registerDOFs("lambda", *this->lambda, _dst_generic);
     }
   }
 
@@ -522,20 +522,20 @@ void SolidMechanicsModelCohesive::onElementsAdded(
     auto & initial_nodes_connectivities =
         mesh.getElementalData<Idx>("initial_nodes_connectivities");
     auto & lambda_connectivities =
-        mesh.getElementalData<Idx>("lambda_connectivities");
+        MeshAccessor(*lambda_mesh).getConnectivities();
 
     for (auto ghost_type : ghost_types) {
       for (auto type : mesh.elementTypes(_element_kind = _ek_cohesive,
                        _ghost_type = ghost_type)) {
         auto size = mesh.getConnectivity(type, ghost_type).size();
+        auto underlying_type = Mesh::getFacetType(type);
         if (not initial_nodes_connectivities.exists(type, ghost_type)) {
-          auto underlying_type = Mesh::getFacetType(type);
-          initial_nodes_connectivities.alloc(
-              size, Mesh::getNbNodesPerElement(underlying_type), type,
-              ghost_type, -1);
-          lambda_connectivities.alloc(
-              size, Mesh::getNbNodesPerElement(underlying_type), type,
-              ghost_type, -1);
+          auto nb_nodes_per_element =
+              Mesh::getNbNodesPerElement(underlying_type);
+          initial_nodes_connectivities.alloc(size, nb_nodes_per_element, type,
+                                             ghost_type, -1);
+          lambda_connectivities.alloc(size, nb_nodes_per_element, type,
+                                      ghost_type, -1);
 
         } else {
           initial_nodes_connectivities(type, ghost_type).resize(size, -1);
@@ -634,10 +634,13 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
   if (lambda) {
     auto & initial_nodes_connectivities =
         mesh.getElementalData<Idx>("initial_nodes_connectivities");
-    auto & lambda_connectivities =
-        mesh.getElementalData<Idx>("lambda_connectivities");
-
     auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+    auto & lambda_connectivities = MeshAccessor(mesh).getConnectivities();
+
+    auto & lambda_nodes = MeshAccessor(mesh).getNodes();
+    const auto & nodes = mesh.getNodes();
+
+    auto nodes_it = make_view(nodes, spatial_dimension).begin();
 
     auto lambda_id = lambda->size();
 
@@ -649,17 +652,18 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
             initial_nodes_connectivities(type, ghost_type);
         auto & lambda_connectivity = lambda_connectivities(type, ghost_type);
 
-        for (auto && [conn, lambda_conn] :
+        for (auto && [node, lambda_node] :
              zip(make_view(initial_nodes_connectivity),
                  make_view(lambda_connectivity))) {
-          conn = initial_nodes(conn);
-          auto & ntl = nodes_to_lambda(conn);
+          node = initial_nodes(node);
+          auto & ntl = nodes_to_lambda(node);
           if (ntl == -1) {
             ntl = lambda_id;
+            lambda_nodes.push_back(nodes_it[node]);
             ++lambda_id;
           }
 
-          lambda_conn = ntl;
+          lambda_node = ntl;
         }
       }
     }

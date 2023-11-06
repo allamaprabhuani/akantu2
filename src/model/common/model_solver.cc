@@ -80,7 +80,7 @@ ModelSolver::initDOFManager(const std::shared_ptr<DOFManager> & dof_manager) {
   ID solver_type = "default";
 
 #if defined(AKANTU_USE_MUMPS)
-  solver_type = "default";
+  solver_type = "mumps";
 #elif defined(AKANTU_USE_PETSC)
   solver_type = "petsc";
 #endif
@@ -103,7 +103,7 @@ ModelSolver::initDOFManager(const ID & solver_type) {
 
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
-        solver_type, mesh, this->id + ":dof_manager_" + solver_type);
+        solver_type, this->id + ":dof_manager_" + solver_type);
   } catch (...) {
     AKANTU_EXCEPTION(
         "To use the solver "

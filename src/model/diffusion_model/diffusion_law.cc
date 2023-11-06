@@ -66,8 +66,8 @@ void DiffusionLaw::assembleInternalFlow(GhostType ghost_type) {
                   elem_filter);
 
     model.getDOFManager().assembleElementalArrayLocalArray(
-        int_bt_d_gu, model.getInternalFlow(), type, ghost_type, -1,
-        elem_filter);
+        model.getDOFName(), int_bt_d_gu, model.getInternalFlow(), type,
+        ghost_type, -1, elem_filter);
   }
 }
 

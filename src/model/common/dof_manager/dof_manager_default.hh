@@ -43,12 +43,15 @@ class DOFManagerDefault : public DOFManager {
   /* ------------------------------------------------------------------------ */
 public:
   DOFManagerDefault(const ID & id = "dof_manager_default");
-  DOFManagerDefault(Mesh & mesh, const ID & id = "dof_manager_default");
   ~DOFManagerDefault() override;
 
 protected:
   struct DOFDataDefault : public DOFData {
     explicit DOFDataDefault(const ID & dof_id);
+
+  public:
+    /// synchronizer to maintain coherency in dof fields
+    std::shared_ptr<DOFSynchronizer> synchronizer;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -72,9 +75,8 @@ public:
    **/
   void assembleElementalMatricesToMatrix(
       const ID & matrix_id, const ID & dof_id,
-      const Array<Real> & elementary_mat, const Array<Idx> & connectivity,
-      ElementType type, GhostType ghost_type,
-      const MatrixType & elemental_matrix_type,
+      const Array<Real> & elementary_mat, ElementType type,
+      GhostType ghost_type, const MatrixType & elemental_matrix_type,
       const Array<Int> & filter_elements) override;
 
   void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
@@ -115,9 +117,6 @@ public:
   /// update the global dofs vector
   void updateGlobalBlockedDofs() override;
 
-  //   /// apply boundary conditions to jacobian matrix
-  //   void applyBoundary(const ID & matrix_id = "J") override;
-
 private:
   /// Add a symmetric matrices to a symmetric sparse matrix
   void addSymmetricElementalMatrixToSymmetric(
@@ -140,22 +139,13 @@ private:
                     GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
-  /* MeshEventHandler interface                                               */
+  /* MeOAshEventHandler interface */
   /* ------------------------------------------------------------------------ */
 protected:
   std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) override;
 
-  // std::pair<UInt, UInt>
-  // updateNodalDOFs(const ID & dof_id, const Array<UInt> & nodes_list)
-  // override;
-
   void resizeGlobalArrays() override;
-
-public:
-  /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<Idx> & nodes_list,
-                    const NewNodesEvent & event) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -194,6 +184,9 @@ public:
                        SolverCallback & solver_callback) override;
 
   /* ------------------------------------------------------------------------ */
+  void onNodesAdded(const Array<Idx> & nodes_list, const NewNodesEvent & event);
+
+  /* ------------------------------------------------------------------------ */
 private:
   /// Get the solution array
   Array<Real> & getSolutionArray();
@@ -206,10 +199,15 @@ private:
 
 public:
   /// access the internal dof_synchronizer
-  AKANTU_GET_MACRO_NOT_CONST(Synchronizer, *synchronizer, DOFSynchronizer &);
+  DOFSynchronizer & getSynchronizer() {
+    AKANTU_DEBUG_ASSERT(synchronizer != nullptr, "DOFSynchronizer is not set");
+    return *synchronizer;
+  }
 
   /// access the internal dof_synchronizer
-  bool hasSynchronizer() const { return synchronizer != nullptr; }
+  [[nodiscard]] bool hasSynchronizer() const {
+    return (synchronizer != nullptr);
+  }
 
   Array<bool> & getBlockedDOFs();
   const Array<bool> & getBlockedDOFs() const;
@@ -228,17 +226,14 @@ protected:
   /// contains the the dofs that where added to the profile of a given matrix.
   DOFToMatrixProfile matrix_profiled_dofs;
 
-  /// synchronizer to maintain coherency in dof fields
-  std::unique_ptr<DOFSynchronizer> synchronizer;
-
   friend class DOFSynchronizer;
 
   /// Array containing the true or false if the node is in global_blocked_dofs
   Array<bool> global_blocked_dofs_uint;
+
+  std::unique_ptr<DOFSynchronizer> synchronizer;
 };
 
 } // namespace akantu
-
-#include "dof_manager_default_inline_impl.hh"
 
 #endif /* AKANTU_DOF_MANAGER_DEFAULT_HH_ */

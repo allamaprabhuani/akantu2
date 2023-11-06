@@ -136,7 +136,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
   std::vector<Idx> new_nodes;
   if (is_distributed) {
-    NewNodesEvent event(AKANTU_CURRENT_FUNCTION);
+    NewNodesEvent event(mesh, AKANTU_CURRENT_FUNCTION);
 
     /* ---------------------------------------------------------------------- */
     // function to send nodes in bboxes intersections
@@ -203,8 +203,8 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
       while (not buffer.empty()) {
         Vector<Real> pos(spatial_dimension);
-        Idx global_node;
-        NodeFlag flag;
+        Idx global_node{};
+        NodeFlag flag{};
         buffer >> global_node;
         buffer >> pos;
         buffer >> flag;
@@ -214,7 +214,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
         // get the master info of is slave
         if (flag == NodeFlag::_periodic_slave) {
-          Idx master_node;
+          Idx master_node{};
           buffer >> master_node;
           // std::cout << " slave of " << master_node << std::endl;
           // auto local_master_node = getNodeLocalId(master_node);
@@ -224,11 +224,11 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
         // get the list of slaves if is master
         if ((flag & NodeFlag::_periodic_mask) == NodeFlag::_periodic_master) {
-          Int nb_slaves;
+          Int nb_slaves{};
           buffer >> nb_slaves;
           // std::cout << " master of " << nb_slaves << " nodes : [";
           for (auto ns [[gnu::unused]] : arange(nb_slaves)) {
-            Idx gslave_node;
+            Idx gslave_node{};
             buffer >> gslave_node;
             // std::cout << (ns == 0 ? "" : ", ") << gslave_node;
             // auto lslave_node = getNodeLocalId(gslave_node);

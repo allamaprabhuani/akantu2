@@ -27,7 +27,6 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include <iostream>
-
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -232,8 +231,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
   Int nb_total_nodes_to_recv = 0;
   Int nb_current_nodes = global_nodes_ids.size();
 
-  NewNodesEvent new_nodes;
-  NewElementsEvent new_elements;
+  NewNodesEvent new_nodes(mesh);
+  NewElementsEvent new_elements(mesh);
 
   std::map<Int, std::vector<Int>> ask_nodes_per_proc;
 

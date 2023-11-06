@@ -183,16 +183,7 @@ public:
                                  ElementKind element_kind,
                                  bool padding_flag) override;
 
-public:
-  /// register the tags associated with the parallel synchronizer for
-  /// cohesive elements
-  // void initParallel(MeshPartition * partition,
-  //                DataAccessor * data_accessor = NULL,
-  //                bool extrinsic = false);
-
 protected:
-  // void synchronizeGhostFacetsConnectivity();
-
   void updateCohesiveSynchronizers(NewElementsEvent & elements_event);
   void updateFacetStressSynchronizer();
 
@@ -297,6 +288,8 @@ private:
 
   /// cohesive elements synchronizer
   std::unique_ptr<ElementSynchronizer> cohesive_synchronizer;
+
+  std::unique_ptr<Mesh> lambda_mesh;
 };
 
 } // namespace akantu

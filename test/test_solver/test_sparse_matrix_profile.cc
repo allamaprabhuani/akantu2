@@ -38,9 +38,9 @@ int main(int argc, char * argv[]) {
 
   Int nb_nodes = mesh.getNbNodes();
 
-  DOFManagerDefault dof_manager(mesh, "test_dof_manager");
+  DOFManagerDefault dof_manager("test_dof_manager");
   Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
-  dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
+  dof_manager.registerDOFs("test_synchronize", test_synchronize, mesh);
 
   auto & A = dof_manager.getNewMatrix("A", _symmetric);
 

@@ -57,9 +57,6 @@ DOFSynchronizer::DOFSynchronizer(DOFManagerDefault & dof_manager, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-DOFSynchronizer::~DOFSynchronizer() = default;
-
-/* -------------------------------------------------------------------------- */
 void DOFSynchronizer::registerDOFs(const ID & dof_id) {
   if (this->nb_proc == 1) {
     return;
@@ -71,7 +68,8 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
 
   const auto & equation_numbers = dof_manager.getLocalEquationsNumbers(dof_id);
   const auto & associated_nodes = dof_manager.getDOFsAssociatedNodes(dof_id);
-  const auto & node_synchronizer = dof_manager.getMesh().getNodeSynchronizer();
+  const auto & node_synchronizer =
+      dof_manager.getMesh(dof_id).getNodeSynchronizer();
   const auto & node_communications = node_synchronizer.getCommunications();
 
   auto transcode_node_to_global_dof_scheme =
@@ -99,8 +97,7 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
         std::sort(global_dofs_per_node.begin(), global_dofs_per_node.end());
         std::transform(global_dofs_per_node.begin(), global_dofs_per_node.end(),
                        global_dofs_per_node.begin(), [this](Idx g) -> Idx {
-                         auto l = dof_manager.globalToLocalEquationNumber(g);
-                         return l;
+                         return dof_manager.globalToLocalEquationNumber(g);
                        });
         for (auto & leqnum : global_dofs_per_node) {
           scheme.push_back(leqnum);
@@ -145,8 +142,7 @@ void DOFSynchronizer::onNodesAdded(const Array<Idx> & /*nodes_list*/) {
   auto dof_ids = dof_manager.getDOFIDs();
 
   for (auto sr : iterate_send_recv) {
-    for (auto && data : communications.iterateSchemes(sr)) {
-      auto & scheme = data.second;
+    for (auto && [_, scheme] : communications.iterateSchemes(sr)) {
       scheme.resize(0);
     }
   }

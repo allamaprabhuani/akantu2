@@ -39,7 +39,8 @@ namespace akantu {
 PhaseFieldModel::PhaseFieldModel(Mesh & mesh, Int dim, const ID & id,
                                  std::shared_ptr<DOFManager> dof_manager,
                                  ModelType model_type)
-    : Parent(mesh, model_type, dim, id) {
+    : Parent(mesh, model_type, dim, id), BoundaryCondition<PhaseFieldModel>(
+                                             "damage") {
   AKANTU_DEBUG_IN();
 
   this->initDOFManager(std::move(dof_manager));
@@ -109,7 +110,7 @@ void PhaseFieldModel::initSolver(TimeStepSolverType time_step_solver_type,
   this->allocNodalField(this->previous_damage, 1, "previous_damage");
 
   if (!dof_manager.hasDOFs("damage")) {
-    dof_manager.registerDOFs("damage", *this->damage, _dst_nodal);
+    dof_manager.registerDOFs("damage", *this->damage, mesh);
     dof_manager.registerBlockedDOFs("damage", *this->blocked_dofs);
     dof_manager.registerDOFsPrevious("damage", *this->previous_damage);
   }

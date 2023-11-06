@@ -431,7 +431,7 @@ Int CohesiveElementInserterHelper::insertFacetsOnly() {
 /* -------------------------------------------------------------------------- */
 template <Int dim> void CohesiveElementInserterHelper::doubleFacets() {
   AKANTU_DEBUG_IN();
-  NewElementsEvent new_facets;
+  NewElementsEvent new_facets(mesh);
   auto spatial_dimension = mesh_facets.getSpatialDimension();
 
   auto & facets_to_double = *facets_to_double_by_dim[dim];
@@ -798,7 +798,7 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     return;
   }
 
-  NewElementsEvent new_facets_event;
+  NewElementsEvent new_facets_event(mesh);
 
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
   const auto & element_to_facet = mesh_facets.getElementToSubelement();
@@ -852,7 +852,7 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
     return;
   }
 
-  NewElementsEvent new_facets_event;
+  NewElementsEvent new_facets_event(mesh);
 
   std::vector<Idx> nodes_to_double;
   MeshAccessor mesh_accessor(mesh_facets);

@@ -52,7 +52,8 @@ namespace akantu {
 SolidMechanicsModel::SolidMechanicsModel(
     Mesh & mesh, Int dim, const ID & id,
     const std::shared_ptr<DOFManager> & dof_manager, const ModelType model_type)
-    : CLHParent(mesh, model_type, dim, id) {
+    : CLHParent(mesh, model_type, dim, id),
+      BoundaryCondition<SolidMechanicsModel>("displacement") {
   AKANTU_DEBUG_IN();
 
   this->initDOFManager(dof_manager);
@@ -207,7 +208,7 @@ void SolidMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
 
   /* ------------------------------------------------------------------------ */
   if (!dof_manager.hasDOFs("displacement")) {
-    dof_manager.registerDOFs("displacement", *this->displacement, _dst_nodal);
+    dof_manager.registerDOFs("displacement", *this->displacement, this->mesh);
     dof_manager.registerBlockedDOFs("displacement", *this->blocked_dofs);
     dof_manager.registerDOFsIncrement("displacement",
                                       *this->displacement_increment);

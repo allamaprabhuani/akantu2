@@ -50,11 +50,11 @@ public:
   MyModel(Real F, Mesh & mesh, bool lumped,
           const ID & dof_manager_type = "default")
       : ModelSolver(mesh, ModelType::_model, "model_solver"),
-        nb_dofs(mesh.getNbNodes()), nb_elements(mesh.getNbElement(_segment_2)),
-        lumped(lumped), E(1.), A(1.), rho(1.), mesh(mesh),
-        displacement(nb_dofs, 1, "disp"), velocity(nb_dofs, 1, "velo"),
-        acceleration(nb_dofs, 1, "accel"), blocked(nb_dofs, 1, "blocked"),
-        forces(nb_dofs, 1, "force_ext"),
+        BoundaryCondition<MyModel>("disp"), nb_dofs(mesh.getNbNodes()),
+        nb_elements(mesh.getNbElement(_segment_2)), lumped(lumped), E(1.),
+        A(1.), rho(1.), mesh(mesh), displacement(nb_dofs, 1, "disp"),
+        velocity(nb_dofs, 1, "velo"), acceleration(nb_dofs, 1, "accel"),
+        blocked(nb_dofs, 1, "blocked"), forces(nb_dofs, 1, "force_ext"),
         internal_forces(nb_dofs, 1, "force_int"),
         stresses(nb_elements, 1, "stress"), strains(nb_elements, 1, "strain"),
         initial_lengths(nb_elements, 1, "L0") {
@@ -63,7 +63,7 @@ public:
 
     this->initBC(*this, displacement, forces);
 
-    this->getDOFManager().registerDOFs("disp", displacement, _dst_nodal);
+    this->getDOFManager().registerDOFs("disp", displacement, mesh);
     this->getDOFManager().registerDOFsDerivative("disp", 1, velocity);
     this->getDOFManager().registerDOFsDerivative("disp", 2, acceleration);
     this->getDOFManager().registerBlockedDOFs("disp", blocked);
@@ -140,7 +140,7 @@ public:
     }
 
     this->getDOFManager().assembleElementalArrayLocalArray(
-        m_all_el, M, _segment_2, ghost_type);
+        "disp", m_all_el, M, _segment_2, ghost_type);
 
     this->getDOFManager().assembleToLumpedMatrix("disp", M, "M");
   }
@@ -295,7 +295,7 @@ public:
     }
 
     this->getDOFManager().assembleElementalArrayLocalArray(
-        forces_internal_el, internal_forces, _segment_2, ghost_type);
+        "disp", forces_internal_el, internal_forces, _segment_2, ghost_type);
   }
 
   Real getPotentialEnergy() {

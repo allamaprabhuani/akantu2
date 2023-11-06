@@ -121,7 +121,7 @@ public:
         {_dmt_default, "default"}, {_dmt_petsc, "petsc"}};
 
     return DOFManagerTester(DOFManagerFactory::getInstance().allocate(
-        types[T::value], *mesh, "dof_manager"));
+        types[T::value], "dof_manager"));
   }
 
   decltype(auto) registerDOFs(DOFSupportType dst1, DOFSupportType dst2) {
@@ -130,14 +130,22 @@ public:
     auto n1 = dst1 == _dst_nodal ? nb_nodes : nb_pure_local;
     this->dof1 = std::make_unique<Array<Real>>(n1, 3);
 
-    dof_manager->registerDOFs("dofs1", *this->dof1, dst1);
+    if (dst1 == _dst_nodal) {
+      dof_manager->registerDOFs("dofs1", *this->dof1, *mesh);
+    } else {
+      dof_manager->registerDOFs("dofs1", *this->dof1, dst1);
+    }
 
     EXPECT_EQ(dof_manager.residual().size(), nb_total_nodes * 3);
 
     auto n2 = dst2 == _dst_nodal ? nb_nodes : nb_pure_local;
     this->dof2 = std::make_unique<Array<Real>>(n2, 5);
 
-    dof_manager->registerDOFs("dofs2", *this->dof2, dst2);
+    if (dst2 == _dst_nodal) {
+      dof_manager->registerDOFs("dofs2", *this->dof2, *mesh);
+    } else {
+      dof_manager->registerDOFs("dofs2", *this->dof2, dst2);
+    }
 
     EXPECT_EQ(dof_manager.residual().size(), nb_total_nodes * 8);
     return dof_manager;
@@ -181,7 +189,7 @@ TYPED_TEST(DOFManagerFixture, RegisterNodalDOF1) {
   auto dof_manager = this->alloc();
 
   Array<Real> dofs(this->nb_nodes, 3);
-  dof_manager->registerDOFs("dofs1", dofs, _dst_nodal);
+  dof_manager->registerDOFs("dofs1", dofs, *this->mesh);
   EXPECT_GE(dof_manager.residual().size(), this->nb_total_nodes * 3);
 }
 

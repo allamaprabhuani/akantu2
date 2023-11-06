@@ -67,12 +67,13 @@ protected:
     return zip_append(
         MaterialCohesive::getArguments<dim>(element_type, ghost_type),
         "lambda"_n = make_view<dim>(this->lambda(element_type, ghost_type)),
-        "err_opening"_n = make_view<dim>(this->err_openings(element_type, ghost_type)));
+        "err_opening"_n =
+            make_view<dim>(this->err_openings(element_type, ghost_type)));
   }
 
   /// constitutive law
   void computeTraction(ElementType el_type,
-                       GhostType ghost_type = _not_ghost) override;  
+                       GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
   /// WARNING : override was removed, not sure it should have
@@ -85,9 +86,10 @@ protected:
   template <typename Args> inline void computeTractionOnQuad(Args && args);
 
   template <class Derived, class Args>
-  inline void computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent_uu,
-                                           Eigen::MatrixBase<Derived> & tangent_ll,
-                                           Args && args);
+  inline void
+  computeTangentTractionOnQuad(Eigen::MatrixBase<Derived> & tangent_uu,
+                               Eigen::MatrixBase<Derived> & tangent_ll,
+                               Args && args);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -110,7 +112,6 @@ protected:
 
   Vector<Real, dim> normal_opening;
   Real normal_opening_norm{0.};
-
 };
 
 /* -------------------------------------------------------------------------- */

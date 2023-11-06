@@ -525,8 +525,8 @@ void StructuralMechanicsModel::assembleInternalForce(ElementType type,
   Array<Real> intBtSigma(0, ndof_per_elem, "intBtSigma");
   fem.integrate(BtSigma, intBtSigma, ndof_per_elem, type, gt);
 
-  getDOFManager().assembleElementalArrayLocalArray(intBtSigma, *internal_force,
-                                                   type, gt, -1.);
+  getDOFManager().assembleElementalArrayLocalArray(
+      "displacement", intBtSigma, *internal_force, type, gt, -1.);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -687,8 +687,8 @@ void StructuralMechanicsModel::computeForcesByLocalTractionArray(
                           nb_degree_of_freedom * nb_nodes_per_element, type);
 
   // assemble the result into force vector
-  getDOFManager().assembleElementalArrayLocalArray(int_funct, *external_force,
-                                                   type, _not_ghost, 1);
+  getDOFManager().assembleElementalArrayLocalArray(
+      "displacement", int_funct, *external_force, type, _not_ghost, 1);
 
   AKANTU_DEBUG_OUT();
 }

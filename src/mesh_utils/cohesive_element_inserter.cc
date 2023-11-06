@@ -221,16 +221,13 @@ void CohesiveElementInserter::limitCheckFacets(
       },
       _spatial_dimension = spatial_dimension - 1);
 
-  /// TODO_NR : COUNT LAMBDA NODES HERE
-  /// TODO_NR : CREATE LAMBDA CONNECTIVITY HERE ?
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
-  CohesiveNewNodesEvent node_event(AKANTU_CURRENT_FUNCTION);
-  NewElementsEvent element_event(AKANTU_CURRENT_FUNCTION);
+  CohesiveNewNodesEvent node_event(mesh, AKANTU_CURRENT_FUNCTION);
+  NewElementsEvent element_event(mesh, AKANTU_CURRENT_FUNCTION);
 
   if (mesh_facets.isDistributed()) {
     mesh_facets.getElementSynchronizer().synchronizeOnce(

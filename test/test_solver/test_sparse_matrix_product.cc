@@ -46,10 +46,10 @@ int main(int argc, char * argv[]) {
   mesh.distribute();
 
   Int nb_nodes = mesh.getNbNodes();
-  DOFManagerDefault dof_manager(mesh, "test_dof_manager");
+  DOFManagerDefault dof_manager("test_dof_manager");
 
   Array<Real> test_synchronize(nb_nodes, nb_dof, "Test vector");
-  dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
+  dof_manager.registerDOFs("test_synchronize", test_synchronize, mesh);
 
   if (prank == 0)
     std::cout << "Creating a SparseMatrix" << std::endl;

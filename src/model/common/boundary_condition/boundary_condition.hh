@@ -40,7 +40,7 @@ private:
   /* Constructors / Destructors / Initializers                                */
   /* ------------------------------------------------------------------------ */
 public:
-  BoundaryCondition() : model(nullptr) {}
+  BoundaryCondition(const ID & dof_name) : model(nullptr), dof_name(dof_name) {}
   /// Initialize the boundary conditions
   void initBC(ModelType & model, Array<Real> & primal, Array<Real> & dual);
   void initBC(ModelType & model, Array<Real> & primal,
@@ -73,6 +73,8 @@ public:
 
 private:
   ModelType * model;
+  ID dof_name;
+
   Array<Real> * primal{nullptr};
   Array<Real> * dual{nullptr};
   Array<Real> * primal_increment{nullptr};

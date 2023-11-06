@@ -248,7 +248,6 @@ package_declare_sources(core
   model/common/dof_manager/dof_manager.hh
   model/common/dof_manager/dof_manager_default.cc
   model/common/dof_manager/dof_manager_default.hh
-  model/common/dof_manager/dof_manager_default_inline_impl.hh
   model/common/dof_manager/dof_manager_inline_impl.hh
 
   model/common/non_linear_solver/non_linear_solver.cc

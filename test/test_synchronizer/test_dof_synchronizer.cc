@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
     mesh.read("bar.msh");
   mesh.distribute();
 
-  DOFManagerDefault dof_manager(mesh, "test_dof_manager");
+  DOFManagerDefault dof_manager("test_dof_manager");
 
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
   /* test the synchronization                                                 */
   /* ------------------------------------------------------------------------ */
   Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
-  dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
+  dof_manager.registerDOFs("test_synchronize", test_synchronize, mesh);
 
   const auto & equation_number =
       dof_manager.getLocalEquationsNumbers("test_synchronize");

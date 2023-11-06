@@ -61,14 +61,14 @@ inline decltype(auto) Mesh::getConnectivity(const Element & element) const {
 /* -------------------------------------------------------------------------- */
 inline RemovedNodesEvent::RemovedNodesEvent(const Mesh & mesh,
                                             const std::string & origin)
-    : MeshEvent<Idx>(origin),
+    : MeshEvent<Idx>(mesh, origin),
       new_numbering(mesh.getNbNodes(), 1, "new_numbering") {}
 
 /* -------------------------------------------------------------------------- */
 inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
                                                   const ID & new_numbering_id,
                                                   const std::string & origin)
-    : MeshEvent<Element>(origin),
+    : MeshEvent<Element>(mesh, origin),
       new_numbering(new_numbering_id, mesh.getID()) {}
 
 /* -------------------------------------------------------------------------- */

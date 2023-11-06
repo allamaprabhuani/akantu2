@@ -103,7 +103,8 @@ enum EventHandlerPriority {
   _ehp_mesh = 5,
   _ehp_fe_engine = 9,
   _ehp_synchronizer = 10,
-  _ehp_dof_manager = 20,
+  _ehp_dof_data = 21,
+  _ehp_dof_manager = 21,
   _ehp_model = 94,
   _ehp_non_local_manager = 100,
   _ehp_lowest = 100
@@ -516,7 +517,7 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  [[nodiscard]] inline auto get##name() const -> type { return variable; }
+  [[nodiscard]] inline auto get##name() const->type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   [[nodiscard]] inline decltype(auto) get##name() const { return (variable); }
@@ -525,7 +526,7 @@ namespace {
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  [[nodiscard]] inline auto get##name() -> type { return variable; }
+  [[nodiscard]] inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   [[nodiscard]] inline const auto & get##name() const {                        \

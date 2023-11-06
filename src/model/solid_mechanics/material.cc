@@ -506,7 +506,8 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 
   /// assemble
   getModel().getDOFManager().assembleElementalArrayLocalArray(
-      *int_sigma_dphi_dx, internal_force, type, ghost_type, -1, elem_filter);
+      "displacement", *int_sigma_dphi_dx, internal_force, type, ghost_type, -1,
+      elem_filter);
 }
 /* -------------------------------------------------------------------------- */
 template <Int dim>
@@ -578,7 +579,7 @@ void Material::assembleInternalForcesFiniteDeformation(GhostType ghost_type) {
   fem.integrate(*bt_s, *r_e, bt_s_size, type, ghost_type, elem_filter);
 
   getModel().getDOFManager().assembleElementalArrayLocalArray(
-      *r_e, internal_force, type, ghost_type, -1., elem_filter);
+      "displacement", *r_e, internal_force, type, ghost_type, -1., elem_filter);
 
   AKANTU_DEBUG_OUT();
 }

@@ -41,7 +41,6 @@ class DOFSynchronizer : public SynchronizerImpl<Idx> {
 public:
   DOFSynchronizer(DOFManagerDefault & dof_manager,
                   const ID & id = "dof_synchronizer");
-  ~DOFSynchronizer() override;
 
   virtual void registerDOFs(const ID & dof_id);
   /* ------------------------------------------------------------------------ */

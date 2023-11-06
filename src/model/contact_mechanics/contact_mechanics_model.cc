@@ -37,7 +37,8 @@ namespace akantu {
 ContactMechanicsModel::ContactMechanicsModel(
     Mesh & mesh, Int dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dim, id) {
+    : Model(mesh, model_type, dim, id),
+      BoundaryCondition<ContactMechanicsModel>("displacement") {
 
   AKANTU_DEBUG_IN();
 
@@ -484,8 +485,8 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
                            ghost_type, element_ids);
 
     this->getDOFManager().assembleElementalArrayLocalArray(
-        dual_by_shapes_integ, *external_force, type, ghost_type, 1.,
-        element_ids);
+        "displacement", dual_by_shapes_integ, *external_force, type, ghost_type,
+        1., element_ids);
   }
 
   for (auto && tuple :

@@ -135,7 +135,7 @@ void DiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
 
   if (not dof_manager.hasDOFs(dof_name)) {
-    dof_manager.registerDOFs(dof_name, *this->diffusion, _dst_nodal);
+    dof_manager.registerDOFs(dof_name, *this->diffusion, this->mesh);
     dof_manager.registerBlockedDOFs(dof_name, *this->blocked_dofs);
   }
 

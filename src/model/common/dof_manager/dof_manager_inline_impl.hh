@@ -58,6 +58,14 @@ const DOFManager::DOFData & DOFManager::getDOFData(const ID & dof_id) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline const Mesh & DOFManager::getMesh(const ID & dof_id) const {
+  auto && dof_data = getDOFData(dof_id);
+  if (not dof_data.mesh) {
+    AKANTU_EXCEPTION("No mesh was associated to the dof " << dof_id);
+  }
+  return *(dof_data.mesh);
+}
+/* -------------------------------------------------------------------------- */
 inline void DOFManager::extractElementEquationNumber(
     const Array<Idx> & equation_numbers, const Vector<Idx> & connectivity,
     Int nb_degree_of_freedom, Vector<Idx> & element_equation_number) {
@@ -232,7 +240,7 @@ void DOFManager::assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
 template <typename Mat>
 void DOFManager::assembleElementalMatricesToMatrix_(
     Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
-    const Array<Idx> & connectivity, ElementType type, GhostType ghost_type,
+    ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
     const Array<Idx> & filter_elements) {
   AKANTU_DEBUG_IN();
@@ -247,13 +255,15 @@ void DOFManager::assembleElementalMatricesToMatrix_(
   Int nb_element{};
   const Idx * filter_it = nullptr;
 
+  const auto & connectivity = dof_data.mesh->getConnectivity(type, ghost_type);
+
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
     filter_it = filter_elements.data();
   } else {
     if (dof_data.group_support != "__mesh__") {
       const auto & group_elements =
-          this->mesh->getElementGroup(dof_data.group_support)
+          dof_data.mesh->getElementGroup(dof_data.group_support)
               .getElements(type, ghost_type);
       nb_element = group_elements.size();
       filter_it = group_elements.data();

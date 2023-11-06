@@ -66,10 +66,10 @@ int main(int argc, char * argv[]) {
   }
   Int nb_nodes = mesh.getNbNodes();
 
-  DOFManagerDefault dof_manager(mesh, "test_dof_manager");
+  DOFManagerDefault dof_manager("test_dof_manager");
 
   Array<Real> x(nb_nodes);
-  dof_manager.registerDOFs("x", x, _dst_nodal);
+  dof_manager.registerDOFs("x", x, mesh);
 
   const auto & local_equation_number =
       dof_manager.getLocalEquationsNumbers("x");

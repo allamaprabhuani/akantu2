@@ -53,16 +53,19 @@ TEST(TestMesh, TestMeshDistribute) {
     mesh2.read("mesh.msh");
   }
 
+  Array<Real> dofs(mesh1.getNbNodes(), 1);
+
   /* This should fail since the mesh is distributed after the
    *  DOFManager is created. */
-  DOFManagerDefault dof_manager(mesh1, "test_dof_manager_1__failing");
+  DOFManagerDefault dof_manager("test_dof_manager_1__failing");
+  dof_manager.registerDOFs("u", dofs, mesh1);
   EXPECT_THROW(mesh1.distribute(), debug::Exception);
 
   /* This will succeed since the mesh is distributed before the manager is
    * created. */
   mesh2.distribute();
-  EXPECT_NO_THROW(
-      DOFManagerDefault dof_manager2(mesh2, "test_dof_manager_2__succeeding"));
+  DOFManagerDefault dof_manager2("test_dof_manager_2__succeeding");
+  EXPECT_NO_THROW(dof_manager2.registerDOFs("u", dofs, mesh2));
 
   finalize();
 }

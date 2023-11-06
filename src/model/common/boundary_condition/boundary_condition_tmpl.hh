@@ -166,7 +166,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<
 
       // assemble the result into force vector
       model.getDOFManager().assembleElementalArrayLocalArray(
-          dual_by_shapes_integ, dual, type, ghost_type, 1., element_ids);
+          bc_instance.dof_name, dual_by_shapes_integ, dual, type, ghost_type,
+          1., element_ids);
     }
   }
 };

@@ -82,7 +82,7 @@ protected:
 
   /// functions for parallel communications
   inline Int getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -151,8 +151,8 @@ private:
 
 class CohesiveNewNodesEvent : public NewNodesEvent {
 public:
-  CohesiveNewNodesEvent(const std::string & origin) : NewNodesEvent(origin) {}
-  ~CohesiveNewNodesEvent() override = default;
+  CohesiveNewNodesEvent(const Mesh & mesh, const std::string & origin)
+      : NewNodesEvent(mesh, origin) {}
 
   AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<Idx> &);
   AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<Idx> &);

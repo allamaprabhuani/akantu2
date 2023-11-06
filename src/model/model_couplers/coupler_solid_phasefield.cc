@@ -33,7 +33,8 @@ namespace akantu {
 CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
                                                const ID & id,
                                                const ModelType model_type)
-    : Model(mesh, model_type, dim, id) {
+    : Model(mesh, model_type, dim, id),
+      BoundaryCondition<CouplerSolidPhaseField>("displacement") {
   this->registerFEEngineObject<MyFEEngineType>("CouplerSolidPhaseField", mesh,
                                                Model::spatial_dimension);
 
