@@ -306,8 +306,6 @@ void SolidMechanicsModelCohesive::initModel() {
   }
   AKANTU_DEBUG_ASSERT(type != _not_defined, "No elements in the mesh");
 
-  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -433,6 +431,7 @@ void SolidMechanicsModelCohesive::assembleInternalForces() {
     }
   });
 
+//  ArrayPrintHelper<true>::ArrayPrintHelper::print_content<bool>(*(this->blocked_dofs),std::cout,0);
   SolidMechanicsModel::assembleInternalForces();
 
   AKANTU_DEBUG_OUT();
@@ -699,39 +698,42 @@ ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
     const TimeStepSolverType & type) const {
   ModelSolverOptions options = SolidMechanicsModel::getDefaultSolverOptions(type);
 
-  switch (type) {
-  case TimeStepSolverType::_dynamic_lumped: {
-    options.non_linear_solver_type = NonLinearSolverType::_lumped;
-    options.integration_scheme_type["lambda"] =
-        IntegrationSchemeType::_central_difference;
-    options.solution_type["lambda"] = IntegrationScheme::_acceleration;
-    break;
-  }
-  case TimeStepSolverType::_static: {
-    options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-    options.integration_scheme_type["lambda"] =
-        IntegrationSchemeType::_pseudo_time;
-    options.solution_type["lambda"] = IntegrationScheme::_not_defined;
-    break;
-  }
-  case TimeStepSolverType::_dynamic: {
-    if (this->method == _explicit_consistent_mass) {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-      options.integration_scheme_type["lambda"] =
-          IntegrationSchemeType::_central_difference;
-      options.solution_type["lambda"] = IntegrationScheme::_acceleration;
-    } else {
-      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
-      options.integration_scheme_type["lambda"] =
-          IntegrationSchemeType::_trapezoidal_rule_2;
-      options.solution_type["lambda"] = IntegrationScheme::_displacement;
-    }
-    break;
-  }
-  default:
-    AKANTU_EXCEPTION(type << " is not a valid time step solver type");
-  }
+  if(lambda)
+  {
+      switch (type) {
+      case TimeStepSolverType::_dynamic_lumped: {
+          options.non_linear_solver_type = NonLinearSolverType::_lumped;
+          options.integration_scheme_type["lambda"] =
+                  IntegrationSchemeType::_central_difference;
+          options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+          break;
+      }
+      case TimeStepSolverType::_static: {
+          options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+          options.integration_scheme_type["lambda"] =
+                  IntegrationSchemeType::_pseudo_time;
+          options.solution_type["lambda"] = IntegrationScheme::_not_defined;
+          break;
+      }
+      case TimeStepSolverType::_dynamic: {
+          if (this->method == _explicit_consistent_mass) {
+              options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+              options.integration_scheme_type["lambda"] =
+                      IntegrationSchemeType::_central_difference;
+              options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+          } else {
+              options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+              options.integration_scheme_type["lambda"] =
+                      IntegrationSchemeType::_trapezoidal_rule_2;
+              options.solution_type["lambda"] = IntegrationScheme::_displacement;
+          }
+          break;
+      }
+      default:
+          AKANTU_EXCEPTION(type << " is not a valid time step solver type");
+      }
 
+  }
   return options;
 }
 
