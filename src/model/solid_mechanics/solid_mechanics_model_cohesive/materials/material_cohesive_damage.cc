@@ -213,7 +213,7 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
 
     Matrix<Real> A(spatial_dimension * size_of_shapes,
                    spatial_dimension * nb_nodes_per_element);
-
+    A.zero();
     for (Int i = 0; i < spatial_dimension * size_of_shapes; ++i) {
       A(i, i) = 1;
       A(i, i + spatial_dimension * size_of_shapes) = -1;
@@ -260,9 +260,9 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
     auto at_nt_dul_n = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_at_nt_dul_n, "A^t*N^t*Dul*N");
 
-    Matrix<Real> N(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    Matrix<Real> N(spatial_dimension, spatial_dimension * size_of_shapes);
 
-    for (auto && data :
+    for (auto && [At_Nt_Duu_N_A, Duu, Nt_Dll_N, Dll, At_Nt_Dul_N, shapes] :
          zip(make_view(*at_nt_duu_n_a, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * nb_nodes_per_element),
              make_view(*tangent_stiffness_matrix_uu, spatial_dimension,
@@ -274,13 +274,6 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
              make_view(*at_nt_dul_n, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * size_of_shapes),
              make_view(*shapes_filtered, size_of_shapes))) {
-
-      auto && At_Nt_Duu_N_A = std::get<0>(data);
-      auto && Duu = std::get<1>(data);
-      auto && Nt_Dll_N = std::get<2>(data);
-      auto && Dll = std::get<3>(data);
-      auto && At_Nt_Dul_N = std::get<4>(data);
-      auto && shapes = std::get<5>(data);
       N.zero();
       /**
        * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
@@ -327,42 +320,75 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
-    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "lambda", *Kll_e, type, ghost_type, _symmetric, elem_filter);
-
-    /// Do we need to assemble Klu_e
-    TermsToAssemble term_ul("displacement", "lambda");
-
     auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
-    auto conn =
-        make_view(connectivity, connectivity.getNbComponent() / 2, 2).begin();
+    auto conn = make_view(connectivity, connectivity.getNbComponent()).begin();
+
+    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
+    //    model->getDOFManager().assembleElementalMatricesToMatrix(
+    //        "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type,
+    //        _symmetric, elem_filter);
+
     auto lambda_conn =
         make_view(lambda_connectivity, lambda_connectivity.getNbComponent())
             .begin();
-    auto el_mat_it = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
-                                  spatial_dimension * nb_nodes_per_element);
 
-    auto compute = [&](const auto & el) {
-      auto kul_e = *el_mat_it;
+    /// Assemble Kll_e
+    TermsToAssemble term_ll("lambda", "lambda");
+    auto el_mat_it_ll = Kll_e->begin(spatial_dimension * size_of_shapes,
+                                     spatial_dimension * size_of_shapes);
+
+    auto compute_ll = [&](const auto & el) {
+      auto kll_e = *el_mat_it_ll;
+      auto && lda_conn_el = lambda_conn[el];
+      auto N = lda_conn_el.rows();
+      for (Int m = 0; m < N; ++m) {
+        auto ldai = lda_conn_el(m);
+        for (Int n = m; n < N; ++n) {
+          auto ldaj = lda_conn_el(n);
+          for (Int k = 0; k < spatial_dimension; ++k) {
+            for (Int l = 0; l < spatial_dimension; ++l) {
+              auto && term_ll_ij = term_ll(ldai * spatial_dimension + k,
+                                           ldaj * spatial_dimension + l);
+              term_ll_ij =
+                  kll_e(m * spatial_dimension + k, n * spatial_dimension + l);
+            }
+          }
+        }
+      }
+      ++el_mat_it_ll;
+    };
+    for_each_element(nb_element, elem_filter, compute_ll);
+
+    model->getDOFManager().assemblePreassembledMatrix("K", term_ll);
+
+    /// Assemble Klu_e
+    TermsToAssemble term_ul("displacement", "lambda");
+    auto el_mat_it_ul = Kul_e->begin(spatial_dimension * nb_nodes_per_element,
+                                     spatial_dimension * size_of_shapes);
+
+    auto compute_ul = [&](const auto & el) {
+      auto kul_e = *el_mat_it_ul;
       auto && u_conn_el = conn[el];
       auto && lda_conn_el = lambda_conn[el];
       auto M = u_conn_el.rows();
       auto N = lda_conn_el.rows();
       for (Int m = 0; m < M; ++m) {
         for (Int n = 0; n < N; ++n) {
-          auto node_plus = u_conn_el(m, 0);
-          auto node_minus = u_conn_el(m, 1);
+          auto u = u_conn_el(m);
           auto lda = lda_conn_el(n);
-          auto term_ul_plus = term_ul(node_plus, lda);
-          term_ul_plus = kul_e(m, n);
-          auto term_ul_minus = term_ul(node_minus, lda);
-          term_ul_minus = kul_e(m + M, n);
+          for (Int k = 0; k < spatial_dimension; ++k) {
+            for (Int l = 0; l < spatial_dimension; ++l) {
+              auto && term_ul_ij = term_ul(u * spatial_dimension + k,
+                                           lda * spatial_dimension + l);
+              term_ul_ij =
+                  kul_e(m * spatial_dimension + k, n * spatial_dimension + l);
+            }
+          }
         }
       }
-      ++el_mat_it;
+      ++el_mat_it_ul;
     };
-    for_each_element(nb_element, elem_filter, compute);
+    for_each_element(nb_element, elem_filter, compute_ul);
 
     model->getDOFManager().assemblePreassembledMatrix("K", term_ul);
   }
@@ -419,9 +445,26 @@ template <Int dim>
 void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
 
-  computeLambdaOnQuad(el_type, ghost_type);
-  for (auto && args : getArguments(el_type, ghost_type)) {
-    this->computeTractionOnQuad(args);
+  for (const auto & type : getElementFilter().elementTypes(
+           spatial_dimension, ghost_type, _ek_cohesive)) {
+    auto & elem_filter = getElementFilter(type, ghost_type);
+    auto nb_element = elem_filter.size();
+    if (nb_element == 0) {
+      continue;
+    }
+
+    /// compute normals @f$\mathbf{n}@f$
+    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+                  ghost_type);
+
+    /// compute openings @f$\mathbf{\delta}@f$
+    computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
+                   ghost_type);
+
+    computeLambdaOnQuad(el_type, ghost_type);
+    for (auto && args : getArguments(el_type, ghost_type)) {
+      this->computeTractionOnQuad(args);
+    }
   }
 }
 

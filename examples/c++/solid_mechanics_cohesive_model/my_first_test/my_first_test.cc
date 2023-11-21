@@ -21,6 +21,7 @@
 /* -------------------------------------------------------------------------- */
 #include "element_group.hh"
 #include "mesh_iterators.hh"
+#include "non_linear_solver.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
@@ -28,15 +29,12 @@
 
 using namespace akantu;
 
-static void updateDisplacement(SolidMechanicsModelCohesive &,
-                               const ElementGroup &, Real);
-
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
-  const Int max_steps = 350;
+  const Int max_steps = 10;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
@@ -48,20 +46,12 @@ int main(int argc, char * argv[]) {
   model.initFull(_analysis_method = _static,
                  _is_extrinsic = false);
 
-  Real time_step = model.getStableTimeStep() * 0.8;
-  model.setTimeStep(time_step);
-  std::cout << "Time step: " << time_step << std::endl;
+  auto & solver = model.getNonLinearSolver();
+  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+  solver.set("max_iterations", 1);
 
-  Array<bool> & boundary = model.getBlockedDOFs();
-
-  Int nb_nodes = mesh.getNbNodes();
-
-  /// boundary conditions
-  for (Int dim = 0; dim < spatial_dimension; ++dim) {
-    for (Int n = 0; n < nb_nodes; ++n) {
-      boundary(n, dim) = true;
-    }
-  }
+  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _y), "point");
 
   model.setBaseName("intrinsic");
   model.addDumpFieldVector("displacement");
@@ -73,28 +63,16 @@ int main(int argc, char * argv[]) {
   model.addDumpField("internal_force");
   model.dump();
 
-  /// update displacement
-  auto && elements = mesh.createElementGroup("diplacement");
-  Vector<Real> barycenter(spatial_dimension);
-
-  for_each_element(
-      mesh,
-      [&](auto && el) {
-        mesh.getBarycenter(el, barycenter);
-        if (barycenter(_x) > -0.25)
-          elements.add(el, true);
-      },
-      _element_kind = _ek_regular);
 
   Real increment = 0.01;
 
-  updateDisplacement(model, elements, increment);
-
   /// Main loop
   for (Int s = 1; s <= max_steps; ++s) {
+    model.applyBC(BC::Dirichlet::IncrementValue(increment, _x), "right");
+    debug::setDebugLevel(dblDump);
     model.solveStep();
+    debug::setDebugLevel(dblWarning);
 
-    updateDisplacement(model, elements, increment);
     if (s % 1 == 0) {
       model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
@@ -116,12 +94,3 @@ int main(int argc, char * argv[]) {
   return EXIT_SUCCESS;
 }
 
-/* -------------------------------------------------------------------------- */
-static void updateDisplacement(SolidMechanicsModelCohesive & model,
-                               const ElementGroup & group, Real increment) {
-  Array<Real> & displacement = model.getDisplacement();
-
-  for (auto && node : group.getNodeGroup().getNodes()) {
-    displacement(node, 0) += increment;
-  }
-}

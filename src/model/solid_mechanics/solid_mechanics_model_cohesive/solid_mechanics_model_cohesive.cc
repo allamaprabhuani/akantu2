@@ -259,6 +259,9 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
   if (need_lambda) {
     lambda =
         std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
+    lambda_blocked_dofs = std::make_unique<Array<bool>>(0, spatial_dimension,
+                                                        "lambda_blocked_dofs");
+
     lambda_mesh = std::make_unique<Mesh>(spatial_dimension,
                                          mesh.getCommunicator(), "lambda_mesh");
 
@@ -274,9 +277,9 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
 
   if (lambda) {
     auto & dof_manager = this->getDOFManager();
-    this->allocNodalField(this->lambda, spatial_dimension, "lambda");
     if (!dof_manager.hasDOFs("lambda")) {
       dof_manager.registerDOFs("lambda", *this->lambda, *lambda_mesh);
+      dof_manager.registerBlockedDOFs("lambda", *this->lambda_blocked_dofs);
     }
   }
 
@@ -313,8 +316,6 @@ void SolidMechanicsModelCohesive::initModel() {
     }
   }
   AKANTU_DEBUG_ASSERT(type != _not_defined, "No elements in the mesh");
-
-  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
 
   AKANTU_DEBUG_OUT();
 }
@@ -441,6 +442,7 @@ void SolidMechanicsModelCohesive::assembleInternalForces() {
     }
   });
 
+  //  ArrayPrintHelper<true>::ArrayPrintHelper::print_content<bool>(*(this->blocked_dofs),std::cout,0);
   SolidMechanicsModel::assembleInternalForces();
 
   AKANTU_DEBUG_OUT();
@@ -627,7 +629,7 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
   auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
   auto old_max_nodes = initial_nodes.size();
-  initial_nodes.resize(mesh.getNbNodes());
+  initial_nodes.resize(mesh.getNbNodes(), -1);
 
   const auto * cohesive_event =
       dynamic_cast<const CohesiveNewNodesEvent *>(&event);
@@ -672,6 +674,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
 
   // correct connectivities
   if (lambda) {
+    lambda_blocked_dofs->resize(mesh.getNbNodes(), false);
+    copy(*lambda_blocked_dofs);
     updateLambdaMesh();
   }
 }
@@ -691,6 +695,49 @@ void SolidMechanicsModelCohesive::afterSolveStep(bool converged) {
   }
 
   SolidMechanicsModel::afterSolveStep(converged);
+}
+
+/* -------------------------------------------------------------------------- */
+ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
+    const TimeStepSolverType & type) const {
+  ModelSolverOptions options =
+      SolidMechanicsModel::getDefaultSolverOptions(type);
+
+  if (lambda) {
+    switch (type) {
+    case TimeStepSolverType::_dynamic_lumped: {
+      options.non_linear_solver_type = NonLinearSolverType::_lumped;
+      options.integration_scheme_type["lambda"] =
+          IntegrationSchemeType::_central_difference;
+      options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+      break;
+    }
+    case TimeStepSolverType::_static: {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["lambda"] =
+          IntegrationSchemeType::_pseudo_time;
+      options.solution_type["lambda"] = IntegrationScheme::_not_defined;
+      break;
+    }
+    case TimeStepSolverType::_dynamic: {
+      if (this->method == _explicit_consistent_mass) {
+        options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+        options.integration_scheme_type["lambda"] =
+            IntegrationSchemeType::_central_difference;
+        options.solution_type["lambda"] = IntegrationScheme::_acceleration;
+      } else {
+        options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+        options.integration_scheme_type["lambda"] =
+            IntegrationSchemeType::_trapezoidal_rule_2;
+        options.solution_type["lambda"] = IntegrationScheme::_displacement;
+      }
+      break;
+    }
+    default:
+      AKANTU_EXCEPTION(type << " is not a valid time step solver type");
+    }
+  }
+  return options;
 }
 
 /* -------------------------------------------------------------------------- */

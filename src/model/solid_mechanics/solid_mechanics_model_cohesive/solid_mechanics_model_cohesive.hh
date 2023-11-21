@@ -171,6 +171,9 @@ protected:
 public:
   void afterSolveStep(bool converged = true) override;
 
+  [[nodiscard]] ModelSolverOptions
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
+
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
@@ -270,6 +273,9 @@ private:
 
   /// lambda array
   std::unique_ptr<Array<Real>> lambda;
+
+  /// array specifing if a lambda degree of freedom is blocked or not
+  std::unique_ptr<Array<bool>> lambda_blocked_dofs;
 
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;

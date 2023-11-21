@@ -662,37 +662,21 @@ void SolidMechanicsModel::onNodesAdded(const Array<Idx> & nodes_list,
   AKANTU_DEBUG_IN();
   auto nb_nodes = mesh.getNbNodes();
 
-  if (displacement) {
-    displacement->resize(nb_nodes, 0.);
-    ++displacement_release;
-  }
-  if (mass) {
-    mass->resize(nb_nodes, 0.);
-  }
-  if (velocity) {
-    velocity->resize(nb_nodes, 0.);
-  }
-  if (acceleration) {
-    acceleration->resize(nb_nodes, 0.);
-  }
-  if (external_force) {
-    external_force->resize(nb_nodes, 0.);
-  }
-  if (internal_force) {
-    internal_force->resize(nb_nodes, 0.);
-  }
-  if (blocked_dofs) {
-    blocked_dofs->resize(nb_nodes, false);
-  }
-  if (current_position) {
-    current_position->resize(nb_nodes, 0.);
+  for (auto && ptr :
+       {displacement.get(), velocity.get(), acceleration.get(), mass.get(),
+        external_force.get(), internal_force.get(), current_position.get(),
+        previous_displacement.get(), displacement_increment.get()}) {
+    if (ptr != nullptr) {
+      ptr->resize(nb_nodes, 0.);
+    }
   }
 
-  if (previous_displacement) {
-    previous_displacement->resize(nb_nodes, 0.);
+  if (displacement) {
+    ++displacement_release;
   }
-  if (displacement_increment) {
-    displacement_increment->resize(nb_nodes, 0.);
+
+  if (blocked_dofs) {
+    blocked_dofs->resize(nb_nodes, false);
   }
 
   for_each_constitutive_law(
@@ -708,35 +692,21 @@ void SolidMechanicsModel::onNodesAdded(const Array<Idx> & nodes_list,
 void SolidMechanicsModel::onNodesRemoved(const Array<Idx> & /*element_list*/,
                                          const Array<Idx> & new_numbering,
                                          const RemovedNodesEvent & /*event*/) {
-  if (displacement) {
-    mesh.removeNodesFromArray(*displacement, new_numbering);
-    ++displacement_release;
+  for (auto && ptr :
+       {displacement.get(), velocity.get(), acceleration.get(), mass.get(),
+        external_force.get(), internal_force.get(), previous_displacement.get(),
+        displacement_increment.get()}) {
+    if (ptr != nullptr) {
+      mesh.removeNodesFromArray(*ptr, new_numbering);
+    }
   }
-  if (mass) {
-    mesh.removeNodesFromArray(*mass, new_numbering);
-  }
-  if (velocity) {
-    mesh.removeNodesFromArray(*velocity, new_numbering);
-  }
-  if (acceleration) {
-    mesh.removeNodesFromArray(*acceleration, new_numbering);
-  }
-  if (internal_force) {
-    mesh.removeNodesFromArray(*internal_force, new_numbering);
-  }
-  if (external_force) {
-    mesh.removeNodesFromArray(*external_force, new_numbering);
-  }
+
   if (blocked_dofs) {
     mesh.removeNodesFromArray(*blocked_dofs, new_numbering);
   }
 
-  if (displacement_increment) {
-    mesh.removeNodesFromArray(*displacement_increment, new_numbering);
-  }
-
-  if (previous_displacement) {
-    mesh.removeNodesFromArray(*previous_displacement, new_numbering);
+  if (displacement) {
+    ++displacement_release;
   }
 }
 
