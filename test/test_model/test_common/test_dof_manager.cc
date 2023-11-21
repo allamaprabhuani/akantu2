@@ -185,6 +185,11 @@ TYPED_TEST(DOFManagerFixture, RegisterGenericDOF1) {
 }
 
 /* -------------------------------------------------------------------------- */
+TYPED_TEST(DOFManagerFixture, RegisterGenericDOF2) {
+  this->registerDOFs(_dst_generic, _dst_generic);
+}
+
+/* -------------------------------------------------------------------------- */
 TYPED_TEST(DOFManagerFixture, RegisterNodalDOF1) {
   auto dof_manager = this->alloc();
 
@@ -194,13 +199,17 @@ TYPED_TEST(DOFManagerFixture, RegisterNodalDOF1) {
 }
 
 /* -------------------------------------------------------------------------- */
-TYPED_TEST(DOFManagerFixture, RegisterGenericDOF2) {
-  this->registerDOFs(_dst_generic, _dst_generic);
+TYPED_TEST(DOFManagerFixture, RegisterNodalDOF2) {
+  this->registerDOFs(_dst_nodal, _dst_nodal);
 }
 
 /* -------------------------------------------------------------------------- */
-TYPED_TEST(DOFManagerFixture, RegisterNodalDOF2) {
-  this->registerDOFs(_dst_nodal, _dst_nodal);
+TYPED_TEST(DOFManagerFixture, RegisterNodalDOF3) {
+  auto dof_manager = this->alloc();
+
+  Array<Real> dofs(this->nb_nodes, 3);
+  EXPECT_THROW(dof_manager->registerDOFs("dofs1", dofs, _dst_nodal),
+               debug::Exception);
 }
 
 /* -------------------------------------------------------------------------- */

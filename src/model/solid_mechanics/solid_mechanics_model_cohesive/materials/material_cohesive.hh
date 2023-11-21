@@ -176,6 +176,8 @@ public:
   //   return Material::getEnergy(energy_id, element);
   // }
 
+  [[nodiscard]] virtual bool needLambda() const { return false; }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

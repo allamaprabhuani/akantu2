@@ -622,6 +622,24 @@ void Mesh::fillNodesToElements(Int dimension) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Mesh::copyNodes(const Mesh & mesh, std::vector<Idx> nodes) {
+
+  auto && it = make_view(mesh.getNodes(), spatial_dimension).begin();
+
+  Idx new_node = this->nodes->size() - 1;
+
+  for (auto node : nodes) {
+    auto && pos = it[node];
+    this->nodes->push_back(pos);
+    this->nodes_flags->push_back(mesh.getNodeFlag(node));
+    this->nodes_prank[new_node] = mesh.getNodePrank(node);
+    ++new_node;
+  }
+
+  // TODO: need to regenerate global nodes ids and node synchronizer
+}
+
+/* -------------------------------------------------------------------------- */
 std::tuple<Idx, Idx> Mesh::updateGlobalData(NewNodesEvent & nodes_event,
                                             NewElementsEvent & elements_event) {
   if (global_data_updater) {

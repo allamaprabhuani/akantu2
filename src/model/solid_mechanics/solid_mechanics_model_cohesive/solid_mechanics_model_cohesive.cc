@@ -248,14 +248,23 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     init_node = node;
   }
 
-  lambda =
-      std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
-  lambda_mesh = std::make_unique<Mesh>(spatial_dimension,
-                                       mesh.getCommunicator(), "lambda_mesh");
+  auto need_lambda = false;
 
-  mesh.getElementalData<Idx>("initial_nodes_connectivities");
-  auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
-  nodes_to_lambda.resize(mesh.getNbNodes(), -1);
+  this->for_each_constitutive_law([&need_lambda](auto && material) {
+    if (aka::is_of_type<MaterialCohesive>(material)) {
+      need_lambda |= aka::as_type<MaterialCohesive>(material).needLambda();
+    }
+  });
+
+  if (need_lambda) {
+    lambda =
+        std::make_unique<Array<Real>>(0, spatial_dimension, "cohesive lambda");
+    lambda_mesh = std::make_unique<Mesh>(spatial_dimension,
+                                         mesh.getCommunicator(), "lambda_mesh");
+
+    auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+    nodes_to_lambda.resize(mesh.getNbNodes(), -1);
+  }
 
   if (is_extrinsic) {
     this->initAutomaticInsertion();
@@ -267,7 +276,7 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
     auto & dof_manager = this->getDOFManager();
     this->allocNodalField(this->lambda, spatial_dimension, "lambda");
     if (!dof_manager.hasDOFs("lambda")) {
-      dof_manager.registerDOFs("lambda", *this->lambda, _dst_generic);
+      dof_manager.registerDOFs("lambda", *this->lambda, *lambda_mesh);
     }
   }
 
@@ -512,6 +521,74 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::updateLambdaMesh() {
+  const auto & connectivities = mesh.getConnectivities();
+  const auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
+  auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+
+  auto & lambda_connectivities = MeshAccessor(*lambda_mesh).getConnectivities();
+
+  auto lambda_id = lambda->size();
+
+  std::vector<Idx> new_nodes;
+
+  NewNodesEvent node_event(*lambda_mesh, AKANTU_CURRENT_FUNCTION);
+  auto & node_list = node_event.getList();
+
+  NewElementsEvent element_event(*lambda_mesh, AKANTU_CURRENT_FUNCTION);
+  auto & element_list = element_event.getList();
+
+  for (auto ghost_type : ghost_types) {
+    for (auto type : connectivities.elementTypes(_element_kind = _ek_cohesive,
+                     _ghost_type = ghost_type)) {
+      auto underlying_type = Mesh::getFacetType(type);
+
+      auto & connectivity = connectivities(type, ghost_type);
+      auto & lambda_connectivity =
+          lambda_connectivities(underlying_type, ghost_type);
+
+      auto nb_new_elements = connectivity.size() - lambda_connectivity.size();
+      auto nb_old_elements = lambda_connectivity.size();
+
+      lambda_connectivity.resize(connectivity.size());
+
+      auto && view_iconn =
+          make_view(connectivity, connectivity.getNbComponent());
+      auto && view_conn =
+          make_view(lambda_connectivity, lambda_connectivity.getNbComponent());
+
+      for (auto && [conn, lambda_conn] :
+           zip(range(view_iconn.begin() + nb_old_elements, view_iconn.end()),
+               range(view_conn.begin() + nb_old_elements, view_conn.end()))) {
+        for (auto && [n, lambda_node] : enumerate(lambda_conn)) {
+          auto node = conn[n];
+          node = initial_nodes(node);
+          auto & ntl = nodes_to_lambda(node);
+          if (ntl == -1) {
+            ntl = lambda_id;
+            new_nodes.push_back(node);
+            node_list.push_back(lambda_id);
+            ++lambda_id;
+          }
+
+          lambda_node = ntl;
+        }
+      }
+
+      for (auto && el :
+           arange(lambda_connectivity.size() - 1, nb_new_elements)) {
+        element_list.push_back({type, el, ghost_type});
+      }
+    }
+  }
+  lambda_mesh->copyNodes(mesh, new_nodes);
+  lambda->resize(lambda_id);
+
+  lambda_mesh->sendEvent(element_event);
+  lambda_mesh->sendEvent(node_event);
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
@@ -519,40 +596,20 @@ void SolidMechanicsModelCohesive::onElementsAdded(
   SolidMechanicsModel::onElementsAdded(element_list, event);
 
   if (lambda) {
-    auto & initial_nodes_connectivities =
-        mesh.getElementalData<Idx>("initial_nodes_connectivities");
     auto & lambda_connectivities =
         MeshAccessor(*lambda_mesh).getConnectivities();
 
     for (auto ghost_type : ghost_types) {
       for (auto type : mesh.elementTypes(_element_kind = _ek_cohesive,
                        _ghost_type = ghost_type)) {
-        auto size = mesh.getConnectivity(type, ghost_type).size();
         auto underlying_type = Mesh::getFacetType(type);
-        if (not initial_nodes_connectivities.exists(type, ghost_type)) {
+        if (not lambda_connectivities.exists(underlying_type, ghost_type)) {
           auto nb_nodes_per_element =
               Mesh::getNbNodesPerElement(underlying_type);
-          initial_nodes_connectivities.alloc(size, nb_nodes_per_element, type,
-                                             ghost_type, -1);
-          lambda_connectivities.alloc(size, nb_nodes_per_element, type,
+          lambda_connectivities.alloc(0, nb_nodes_per_element, underlying_type,
                                       ghost_type, -1);
-
-        } else {
-          initial_nodes_connectivities(type, ghost_type).resize(size, -1);
-          lambda_connectivities(type, ghost_type).resize(size, -1);
         }
       }
-    }
-
-    // Set some connectivities, it will be corrected at on nodes added
-    for (const auto & el : element_list) {
-      if (Mesh::getKind(el.type) != _ek_cohesive) {
-        continue;
-      }
-
-      auto && conn = mesh.getConnectivity(el);
-      auto && iconn = initial_nodes_connectivities.get(el);
-      iconn = conn.block(0, 0, iconn.size(), 1);
     }
   }
 
@@ -566,8 +623,6 @@ void SolidMechanicsModelCohesive::onElementsAdded(
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
                                                const NewNodesEvent & event) {
-  AKANTU_DEBUG_IN();
-
   SolidMechanicsModel::onNodesAdded(new_nodes, event);
 
   auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
@@ -603,81 +658,26 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
     }
   };
 
-  copy(*displacement);
+  for (auto && ptr : {displacement.get(), velocity.get(), acceleration.get(),
+                      current_position.get(), previous_displacement.get(),
+                      displacement_increment.get()}) {
+    if (ptr != nullptr) {
+      copy(*ptr);
+    }
+  }
+
   copy(*blocked_dofs);
-
-  if (velocity) {
-    copy(*velocity);
-  }
-
-  if (acceleration) {
-    copy(*acceleration);
-  }
-
-  if (current_position) {
-    copy(*current_position);
-  }
-
-  if (previous_displacement) {
-    copy(*previous_displacement);
-  }
-
-  if (displacement_increment) {
-    copy(*displacement_increment);
-  }
-
   copy(getDOFManager().getSolution("displacement"));
-
   copy(initial_nodes);
 
   // correct connectivities
   if (lambda) {
-    auto & initial_nodes_connectivities =
-        mesh.getElementalData<Idx>("initial_nodes_connectivities");
-    auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
-    auto & lambda_connectivities = MeshAccessor(mesh).getConnectivities();
-
-    auto & lambda_nodes = MeshAccessor(mesh).getNodes();
-    const auto & nodes = mesh.getNodes();
-
-    auto nodes_it = make_view(nodes, spatial_dimension).begin();
-
-    auto lambda_id = lambda->size();
-
-    for (auto ghost_type : ghost_types) {
-      for (auto type : initial_nodes_connectivities.elementTypes(
-               _element_kind = _ek_cohesive, _ghost_type = ghost_type)) {
-
-        auto & initial_nodes_connectivity =
-            initial_nodes_connectivities(type, ghost_type);
-        auto & lambda_connectivity = lambda_connectivities(type, ghost_type);
-
-        for (auto && [node, lambda_node] :
-             zip(make_view(initial_nodes_connectivity),
-                 make_view(lambda_connectivity))) {
-          node = initial_nodes(node);
-          auto & ntl = nodes_to_lambda(node);
-          if (ntl == -1) {
-            ntl = lambda_id;
-            lambda_nodes.push_back(nodes_it[node]);
-            ++lambda_id;
-          }
-
-          lambda_node = ntl;
-        }
-      }
-    }
-
-    lambda->resize(lambda_id);
+    updateLambdaMesh();
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::afterSolveStep(bool converged) {
-  AKANTU_DEBUG_IN();
-
   /*
    * This is required because the Cauchy stress is the stress measure that
    * is used to check the insertion of cohesive elements
@@ -691,8 +691,6 @@ void SolidMechanicsModelCohesive::afterSolveStep(bool converged) {
   }
 
   SolidMechanicsModel::afterSolveStep(converged);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

@@ -222,6 +222,8 @@ protected:
                          ElementTypeMapArray<T>> & data_to_pack,
       CommunicationBuffer & buffer, const Array<Element> & element) const;
 
+  void updateLambdaMesh();
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

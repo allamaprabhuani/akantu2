@@ -258,6 +258,9 @@ public:
   /// fills the nodes_to_elements for given dimension elements
   void fillNodesToElements(Int dimension = _all_dimensions);
 
+  /// copy the nodes `nodes` from `mesh` to *this
+  void copyNodes(const Mesh & mesh, std::vector<Idx> nodes);
+
 private:
   /// update the global ids, nodes type, ...
   std::tuple<Int, Int> updateGlobalData(NewNodesEvent & nodes_event,
@@ -265,6 +268,7 @@ private:
 
   void registerGlobalDataUpdater(
       std::unique_ptr<MeshGlobalDataUpdater> && global_data_updater);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

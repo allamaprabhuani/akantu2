@@ -149,8 +149,7 @@ void StructuralMechanicsModel::initSolver(
   auto & dof_manager = this->getDOFManager();
 
   if (not dof_manager.hasDOFs("displacement")) {
-    dof_manager.registerDOFs("displacement", *displacement_rotation,
-                             _dst_nodal);
+    dof_manager.registerDOFs("displacement", *displacement_rotation, mesh);
     dof_manager.registerBlockedDOFs("displacement", *this->blocked_dofs);
   }
 

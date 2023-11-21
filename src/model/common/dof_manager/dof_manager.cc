@@ -243,7 +243,11 @@ DOFManager::DOFData::DOFData(const ID & dof_id)
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::DOFData::onNodesAdded(const Array<Idx> & nodes_list,
-                                       const NewNodesEvent &) {
+                                       const NewNodesEvent & event) {
+  if (this->mesh != nullptr and this->mesh != &(event.getMesh())) {
+    return;
+  }
+
   const auto & group = group_support;
 
   if (group == "__mesh__") {
@@ -293,16 +297,21 @@ auto DOFManager::getNewDOFDataInternal(const ID & dof_id) -> DOFData & {
   DOFData & dof_data = *dof_data_ptr;
 
   this->dofs[dof_id] = std::move(dof_data_ptr);
+
+  dof_data.dof_manager = this;
+  dof_data.dof_id = dof_id;
+
   return dof_data;
 }
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
                               DOFSupportType support_type) {
+  AKANTU_DEBUG_ASSERT(support_type != _dst_nodal,
+                      "Nodal DOFs need to be registered with a mesh");
+
   auto & dofs_storage = this->getNewDOFDataInternal(dof_id);
   dofs_storage.support_type = support_type;
-  dofs_storage.dof_manager = this;
-
   this->registerDOFsInternal(dof_id, dofs_array);
 
   resizeGlobalArrays();
@@ -315,7 +324,6 @@ void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
   dofs_storage.support_type = _dst_nodal;
   dofs_storage.group_support = support_group;
   dofs_storage.mesh = &mesh;
-  dofs_storage.dof_manager = this;
 
   if (registered_meshes.find(&mesh) == registered_meshes.end()) {
     mesh.registerEventHandler(*this, _ehp_dof_manager);

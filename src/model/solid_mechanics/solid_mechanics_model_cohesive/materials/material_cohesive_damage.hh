@@ -91,6 +91,7 @@ protected:
                                Eigen::MatrixBase<Derived> & tangent_ll,
                                Args && args);
 
+  [[nodiscard]] bool needLambda() const override { return true; }
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
