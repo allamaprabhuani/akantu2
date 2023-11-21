@@ -70,8 +70,6 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & internal_force = const_cast<Array<Real> &>(model->getInternalForce());
-  auto & lambda_connectivities =
-      model->getMesh().getElementalData<Idx>("lambda_connectivities");
 
   for (auto type : getElementFilter().elementTypes(spatial_dimension,
                                                    ghost_type, _ek_cohesive)) {
@@ -167,9 +165,10 @@ void MaterialCohesiveDamage<dim>::assembleInternalForces(GhostType ghost_type) {
         "displacement", *int_t_N, internal_force, type, ghost_type, 1,
         elem_filter);
 
-    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    // model->getDOFManager().assembleElementalArrayToResidual(
-    //     "lambda", *int_err_N, lambda_connectivity, 1., elem_filter);
+    //    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
+    auto underlying_type = Mesh::getFacetType(type);
+    model->getDOFManager().assembleElementalArrayToResidual(
+        "lambda", *int_err_N, underlying_type, ghost_type, 1., elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -181,8 +180,8 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto & lambda_connectivities =
-      model->getMesh().getElementalData<Idx>("lambda_connectivities");
+  // auto & lambda_connectivities =
+  //     model->getMesh().getElementalData<Idx>("lambda_connectivities");
 
   for (auto type : getElementFilter().elementTypes(spatial_dimension,
                                                    ghost_type, _ek_cohesive)) {
@@ -320,46 +319,50 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
     model->getDOFManager().assembleElementalMatricesToMatrix(
         "K", "displacement", *Kuu_e, type, ghost_type, _symmetric, elem_filter);
 
+    auto underlying_type = Mesh::getFacetType(type);
+    model->getDOFManager().assembleElementalMatricesToMatrix(
+        "K", "lambda", *Kll_e, underlying_type, ghost_type, _symmetric,
+        elem_filter);
+
     auto connectivity = model->getMesh().getConnectivity(type, ghost_type);
     auto conn = make_view(connectivity, connectivity.getNbComponent()).begin();
 
-    auto lambda_connectivity = lambda_connectivities(type, ghost_type);
-    //    model->getDOFManager().assembleElementalMatricesToMatrix(
-    //        "K", "lambda", *Kll_e, lambda_connectivity,type, ghost_type,
-    //        _symmetric, elem_filter);
-
+    auto lambda_connectivity =
+        model->getLambdaMesh().getConnectivity(underlying_type, ghost_type);
     auto lambda_conn =
         make_view(lambda_connectivity, lambda_connectivity.getNbComponent())
             .begin();
 
     /// Assemble Kll_e
-    TermsToAssemble term_ll("lambda", "lambda");
-    auto el_mat_it_ll = Kll_e->begin(spatial_dimension * size_of_shapes,
-                                     spatial_dimension * size_of_shapes);
+    // TermsToAssemble term_ll("lambda", "lambda");
+    // auto el_mat_it_ll = Kll_e->begin(spatial_dimension * size_of_shapes,
+    //                                  spatial_dimension * size_of_shapes);
 
-    auto compute_ll = [&](const auto & el) {
-      auto kll_e = *el_mat_it_ll;
-      auto && lda_conn_el = lambda_conn[el];
-      auto N = lda_conn_el.rows();
-      for (Int m = 0; m < N; ++m) {
-        auto ldai = lda_conn_el(m);
-        for (Int n = m; n < N; ++n) {
-          auto ldaj = lda_conn_el(n);
-          for (Int k = 0; k < spatial_dimension; ++k) {
-            for (Int l = 0; l < spatial_dimension; ++l) {
-              auto && term_ll_ij = term_ll(ldai * spatial_dimension + k,
-                                           ldaj * spatial_dimension + l);
-              term_ll_ij =
-                  kll_e(m * spatial_dimension + k, n * spatial_dimension + l);
-            }
-          }
-        }
-      }
-      ++el_mat_it_ll;
-    };
-    for_each_element(nb_element, elem_filter, compute_ll);
+    // auto compute_ll = [&](const auto & el) {
+    //   auto kll_e = *el_mat_it_ll;
+    //   auto && lda_conn_el = lambda_conn[el];
+    //   auto N = lda_conn_el.rows();
+    //   for (Int m = 0; m < N; ++m) {
+    //     auto ldai = lda_conn_el(m);
+    //     for (Int n = m; n < N; ++n) {
+    //       auto ldaj = lda_conn_el(n);
+    //       for (Int k = 0; k < spatial_dimension; ++k) {
+    //         for (Int l = 0; l < spatial_dimension; ++l) {
+    //           auto && term_ll_ij = term_ll(ldai * spatial_dimension + k,
+    //                                        ldaj * spatial_dimension + l);
+    //           term_ll_ij =
+    //               kll_e(m * spatial_dimension + k, n * spatial_dimension +
+    //               l);
+    //         }
+    //       }
+    //     }
+    //   }
+    //   ++el_mat_it_ll;
+    // };
+    // for_each_element(nb_element, elem_filter, compute_ll);
 
-    model->getDOFManager().assemblePreassembledMatrix("K", term_ll);
+    // model->getDOFManager().assemblePreassembledMatrix("K", term_ll);
+    // model->getDOFManager().getMatrix("K").saveMatrix("Kuu_terms.mtx");
 
     /// Assemble Klu_e
     TermsToAssemble term_ul("displacement", "lambda");
@@ -400,44 +403,14 @@ void MaterialCohesiveDamage<dim>::assembleStiffnessMatrix(
 template <Int dim>
 void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
                                                       GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  auto & fem_cohesive =
-      this->model->template getFEEngineClass<MyFEEngineCohesiveType>(
-          "CohesiveFEEngine");
-
-  const auto & mesh = model->getMesh();
-  Array<Real> lambda_on_nodes(mesh.getNbNodes(), dim, "lambda_on_nodes");
-
-  const auto & nodes_to_lambda =
-      mesh.template getNodalData<Idx>("nodes_to_lambda");
+  auto & fem_lambda = this->model->getFEEngine("LambdaFEEngine");
   const auto & lambda = this->model->getLambda();
+  auto & lambda_on_quad = this->lambda(type, ghost_type);
 
-  auto && lambda_it = make_view<dim>(lambda).begin();
-
-  for (auto && [n2l, l] :
-       zip(nodes_to_lambda, make_view<dim>(lambda_on_nodes))) {
-    if (n2l == -1) {
-      l.zero();
-    } else {
-      l = lambda_it[n2l];
-    }
-  }
-
-  Array<Real> & lambda_on_quad = this->lambda(type, ghost_type);
-
-  tuple_dispatch<ElementTypes_t<_ek_cohesive>>(
-      [&](auto && enum_type) {
-        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
-        fem_cohesive.getShapeFunctions()
-            .template interpolateOnIntegrationPoints<
-                type, CohesiveReduceFunctionMean>(
-                lambda_on_nodes, lambda_on_quad, dim, ghost_type,
-                this->getElementFilter(type, ghost_type));
-      },
-      type);
-
-  AKANTU_DEBUG_OUT();
+  auto underlying_type = Mesh::getFacetType(type);
+  fem_lambda.interpolateOnIntegrationPoints(
+      lambda, lambda_on_quad, dim, underlying_type, ghost_type,
+      this->getElementFilter(type, ghost_type));
 }
 
 /* -------------------------------------------------------------------------- */

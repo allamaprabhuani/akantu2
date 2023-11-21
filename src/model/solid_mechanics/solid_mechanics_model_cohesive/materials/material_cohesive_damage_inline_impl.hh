@@ -53,7 +53,7 @@ template <Int dim>
 template <class Derived, class Args>
 inline void MaterialCohesiveDamage<dim>::computeTangentTractionOnQuad(
     Eigen::MatrixBase<Derived> & tangent_uu,
-    Eigen::MatrixBase<Derived> & tangent_ll, Args && args) {
+    Eigen::MatrixBase<Derived> & tangent_ll, Args && /*args*/) {
   /// TODO : COMPUTE augmented_compliance
   /// TODO : check basis
   Real d(0.0);

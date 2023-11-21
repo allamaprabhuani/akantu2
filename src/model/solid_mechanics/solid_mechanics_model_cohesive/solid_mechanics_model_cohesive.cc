@@ -264,6 +264,8 @@ void SolidMechanicsModelCohesive::initConstitutiveLaws() {
 
     lambda_mesh = std::make_unique<Mesh>(spatial_dimension,
                                          mesh.getCommunicator(), "lambda_mesh");
+    registerFEEngineObject<MyFEEngineLambdaType>("LambdaFEEngine", *lambda_mesh,
+                                                 Model::spatial_dimension - 1);
 
     auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
     nodes_to_lambda.resize(mesh.getNbNodes(), -1);
@@ -527,6 +529,7 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
   const auto & connectivities = mesh.getConnectivities();
   const auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
   auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
+  nodes_to_lambda.resize(mesh.getNbNodes(), -1);
 
   auto & lambda_connectivities = MeshAccessor(*lambda_mesh).getConnectivities();
 
@@ -579,7 +582,7 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
 
       for (auto && el :
            arange(lambda_connectivity.size() - 1, nb_new_elements)) {
-        element_list.push_back({type, el, ghost_type});
+        element_list.push_back({underlying_type, el, ghost_type});
       }
     }
   }

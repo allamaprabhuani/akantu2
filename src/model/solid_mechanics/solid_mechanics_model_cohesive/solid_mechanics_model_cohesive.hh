@@ -82,6 +82,8 @@ public:
   using MyFEEngineFacetType =
       FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
                        FacetsCohesiveIntegrationOrderFunctor>;
+  using MyFEEngineLambdaType =
+      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>;
 
   SolidMechanicsModelCohesive(
       Mesh & mesh, Int dim = _all_dimensions,
@@ -264,6 +266,14 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Lambda, lambda);
   /// get the SolidMechanicsModel::displacement array
   AKANTU_GET_MACRO_DEREF_PTR(Lambda, lambda);
+
+  /// get lambda mesh
+  const Mesh & getLambdaMesh() {
+    if (not lambda_mesh) {
+      AKANTU_EXCEPTION("This model does not have a lambda mesh");
+    }
+    return *lambda_mesh;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
