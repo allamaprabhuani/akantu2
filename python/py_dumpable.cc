@@ -81,6 +81,16 @@ void register_dumpable(py::module & mod) {
       .def(
           "addDumpFieldExternalToDumper",
           [](Dumpable & _this, const std::string & dumper_name,
+             const std::string & field_id, Array<Real> & field) {
+            auto & tmp = dynamic_cast<detail::ArrayProxy<Real> &>(field);
+            tmp_array.push_back(tmp);
+            return _this.addDumpFieldExternalToDumper(dumper_name, field_id,
+                                                      tmp_array.back());
+          },
+          py::arg("dumper_name"), py::arg("field_id"), py::arg("field"))
+      .def(
+          "addDumpFieldExternalToDumper",
+          [](Dumpable & _this, const std::string & dumper_name,
              const std::string & field_id,
              std::shared_ptr<dumpers::Field> field) {
             return _this.addDumpFieldExternalToDumper(dumper_name, field_id,
