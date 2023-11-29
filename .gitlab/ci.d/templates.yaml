@@ -4,20 +4,23 @@
 # Split ci
 .documentation_only:
   only:
-    - doc/**/*
-    - .readthedocs.yaml
-    - README.md
+    changes:
+      - doc/**/*
+      - .readthedocs.yaml
+      - README.md
 
 .code_only:
   except:
-    - doc/**/*
-    - .gitpod.yml
-    - .gitignore
-    - .editorconfig
-    - .readthedocs.yaml
-    - README.md
-    - AUTHORS
-    - CHANGELOG.md
+    changes:
+      - doc/**/*
+      - .gitpod.yml
+      - .gitignore
+      - .editorconfig
+      - .readthedocs.yaml
+      - README.md
+      - AUTHORS
+      - CHANGELOG.md
+
 # Configuration template
 .configure:
   stage: configure
