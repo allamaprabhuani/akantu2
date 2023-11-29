@@ -99,7 +99,7 @@ language = "en"
 
 
 def callback(dir, files):
-    keep_re = re.compile(r".*\.(svg|gif|png|md|rst)")
+    keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat)")
     ignores = []
     for file in files:
         if not keep_re.match(file) and not os.path.isdir(os.path.join(dir, file)):

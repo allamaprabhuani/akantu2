@@ -23,13 +23,13 @@ applied displacement in the :math:`x` direction are shown in
 
             Numerical setup.
 
-The length and height of the beam are :math:`L=SI{10}{\meter}` and :math:`h =
-{1}\textrm{m}`, respectively. The material is linear elastic, homogeneous and
-isotropic (density: :math:`7800\mathrm{kg/m}^3`, Young's modulus:
-:math:`210\mathrm{GPa}` and Poisson's ratio: :math:`0.3`). The imposed
-displacement follow a Gaussian function with a maximum amplitude of :math:`A =
-{0.01}\textrm{m}`. The potential, kinetic and total energies are computed. The
-safety factor is equal to :math:`0.8`.
+The length and height of the beam are :math:`L=\SI{10}{\meter}` and :math:`h =
+\SI{1}{\meter}`, respectively. The material is linear elastic, homogeneous and
+isotropic (density: :math:`\SI{7800}{\kilo\gram\per\meter\cubed}`, Young's
+modulus: :math:`\SI{210}{\giga\pascal}` and Poisson's ratio: :math:`0.3`). The
+imposed displacement follow a Gaussian function with a maximum amplitude of
+:math:`A = \SI{0.01}{\meter}`. The potential, kinetic and total energies are
+computed. The safety factor is equal to :math:`0.8`.
 
 The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
 
