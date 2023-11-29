@@ -23,7 +23,7 @@ applied displacement in the :math:`x` direction are shown in
 
             Numerical setup.
 
-The length and height of the beam are :math:`L={10}\textrm{m}` and :math:`h =
+The length and height of the beam are :math:`L=SI{10}{\meter}` and :math:`h =
 {1}\textrm{m}`, respectively. The material is linear elastic, homogeneous and
 isotropic (density: :math:`7800\mathrm{kg/m}^3`, Young's modulus:
 :math:`210\mathrm{GPa}` and Poisson's ratio: :math:`0.3`). The imposed

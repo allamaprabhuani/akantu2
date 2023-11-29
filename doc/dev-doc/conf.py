@@ -84,8 +84,8 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = [".rst", ".md"]
+# source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
@@ -197,9 +197,12 @@ mathjax3_config = {
             "mat": ["\\mathbf{#1}", 1],
             "half": "\\frac{1}{2}",
         },
-        "packages": {"[+]": ["ams"]},
+        "packages": {"[+]": ["ams", "siunitx"]},
     },
-    "loader": {"load": ["[tex]/ams"]},
+    "loader": {
+        "load": ["[tex]/ams", "[siunitx]/siunitx.js"],
+        "paths": {"siunitx": "http://rawgit.com/burnpanck/MathJax-siunitx/master/"},
+    },
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
