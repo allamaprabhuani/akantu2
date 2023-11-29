@@ -197,13 +197,10 @@ mathjax3_config = {
             "mat": ["\\mathbf{#1}", 1],
             "half": "\\frac{1}{2}",
         },
-        "packages": {"[+]": ["ams", "siunitx"]},
+        "packages": {"[+]": ["ams"]},
     },
     "loader": {
-        "load": ["[tex]/ams", "[siunitx]/siunitx.js"],
-        "paths": {
-            "siunitx": "https://raw.githubusercontent.com/burnpanck/MathJax-siunitx/master"
-        },
+        "load": ["[tex]/ams"],
     },
 }
 
