@@ -1,7 +1,9 @@
 explicit
 ''''''''
 
-`explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`
+Corresponding files:
+ - `explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`_
+ - `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
 
 In ``explicit``, an example of a dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
@@ -38,13 +40,6 @@ The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
 
             Dynamic solution: lateral displacement.
 
-.. litteralinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
+.. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
    :language: c++
 
-..
-   .. math::
-
-      u_x = A \mathrm{sin}(\frac{2 \pi k}{L} X_x) e^{- \frac{\frac{2 \pi k}{L} X_x}/{L}}^{2}
-
-   with :math:`u_x` and :math:`X_x` being the displacement and position in the
-   :math:`x` direction.

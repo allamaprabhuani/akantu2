@@ -46,11 +46,11 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
-    'sphinx_rtd_theme',
+    "sphinx_rtd_theme",
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
-#    "sphinx_gallery.gen_gallery",
+    #    "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
 ]
 
@@ -71,7 +71,9 @@ else:  # most probably running by hand
         pass
 
 
-if akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@":  # Concatenation is to avoid cmake to replace it
+if (
+    akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@"
+):  # Concatenation is to avoid cmake to replace it
     raise Exception("Something went really wrong")
 
 sys.path.insert(0, akantu_source_path)
@@ -93,22 +95,24 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+language = "en"
 
 
 def callback(dir, files):
-    keep_re = re.compile(r'.*\.(svg|gif|png|md|rst)')
+    keep_re = re.compile(r".*\.(svg|gif|png|md|rst)")
     ignores = []
     for file in files:
-        if (not keep_re.match(file) and
-            not os.path.isdir(os.path.join(dir, file))):
+        if not keep_re.match(file) and not os.path.isdir(os.path.join(dir, file)):
             ignores.append(file)
     return ignores
 
-shutil.copytree(os.path.join(akantu_source_path, "examples"),
-                os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
-                ignore=callback,
-                dirs_exist_ok=True)
+
+shutil.copytree(
+    os.path.join(akantu_source_path, "examples"),
+    os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
+    ignore=callback,
+    dirs_exist_ok=True,
+)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -122,9 +126,12 @@ exclude_patterns = [
 ]
 
 exclude_patterns.extend(
-    glob.glob("examples/**/*.rst",
-              root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
-              recursive=True))
+    glob.glob(
+        "examples/**/*.rst",
+        root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
+        recursive=True,
+    )
+)
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -220,8 +227,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Akantu.tex", "Akantu Documentation",
-     "Nicolas Richart", "manual"),
+    (master_doc, "Akantu.tex", "Akantu Documentation", "Nicolas Richart", "manual"),
 ]
 
 
@@ -290,8 +296,7 @@ j2_args = {
 
 print(akantu_path)
 j2_env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(j2_template_path),
-    undefined=jinja2.DebugUndefined
+    loader=jinja2.FileSystemLoader(j2_template_path), undefined=jinja2.DebugUndefined
 )
 
 j2_template = j2_env.get_template("akantu.dox.j2")
