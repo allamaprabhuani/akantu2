@@ -25,7 +25,7 @@ applied displacement in the :math:`x` direction are shown in
 
 The length and height of the beam are :math:`L={10}\mathrm{m}` and :math:`h =
 {1}\mathrm{m}`, respectively. The material is linear elastic, homogeneous and
-isotropic (density: :math:`{7800}\mathrm{kg}\middle\mathrm{m}^3`, Young's
+isotropic (density: :math:`{7800}\left. \mathrm{kg}\middle\mathrm{m}^3 \right.`, Young's
 modulus: :math:`{210}\mathrm{GPa}` and Poisson's ratio: :math:`0.3`). The
 imposed displacement follow a Gaussian function with a maximum amplitude of
 :math:`A = {0.01}\mathrm{m}`. The potential, kinetic and total energies are
