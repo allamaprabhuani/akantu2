@@ -201,7 +201,9 @@ mathjax3_config = {
     },
     "loader": {
         "load": ["[tex]/ams", "[siunitx]/siunitx.js"],
-        "paths": {"siunitx": "http://rawgit.com/burnpanck/MathJax-siunitx/master/"},
+        "paths": {
+            "siunitx": "https://raw.githubusercontent.com/burnpanck/MathJax-siunitx/master"
+        },
     },
 }
 
