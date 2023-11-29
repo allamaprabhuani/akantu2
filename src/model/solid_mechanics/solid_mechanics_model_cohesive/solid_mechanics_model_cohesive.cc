@@ -587,7 +587,7 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
     }
   }
   lambda_mesh->copyNodes(mesh, new_nodes);
-  lambda->resize(lambda_id);
+  lambda->resize(lambda_id,0.);
 
   lambda_mesh->sendEvent(element_event);
   lambda_mesh->sendEvent(node_event);
@@ -706,7 +706,8 @@ ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
   ModelSolverOptions options =
       SolidMechanicsModel::getDefaultSolverOptions(type);
 
-  if (lambda) {
+//    if (lambda) {
+  if(true) {
     switch (type) {
     case TimeStepSolverType::_dynamic_lumped: {
       options.non_linear_solver_type = NonLinearSolverType::_lumped;
