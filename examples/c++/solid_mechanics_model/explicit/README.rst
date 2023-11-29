@@ -1,6 +1,8 @@
 explicit
 ''''''''
 
+`explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`
+
 In ``explicit``, an example of a dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
 
@@ -8,7 +10,9 @@ The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
 
 Note that it is also the default value, hence using ``model.initFull();`` is equivalent.
 
-This example models the propagation of a wave in a steel beam. The beam and the applied displacement in the :math:`x` direction are shown in :numref:`fig-ex-explicit`.
+This example models the propagation of a wave in a steel beam. The beam and the
+applied displacement in the :math:`x` direction are shown in
+:numref:`fig-ex-explicit`.
 
 .. _fig-ex-explicit:
 .. figure:: examples/c++/solid_mechanics_model/explicit/images/explicit.svg
@@ -33,6 +37,9 @@ The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
             :width: 100%
 
             Dynamic solution: lateral displacement.
+
+.. litteralinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
+   :language: c++
 
 ..
    .. math::
