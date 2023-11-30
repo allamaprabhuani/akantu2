@@ -75,7 +75,7 @@ protected:
 protected:
   ID id;
 
-  DOFManager & _dof_manager;
+  DOFManager & dof_manager;
 
   /// type of non linear solver
   NonLinearSolverType non_linear_solver_type;

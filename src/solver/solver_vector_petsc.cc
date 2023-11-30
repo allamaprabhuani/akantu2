@@ -32,7 +32,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SolverVectorPETSc::SolverVectorPETSc(DOFManagerPETSc & dof_manager,
                                      const ID & id)
-    : SolverVector(dof_manager, id), dof_manager(dof_manager) {
+    : SolverVector(dof_manager, id) {
   auto && mpi_comm = dof_manager.getMPIComm();
   PETSc_call(VecCreate, mpi_comm, &x);
   detail::PETScSetName(x, id);
@@ -75,7 +75,7 @@ SolverVectorPETSc::SolverVectorPETSc(DOFManagerPETSc & dof_manager,
 /* -------------------------------------------------------------------------- */
 SolverVectorPETSc::SolverVectorPETSc( // NOLINT(bugprone-copy-constructor-init)
     const SolverVectorPETSc & vector, const ID & id)
-    : SolverVector(vector, id), dof_manager(vector.dof_manager) {
+    : SolverVector(vector, id) {
   if (vector.x != nullptr) {
     PETSc_call(VecDuplicate, vector.x, &x);
     PETSc_call(VecCopy, vector.x, x);
@@ -98,7 +98,7 @@ void SolverVectorPETSc::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 SolverVectorPETSc::SolverVectorPETSc(Vec x, DOFManagerPETSc & dof_manager,
                                      const ID & id)
-    : SolverVector(dof_manager, id), dof_manager(dof_manager) {
+    : SolverVector(dof_manager, id) {
   PETSc_call(VecDuplicate, x, &this->x);
 
   PETSc_call(VecCopy, x, this->x);
@@ -195,7 +195,7 @@ void SolverVectorPETSc::getValuesLocal(const Array<Int> & idx,
 void SolverVectorPETSc::addValues(const Array<Int> & gidx,
                                   const Array<Real> & values,
                                   Real scale_factor) {
-  Real * to_add = values.data();
+  auto to_add = values.data();
   Array<Real> scaled_array;
   if (scale_factor != 1.) {
     scaled_array.copy(values, false);
@@ -217,7 +217,7 @@ void SolverVectorPETSc::addValuesLocal(const Array<Int> & lidx,
   PETSc_call(VecGhostGetLocalForm, x, &x_ghosted);
 
   if (x_ghosted == nullptr) {
-    Real * to_add = values.data();
+    auto to_add = values.data();
     Array<Real> scaled_array;
     if (scale_factor != 1.) {
       scaled_array.copy(values, false);

@@ -32,8 +32,7 @@ namespace akantu {
 NonLinearSolverLumped::NonLinearSolverLumped(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
-    : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager) {
+    : NonLinearSolver(dof_manager, non_linear_solver_type, id) {
   this->supported_type.insert(NonLinearSolverType::_lumped);
   this->checkIfTypeIsSupported();
 
@@ -57,7 +56,7 @@ void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
 
   x.resize();
 
-  const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
+  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
   const auto & A = this->dof_manager.getLumpedMatrix("M");
 
   // alpha is the conversion factor from from force/mass to acceleration needed

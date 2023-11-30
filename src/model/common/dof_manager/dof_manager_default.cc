@@ -426,7 +426,7 @@ void DOFManagerDefault::resizeGlobalArrays() {
   DOFManager::resizeGlobalArrays();
 
   this->global_blocked_dofs.resize(this->local_system_size, 1);
-  this->previous_global_blocked_dofs.resize(this->local_system_size, 1);
+  this->previous_global_blocked_dofs_indexes.resize(this->local_system_size, 1);
 
   matrix_profiled_dofs.clear();
 }
@@ -435,26 +435,16 @@ void DOFManagerDefault::resizeGlobalArrays() {
 void DOFManagerDefault::updateGlobalBlockedDofs() {
   DOFManager::updateGlobalBlockedDofs();
 
-  if (this->global_blocked_dofs_release ==
-      this->previous_global_blocked_dofs_release) {
+  if (this->global_blocked_dofs_indexes_release ==
+      this->previous_global_blocked_dofs_indexes_release) {
     return;
   }
 
-  global_blocked_dofs_uint.resize(local_system_size);
-  global_blocked_dofs_uint.set(false);
+  global_blocked_dofs.resize(local_system_size);
+  global_blocked_dofs.set(false);
   for (const auto & dof : global_blocked_dofs) {
-    global_blocked_dofs_uint[dof] = true;
+    global_blocked_dofs[dof] = true;
   }
-}
-
-/* -------------------------------------------------------------------------- */
-Array<bool> & DOFManagerDefault::getBlockedDOFs() {
-  return global_blocked_dofs_uint;
-}
-
-/* -------------------------------------------------------------------------- */
-const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
-  return global_blocked_dofs_uint;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -34,8 +34,7 @@ namespace akantu {
 NonLinearSolverPETSc::NonLinearSolverPETSc(
     DOFManagerPETSc & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
-    : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager) {
+    : NonLinearSolver(dof_manager, non_linear_solver_type, id) {
   std::unordered_map<NonLinearSolverType, SNESType>
       petsc_non_linear_solver_types{
           {NonLinearSolverType::_newton_raphson, SNESNEWTONLS},
@@ -146,7 +145,8 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
   this->dof_manager.updateGlobalBlockedDofs();
 
   callback.assembleMatrix("J");
-  auto & global_x = dof_manager.getSolution();
+  auto & global_x =
+      dynamic_cast<SolverVectorPETSc &>(dof_manager.getSolution());
   global_x.zero();
 
   if (not x) {
@@ -156,7 +156,8 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
   *x = global_x;
 
   if (not ctx) {
-    ctx = std::make_unique<NonLinearSolverPETScCallback>(dof_manager, snes, *x);
+    ctx = std::make_unique<NonLinearSolverPETScCallback>(
+        dynamic_cast<DOFManagerPETSc &>(dof_manager), snes, *x);
   } else {
     ctx->reset();
   }
@@ -164,8 +165,8 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
   ctx->setCallback(callback);
   ctx->setInitialSolution(global_x);
 
-  auto & rhs = dof_manager.getResidual();
-  auto & J = dof_manager.getMatrix("J");
+  auto & rhs = dynamic_cast<SolverVectorPETSc &>(dof_manager.getResidual());
+  auto & J = dynamic_cast<SparseMatrixPETSc &>(dof_manager.getMatrix("J"));
 
   PETSc_call(SNESSetFunction, snes, rhs, NonLinearSolverPETSc::FormFunction,
              ctx.get());

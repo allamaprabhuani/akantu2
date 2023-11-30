@@ -210,9 +210,6 @@ public:
   /// access the internal dof_synchronizer
   bool hasSynchronizer() const { return synchronizer != nullptr; }
 
-  Array<bool> & getBlockedDOFs();
-  const Array<bool> & getBlockedDOFs() const;
-
 protected:
   std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) override;
 
@@ -231,9 +228,6 @@ protected:
   std::unique_ptr<DOFSynchronizer> synchronizer;
 
   friend class DOFSynchronizer;
-
-  /// Array containing the true or false if the node is in global_blocked_dofs
-  Array<bool> global_blocked_dofs_uint;
 };
 
 } // namespace akantu

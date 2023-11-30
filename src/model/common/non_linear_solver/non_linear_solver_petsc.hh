@@ -66,8 +66,6 @@ protected:
 
   void set_param(const ID & param, const std::string & value) override;
 
-  DOFManagerPETSc & dof_manager;
-
   /// PETSc non linear solver
   SNES snes;
   SNESConvergedReason reason;

@@ -56,8 +56,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  DOFManagerDefault & dof_manager;
-
   /// Sparse solver used for the linear solves
   SparseSolverMumps solver;
 };

@@ -940,10 +940,11 @@ void DOFManager::onElementsChanged(const Array<Element> &,
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::updateGlobalBlockedDofs() {
-  this->previous_global_blocked_dofs.copy(this->global_blocked_dofs);
+  this->previous_global_blocked_dofs_indexes.copy(
+      this->global_blocked_dofs_indexes);
   this->global_blocked_dofs.reserve(this->local_system_size, 0);
-  this->previous_global_blocked_dofs_release =
-      this->global_blocked_dofs_release;
+  this->previous_global_blocked_dofs_indexes_release =
+      this->global_blocked_dofs_indexes_release;
 
   for (auto & pair : dofs) {
     if (not this->hasBlockedDOFs(pair.first)) {
@@ -967,12 +968,13 @@ void DOFManager::updateGlobalBlockedDofs() {
   this->global_blocked_dofs.resize(last - this->global_blocked_dofs.begin());
 
   auto are_equal =
-      global_blocked_dofs.size() == previous_global_blocked_dofs.size() and
+      global_blocked_dofs.size() ==
+          previous_global_blocked_dofs_indexes.size() and
       std::equal(global_blocked_dofs.begin(), global_blocked_dofs.end(),
-                 previous_global_blocked_dofs.begin());
+                 previous_global_blocked_dofs_indexes.begin());
 
   if (not are_equal) {
-    ++this->global_blocked_dofs_release;
+    ++this->global_blocked_dofs_indexes_release;
   }
 }
 
@@ -985,14 +987,14 @@ void DOFManager::applyBoundary(const ID & matrix_id) {
       J.applyBoundary();
     }
 
-    previous_global_blocked_dofs.copy(global_blocked_dofs);
+    previous_global_blocked_dofs_indexes.copy(global_blocked_dofs_indexes);
   } else {
     J.applyBoundary();
   }
 
   this->jacobian_release = J.getRelease();
-  this->previous_global_blocked_dofs_release =
-      this->global_blocked_dofs_release;
+  this->previous_global_blocked_dofs_indexes_release =
+      this->global_blocked_dofs_indexes_release;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1017,5 +1019,6 @@ void DOFManager::assembleMatMulVectToResidual(const ID & dof_id,
                                               Real scale_factor) {
   assembleMatMulVectToGlobalArray(dof_id, A_id, x, *residual, scale_factor);
 }
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

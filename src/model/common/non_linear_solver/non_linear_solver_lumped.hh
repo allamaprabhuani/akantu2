@@ -49,6 +49,7 @@ public:
   /// the solver callback functions
   void solve(SolverCallback & solver_callback) override;
 
+private:
   static void solveLumped(const Array<Real> & A, Array<Real> & x,
                           const Array<Real> & b, Real alpha,
                           const Array<bool> & blocked_dofs);
@@ -57,8 +58,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  DOFManagerDefault & dof_manager;
-
   /// Coefficient to apply between x and A^{-1} b
   Real alpha;
 };

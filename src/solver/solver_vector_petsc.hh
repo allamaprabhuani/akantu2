@@ -116,8 +116,6 @@ protected:
   void updateGhost();
 
 protected:
-  DOFManagerPETSc & dof_manager;
-
   // used for the conversion operator
   Array<Real> cache;
 };

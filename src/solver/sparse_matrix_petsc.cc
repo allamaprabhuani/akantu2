@@ -184,7 +184,7 @@ void SparseMatrixPETSc::copyProfile(const SparseMatrix & other) {
 void SparseMatrixPETSc::applyBoundary(Real block_val) {
   AKANTU_DEBUG_IN();
 
-  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
+  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFsIndexes();
   // std::vector<PetscInt> rows;
   // for (auto && data : enumerate(blocked)) {
   //   if (std::get<1>(data)) {

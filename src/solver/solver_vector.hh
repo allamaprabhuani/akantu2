@@ -34,10 +34,10 @@ namespace akantu {
 class SolverVector {
 public:
   SolverVector(DOFManager & dof_manager, const ID & id = "solver_vector")
-      : id(id), _dof_manager(dof_manager) {}
+      : id(id), dof_manager(dof_manager) {}
 
   SolverVector(const SolverVector & vector, const ID & id = "solver_vector")
-      : id(id), _dof_manager(vector._dof_manager) {}
+      : id(id), dof_manager(vector.dof_manager) {}
 
   virtual ~SolverVector() = default;
 
@@ -70,7 +70,7 @@ protected:
   ID id;
 
   /// Underlying dof manager
-  DOFManager & _dof_manager;
+  DOFManager & dof_manager;
 
   Int release_{0};
 };

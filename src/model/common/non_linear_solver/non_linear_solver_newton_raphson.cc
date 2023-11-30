@@ -34,8 +34,8 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
-                                    dof_manager, "J", id + ":sparse_solver")) {
+      solver(std::make_unique<SparseSolverMumps>(dof_manager, "J",
+                                                 id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
@@ -167,7 +167,7 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
     const SolverVector & solver_vector) {
   AKANTU_DEBUG_IN();
 
-  const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
+  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
 
   const Array<Real> & array(solver_vector);
   Int nb_degree_of_freedoms = array.size();

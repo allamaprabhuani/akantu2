@@ -63,8 +63,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  DOFManagerDefault & dof_manager;
-
   /// Sparse solver used for the linear solves
   std::unique_ptr<SparseSolverMumps> solver;
 
