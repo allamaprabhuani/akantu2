@@ -214,11 +214,8 @@ protected:
   /// @brief boolean enabling opening-rate term into internal heat rate
   bool use_opening_rate{false};
 
-  std::unordered_map<GhostType, UInt> long_conductivity_release{
+  std::unordered_map<GhostType, UInt> crack_conductivity_release{
       {_not_ghost, UInt(-1)}, {_ghost, UInt(-1)}};
-
-  // std::unordered_map<GhostType, UInt> perp_conductivity_release{
-  //     {_not_ghost, UInt(-1)}, {_ghost, UInt(-1)}};
 
   UInt crack_conductivity_matrix_release{UInt(-1)};
 

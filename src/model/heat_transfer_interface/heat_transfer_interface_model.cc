@@ -164,10 +164,10 @@ HeatTransferInterfaceModel::~HeatTransferInterfaceModel() = default;
 /* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::predictor() {
   Parent::predictor();
-  /// to force HeatTransferModel recompute conductivity matrix
-  ++this->conductivity_release[_not_ghost];
-  /// same for HeatTransferInterfaceModel
-  ++opening_release;
+  // /// to force HeatTransferModel recompute conductivity matrix
+  // ++this->conductivity_release[_not_ghost];
+  // /// same for HeatTransferInterfaceModel
+  // ++opening_release;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -238,14 +238,13 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
   Parent::assembleConductivityMatrix();
 
   this->computeKLongOnQuadPoints(_not_ghost);
-  // this->computeKTransOnQuadPoints(_not_ghost);
 
-  // if ((long_conductivity_release[_not_ghost] ==
-  //      this->crack_conductivity_matrix_release) and
-  //     (perp_conductivity_release[_not_ghost] ==
-  //      this->crack_conductivity_matrix_release)) {
-  //   return;
-  // }
+  if ((crack_conductivity_release[_not_ghost] ==
+       crack_conductivity_matrix_release) and
+      (crack_conductivity_matrix_release ==
+       this->conductivity_matrix_release)) {
+    return;
+  }
 
   auto & fem_interface = this->getFEEngine("InterfacesFEEngine");
 
@@ -325,8 +324,8 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
         "K", "temperature", *K_e, type, _not_ghost, _unsymmetric);
   }
 
-  this->crack_conductivity_matrix_release =
-      long_conductivity_release[_not_ghost];
+  crack_conductivity_matrix_release = this->conductivity_matrix_release;
+  crack_conductivity_release[_not_ghost] = this->conductivity_matrix_release;
 
   AKANTU_DEBUG_OUT();
 }
@@ -435,9 +434,9 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     GhostType ghost_type) {
 
   // if opening did not change, longitudinal conductivity will neither
-  // if (opening_release == long_conductivity_release[ghost_type]) {
-  //   return;
-  // }
+  if (opening_release == crack_conductivity_release[ghost_type]) {
+    return;
+  }
 
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
@@ -461,7 +460,7 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     }
   }
 
-  long_conductivity_release[ghost_type] = opening_release;
+  crack_conductivity_release[ghost_type] = opening_release;
 
   AKANTU_DEBUG_OUT();
 }
