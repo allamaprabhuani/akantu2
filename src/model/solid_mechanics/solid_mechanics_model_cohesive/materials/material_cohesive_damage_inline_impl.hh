@@ -41,11 +41,19 @@ inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(Args && args) {
   auto && opening = args["opening"_n];
   auto && traction = args["traction"_n];
 
-  traction = lambda - (opening * k);
+//  traction = lambda - (opening * k);
+  traction = lambda;
   /// TODO : COMPUTE augmented_compliance
-  Real d(0.0);
-  Real augmented_compliance = d / k;
-  err_opening = opening - lambda * augmented_compliance;
+//  Real d(0.0);
+//  Real augmented_compliance = d / k;
+//  err_opening = opening - lambda * augmented_compliance;
+  err_opening = opening;
+//  std::cout << "--- " << std::endl;
+//  std::cout << "k = " << k << std::endl;
+//  std::cout << "opening = " << opening << std::endl;
+//  std::cout << "lambda = " << lambda << std::endl;
+//  std::cout << "traction = " << traction << std::endl;
+//  std::cout << "err_opening = " << err_opening << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -57,10 +65,10 @@ inline void MaterialCohesiveDamage<dim>::computeTangentTractionOnQuad(
   /// TODO : COMPUTE augmented_compliance
   /// TODO : check basis
   Real d(0.0);
-  Real augmented_compliance = d / k;
+//  Real augmented_compliance = d / k;
   for (Int i = 0; i < dim; ++i) {
-    tangent_uu(i, i) = -k;
-    tangent_ll(i, i) = -augmented_compliance;
+//    tangent_uu(i, i) = -k;
+//    tangent_ll(i, i) = -augmented_compliance;
   }
 }
 /* -------------------------------------------------------------------------- */
