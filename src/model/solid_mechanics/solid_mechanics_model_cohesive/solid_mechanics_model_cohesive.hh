@@ -284,6 +284,12 @@ private:
   /// lambda array
   std::unique_ptr<Array<Real>> lambda;
 
+  /// lambda array at the previous time step
+  std::unique_ptr<Array<Real>> previous_lambda;
+
+  /// increment of lambda
+  std::unique_ptr<Array<Real>> lambda_increment;
+
   /// array specifing if a lambda degree of freedom is blocked or not
   std::unique_ptr<Array<bool>> lambda_blocked_dofs;
 
