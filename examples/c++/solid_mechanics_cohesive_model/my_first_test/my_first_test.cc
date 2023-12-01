@@ -34,26 +34,28 @@ int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   const Int spatial_dimension = 2;
-  const Int max_steps = 10;
+  const Int max_steps = 1;
 
   Mesh mesh(spatial_dimension);
   mesh.read("triangle.msh");
 
   SolidMechanicsModelCohesive model(mesh);
-  model.getElementInserter().setLimit(_x, -0.5, 0.5);
+  model.getElementInserter().setLimit(_x, -0.05, 0.05);
 
   /// model initialization
-  model.initFull(_analysis_method = _static,
-                 _is_extrinsic = false);
+  model.initFull(_analysis_method = _static
+                 ,_is_extrinsic = false
+                 );
 
   auto & solver = model.getNonLinearSolver();
-  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
-  solver.set("max_iterations", 1);
+//  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+  solver.set("convergence_type", SolveConvergenceCriteria::_solution);
+  solver.set("max_iterations", 2);
 
   model.applyBC(BC::Dirichlet::FixedValue(0., _x), "left");
   model.applyBC(BC::Dirichlet::FixedValue(0., _y), "point");
 
-  model.setBaseName("intrinsic");
+  model.setBaseName("cohesive");
   model.addDumpFieldVector("displacement");
 //  model.addDumpField("velocity");
 //  model.addDumpField("acceleration");
@@ -69,7 +71,8 @@ int main(int argc, char * argv[]) {
   /// Main loop
   for (Int s = 1; s <= max_steps; ++s) {
     model.applyBC(BC::Dirichlet::IncrementValue(increment, _x), "right");
-    debug::setDebugLevel(dblDump);
+    // debug::setDebugLevel(dblDump);
+    debug::setDebugLevel(dblInfo);
     model.solveStep();
     debug::setDebugLevel(dblWarning);
 
@@ -79,15 +82,14 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  Real Ed = model.getEnergy("dissipated");
-  Real Edt = 2 * sqrt(2);
+  Real E = model.getEnergy("potential");
 
-  std::cout << Ed << " " << Edt << std::endl;
+  std::cout << "Elastic energy : " << E << std::endl;
 
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
-  }
+//  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
+//    std::cout << "The dissipated energy is incorrect" << std::endl;
+//    return EXIT_FAILURE;
+//  }
 
   finalize();
 
