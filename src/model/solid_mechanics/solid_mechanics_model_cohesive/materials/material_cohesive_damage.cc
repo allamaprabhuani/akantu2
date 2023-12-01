@@ -407,10 +407,15 @@ void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
   const auto & lambda = this->model->getLambda();
   auto & lambda_on_quad = this->lambda(type, ghost_type);
 
+  std::cout << "lambda : " << std::endl;
+  ArrayPrintHelper<true>::print_content(lambda,std::cout,0);
+
   auto underlying_type = Mesh::getFacetType(type);
   fem_lambda.interpolateOnIntegrationPoints(
       lambda, lambda_on_quad, dim, underlying_type, ghost_type,
       this->getElementFilter(type, ghost_type));
+  std::cout << "lambda on quad: " << std::endl;
+  ArrayPrintHelper<true>::print_content(lambda_on_quad,std::cout,0);
 }
 
 /* -------------------------------------------------------------------------- */
