@@ -394,7 +394,7 @@ Simply initializing the coupler initializes the two models.
 
    coupler.initFull( _analysis_method = _explicit_lumped_mass);
 
-However two set the material selector and the contact detector for the
+However to set the material selector and the contact detector for the
 two models, one must set them using directly the instance of the two
 model classes.
 
