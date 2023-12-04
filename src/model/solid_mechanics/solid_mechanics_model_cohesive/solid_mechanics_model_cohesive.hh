@@ -83,7 +83,8 @@ public:
       FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
                        FacetsCohesiveIntegrationOrderFunctor>;
   using MyFEEngineLambdaType =
-      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>;
+      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
+                       FacetsCohesiveIntegrationOrderFunctor>;
 
   SolidMechanicsModelCohesive(
       Mesh & mesh, Int dim = _all_dimensions,
