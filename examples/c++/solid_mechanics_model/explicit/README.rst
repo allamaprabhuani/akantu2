@@ -5,14 +5,14 @@ Corresponding files:
  - `explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`_
  - `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
 
-In ``explicit``, an example of a dynamic solution with an explicit time integration is shown.
+In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
 
    model.initFull(_analysis_method = _explicit_lumped_mass);
 
 Note that it is also the default value, hence using ``model.initFull();`` is equivalent.
 
-This example models the propagation of a wave in a steel beam. The beam and the
+This example models the propagation of a wave in a 3D steel beam. The beam and the
 applied displacement in the :math:`x` direction are shown in
 :numref:`fig-ex-explicit`.
 

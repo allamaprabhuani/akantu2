@@ -41,6 +41,11 @@ problem is solved. It consists of a cube having an initial temperature of
 :math:`100 \text{K}` everywhere but a centered sphere maintained at 
 :math:`300 \text{K}`. 
 The simulation is set exactly as ``heat_diffusion_dynamics_2d.cc`` except that the mesh is now a 3D mesh and that the heat source has a third coordinate and is placed at the cube center.
+The mesh is initialized with::
+   
+   Int spatial_dimension = 3;
+   Mesh mesh(spatial_dimension);
+   mesh.read("cube.msh");
 
 :numref:`fig-ex-diffusion_3d` presents the resulting temperature field evolution.
    
