@@ -368,6 +368,8 @@ penalization formulation is as follows:
    ]
 
 
+.. _sect-cmm-coupling-with-smm:
+
 Coupling with :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`
 ````````````````````````````````````````````````````````````````````````````
 
