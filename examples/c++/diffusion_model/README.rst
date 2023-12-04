@@ -6,7 +6,7 @@ In ``diffusion_model``, examples of the ``HeatTransferModel`` are presented.
 An example of a static heat propagation is presented in 
 ``heat_diffusion_static_2d.cc``. This example consists of a square 2D plate of 
 :math:`1 \text{m}^2` having an initial temperature of :math:`100 \text{K}` 
-everywhere but a none centered hot point maintained at 
+everywhere but a non centered hot point maintained at 
 :math:`300 \text{K}`. :numref:`fig-ex-diffusion_static` presents the geometry
 of this case (left) and the results (right). The material used is a linear 
 fictitious elastic material with a density of :math:`8940 \text{kg}/\text{m}^3`, 

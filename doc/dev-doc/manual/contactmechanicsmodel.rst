@@ -331,7 +331,7 @@ Once a surface selector is created it must be assigned to the
 Contact detection
 '''''''''''''''''
 
-The contact detection algorithm can receive the a few parameters. It is possible to 
+The contact detection algorithm can receive a few parameters. It is possible to 
 specify the master/slave surfaces with their string identifier. The geometrical projections
 are performed with iterations which can be controlled as a classical optimization problem.
 A typical detection configuration is given below: 
