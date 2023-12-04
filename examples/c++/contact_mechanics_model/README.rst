@@ -9,6 +9,8 @@ The two examples follow what is described extensively in section :ref:`_sect-cmm
     // for contact_explicit_dynamic
     coupler.initFull(_analysis_method = _explicit_lumped_mass);  
 
+The ``material.dat`` file contain a ``contact_detector`` and a ``contact_resolution penalty_linear`` section as explains in section :ref:`_sect-cmm-contact-detection`.
+
 .. figure:: examples/c++/contact_mechanics_model/images/hertz.svg
             :align: center
             :width: 60%

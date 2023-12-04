@@ -326,7 +326,9 @@ Once a surface selector is created it must be assigned to the
 :cpp:class:`ContactDetector <akantu::ContactDetector>` class::
 
   contact.getContactDetector().setSurfaceSelector(surface_selector);
-  
+
+
+.. _sect-cmm-contact-detection:
   
 Contact detection
 '''''''''''''''''
