@@ -2,7 +2,7 @@ cohesive_intrinsic
 ''''''''''''''''''
 
 In ``cohesive_intrinsic``, an example of intrinsic cohesive elements is shown. 
-An intrinsic simulation is initialized by setting ``_is_extrinsic`` argument of ``model.initFull`` to ``false``::
+An intrinsic simulation is initialized by setting the ``_is_extrinsic`` argument of ``model.initFull`` to ``false``::
     
     model.initFull(_analysis_method = _explicit_lumped_mass, _is_extrinsic = false);
 
