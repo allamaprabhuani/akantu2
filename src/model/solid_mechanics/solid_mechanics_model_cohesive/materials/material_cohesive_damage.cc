@@ -407,15 +407,10 @@ void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
   const auto & lambda = this->model->getLambda();
   auto & lambda_on_quad = this->lambda(type, ghost_type);
 
-  std::cout << "lambda : " << std::endl;
-  ArrayPrintHelper<true>::print_content(lambda,std::cout,0);
-
   auto underlying_type = Mesh::getFacetType(type);
   fem_lambda.interpolateOnIntegrationPoints(
       lambda, lambda_on_quad, dim, underlying_type, ghost_type,
       this->getElementFilter(type, ghost_type));
-  std::cout << "lambda on quad: " << std::endl;
-  ArrayPrintHelper<true>::print_content(lambda_on_quad,std::cout,0);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -440,6 +435,15 @@ void MaterialCohesiveDamage<dim>::computeTraction(ElementType el_type,
                    ghost_type);
 
     computeLambdaOnQuad(el_type, ghost_type);
+
+    auto & traction = tractions(type, ghost_type);
+    std::cout << "traction in : MaterialCohesiveDamage<dim>::computeTraction " << std::endl;
+    ArrayPrintHelper<true>::print_content(traction,std::cout,0);
+
+    auto & lambda_ = lambda(type, ghost_type);
+    std::cout << "lambda in : MaterialCohesiveDamage<dim>::computeTraction " << std::endl;
+    ArrayPrintHelper<true>::print_content(lambda_,std::cout,0);
+
     for (auto && args : getArguments(el_type, ghost_type)) {
       this->computeTractionOnQuad(args);
     }
