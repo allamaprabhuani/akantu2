@@ -29,7 +29,7 @@ In ``bi-material.py``, the same principle is used to create a bimaterial square.
 .. _fig-ex-square_custom:
 .. figure:: examples/python/solid_mechanics_model/custom-material/images/square_displ.png
             :align: center
-            :width: 40%
+            :width: 60%
 
             Bimaterial square.
             

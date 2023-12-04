@@ -6,6 +6,6 @@ In ``cohesive_intrinsic``, an example of intrinsic cohesive elements is shown. T
 .. _fig-ex-cohesive-int:
 .. figure:: examples/c++/solid_mechanics_cohesive_model/cohesive_intrinsic/images/cohesive_intrinsic.png
             :align: center
-            :width: 70%
+            :width: 60%
 
             Displacement in the x direction for the cohesive_intrinsic example.

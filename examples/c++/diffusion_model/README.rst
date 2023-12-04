@@ -27,7 +27,7 @@ using an explicit time scheme. The time step used is :math:`0.12 \text{s}`.
 .. _fig-ex-diffusion_explicit:
 .. figure:: examples/c++/diffusion_model/images/hot-point-2.png
    :align: center     
-   :width: 70%      
+   :width: 60%      
    
    Temperature field after 15000 time steps = 30 minutes. The lines represent 
    iso-surfaces.

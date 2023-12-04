@@ -7,7 +7,7 @@ The ``-p`` will plot the following figures :numref:`fig-ex-eigen`:
 .. _fig-ex-eigen:
 .. figure:: examples/python/solid_mechanics_model/eigen_modes/images/eigen_modes.png
             :align: center
-            :width: 70%
+            :width: 80%
 
             Energy norms as a fonction of time (left), space-time diagram for diplacements (center) and space-time 
             diagram for velocities (right) with the default values.

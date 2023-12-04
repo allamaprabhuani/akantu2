@@ -15,6 +15,6 @@ The solution for the static analysis is shown in :numref:`fig-ex-static_disp`.
 .. _fig-ex-static_disp:
 .. figure:: examples/c++/solid_mechanics_model/static/images/static_displ_mag.png
             :align: center
-            :width: 70%
+            :width: 60%
 
             Solution of the static analysis: displacement magnitude.
