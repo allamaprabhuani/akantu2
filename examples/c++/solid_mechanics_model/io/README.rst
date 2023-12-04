@@ -1,7 +1,7 @@
 parser
 ''''''
 
-In ``io/parser``, an example illustrating how to parse an input file with user-defined parameters is shown. As before, the text input file of the simulation is precised using the method ``initialize``. In the input file, additionally to the usual ``material elastic`` section, there is a section ``user parameters`` with extra user-definied parameters.
+In ``io/parser``, an example illustrating how to parse an input file with user-defined parameters is shown. As before, the text input file of the simulation is precised using the method ``initialize``. In the input file, additionally to the usual ``material elastic`` section, there is a section ``user parameters`` with extra user-defined parameters.
 Within the main function, those parameters are retrived with::
 
    const ParserSection & usersect = getUserParser();
