@@ -63,6 +63,11 @@ inline UInt MaterialCohesive::getNbData(const Array<Element> & elements,
     return sizeof(Real) * this->getModel().getNbIntegrationPoints(
                               elements, "CohesiveFEEngine");
   }
+  case SynchronizationTag::_smmc_normals: {
+    return sizeof(Real) * spatial_dimension *
+           this->getModel().getNbIntegrationPoints(elements,
+                                                   "CohesiveFEEngine");
+  }
   default: {
   }
   }
@@ -84,6 +89,10 @@ inline void MaterialCohesive::packData(CommunicationBuffer & buffer,
   case SynchronizationTag::_smmc_damage:
     packElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
     break;
+  case SynchronizationTag::_smmc_normals: {
+    packElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
+    break;
+  }
   default: {
   }
   }
@@ -102,6 +111,9 @@ inline void MaterialCohesive::unpackData(CommunicationBuffer & buffer,
   }
   case SynchronizationTag::_smmc_damage:
     unpackElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
+    break;
+  case SynchronizationTag::_smmc_normals:
+    unpackElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
     break;
   default: {
   }
