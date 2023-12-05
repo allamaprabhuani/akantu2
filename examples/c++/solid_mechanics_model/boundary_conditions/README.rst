@@ -21,6 +21,6 @@ that a Neumann BC is also imposed.
 .. _fig-ex-user_defined_bc:
 .. figure:: examples/c++/solid_mechanics_model/boundary_conditions/images/user_defined_bc_displ_mag.png
             :align: center
-            :width: 70%
+            :width: 60%
 
             Displacement magnitude for the user_defined_bc example.

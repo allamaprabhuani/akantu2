@@ -326,12 +326,14 @@ Once a surface selector is created it must be assigned to the
 :cpp:class:`ContactDetector <akantu::ContactDetector>` class::
 
   contact.getContactDetector().setSurfaceSelector(surface_selector);
-  
+
+
+.. _sect-cmm-contact-detection:
   
 Contact detection
 '''''''''''''''''
 
-The contact detection algorithm can receive the a few parameters. It is possible to 
+The contact detection algorithm can receive a few parameters. It is possible to 
 specify the master/slave surfaces with their string identifier. The geometrical projections
 are performed with iterations which can be controlled as a classical optimization problem.
 A typical detection configuration is given below: 
@@ -368,6 +370,8 @@ penalization formulation is as follows:
    ]
 
 
+.. _sect-cmm-coupling-with-smm:
+
 Coupling with :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`
 ````````````````````````````````````````````````````````````````````````````
 
@@ -394,7 +398,7 @@ Simply initializing the coupler initializes the two models.
 
    coupler.initFull( _analysis_method = _explicit_lumped_mass);
 
-However two set the material selector and the contact detector for the
+However to set the material selector and the contact detector for the
 two models, one must set them using directly the instance of the two
 model classes.
 

@@ -5,6 +5,16 @@ In ``dynamics``, an example of a dynamic simulation solved with an explicit time
 model the propagation of a wave in a bar. The geometry is depicted in :numref:`fig-ex-dynamics_geom`. A pulse is impose 
 as an initial displacement over the bar. Results are depicted in :numref:`fig-ex-dynamics_displ`.
 
+The explicit time integration scheme is set with::
+
+    model.initFull(_analysis_method=aka._explicit_lumped_mass)
+
+This example shows how to create a new functor to set the boundary conditions. This is done by creating a class that inherits from ``aka.FixedValue`` (``MyFixedValue(aka.FixedValue)`` in this case).
+The boundary conditions are then applied with::
+    
+    model.applyBC(MyFixedValue(0, aka._x), "XBlocked")
+    model.applyBC(MyFixedValue(0, aka._y), "YBlocked")   
+
 .. _fig-ex-dynamics_geom:
 .. figure:: examples/python/solid_mechanics_model/dynamics/images/bar_geom.svg
             :align: center

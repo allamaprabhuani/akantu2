@@ -49,7 +49,7 @@ beam at 3 different times during the simulation: time steps 0, 1000 and
 .. _fig-ex-implicit-dynamic_solution:
 .. figure:: examples/c++/solid_mechanics_model/implicit/images/dynamic_analysis.png
             :align: center
-            :width: 40%
+            :width: 50%
 
             Deformed beam at three different times (displacement :math:`\times
             10`).
