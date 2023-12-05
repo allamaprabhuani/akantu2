@@ -1,5 +1,5 @@
-cohesive_intrinsic
-''''''''''''''''''
+cohesive_intrinsic (2D)
+'''''''''''''''''''''''
 
 In ``cohesive_intrinsic``, an example of intrinsic cohesive elements is shown. 
 An intrinsic simulation is initialized by setting the ``_is_extrinsic`` argument of ``model.initFull`` to ``false``::

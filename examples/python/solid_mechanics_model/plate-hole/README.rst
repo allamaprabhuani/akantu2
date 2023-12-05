@@ -1,5 +1,5 @@
-plate_hole
-''''''''''
+plate_hole (2D)
+'''''''''''''''
 
 In ``plate_hole``, an example of a static solution of a loaded plate with a hole. Because of the symmetries, only a quarter of the problem is modeled. The corresponding domain and boundary conditions is shown in :numref:`fig-ex-plate_hole`.
 The static solver is initialized with::

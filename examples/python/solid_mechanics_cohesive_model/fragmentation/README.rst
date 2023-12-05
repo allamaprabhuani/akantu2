@@ -1,5 +1,5 @@
-fragmentation
-'''''''''''''
+fragmentation (2D)
+''''''''''''''''''
 
 ``fragmentation`` shows an example of a 1D bar fragmentation with extrinsic cohesive elements. It uses a custom boundary
 condition to impose a constant velocity. This is done by creating a class that inherits from ``DirichletFunctor``. 

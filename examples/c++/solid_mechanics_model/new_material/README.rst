@@ -1,5 +1,5 @@
-new_material
-''''''''''''
+new_material (2D)
+'''''''''''''''''
 
 In ``new_material`` it is shown how to use a user-defined material for the simulation. All the details are described in :ref:`sect-smm-ncl`. The geometry solved is shown in :numref:`fig-ex-new_material`.
 

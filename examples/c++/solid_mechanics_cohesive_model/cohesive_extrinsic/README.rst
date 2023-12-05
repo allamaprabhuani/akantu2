@@ -1,5 +1,5 @@
-cohesive_extrinsic
-''''''''''''''''''
+cohesive_extrinsic (2D)
+'''''''''''''''''''''''
 
 In ``cohesive_extrinsic``, an example of extrinsic cohesive elements is shown. 
 An extrinsic simulation is initialized by setting ``_is_extrinsic`` argument of ``model.initFull`` to ``true``::

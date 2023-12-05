@@ -1,5 +1,5 @@
-dynamics
-''''''''
+dynamics (2D)
+'''''''''''''
 
 In ``dynamics``, an example of a dynamic simulation solved with an explicit time intergration is shown. This examples 
 model the propagation of a wave in a bar. The geometry is depicted in :numref:`fig-ex-dynamics_geom`. A pulse is impose 

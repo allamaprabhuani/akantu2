@@ -1,5 +1,5 @@
-cohesive
-''''''''
+cohesive (2D)
+'''''''''''''
 
 In ``cohesive/plate.py``, an example of extrinsic cohesive elements insertion is shown. This example simulates a plate 
 with a pre-existing crack pulled. The geometry is depicted in :numref:`fig-ex-cohesive_plate`. 

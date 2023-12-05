@@ -1,5 +1,5 @@
-diffusion_model
-'''''''''''''''
+diffusion_model (2D and 3D)
+'''''''''''''''''''''''''''
 
 In ``diffusion_model``, examples of the ``HeatTransferModel`` are presented.
 

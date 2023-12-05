@@ -1,5 +1,5 @@
-Contact mechanics model
-```````````````````````
+Contact mechanics model (2D)
+````````````````````````````
 
 `contact_explicit_static` and `contact_explicit_dynamic` are solving a 2D Hertz contact patch test using the ``CouplerSolidContact``.
 The two examples follow what is described extensively in section :ref:`_sect-cmm-coupling-with-smm`. The only main difference between `contact_explicit_static` and `contact_explicit_dynamic` is the solver used::

@@ -1,5 +1,5 @@
-eigen_modes
-'''''''''''
+eigen_modes (2D)
+''''''''''''''''
 
 In ``eigen_modes`` it is shown how to compute the eigen modes using the library `scipy.sparse`. The mode can be specify with the ``-m`` argument. Simulation is performed on a bar where a pulse is imposed. 
 The ``-p`` argument will plot the following figures :numref:`fig-ex-eigen`:

@@ -1,5 +1,5 @@
-solver_callback
-'''''''''''''''
+solver_callback (2D)
+''''''''''''''''''''
 
 In ``solver_callback``, it is shown how to write a solver callback function. It is done by writing a class that inherit 
 from ``InterceptSolverCallback``::

@@ -1,5 +1,5 @@
-custom-material
-'''''''''''''''
+custom-material (2D)
+''''''''''''''''''''
 
 In ``custom-material.py`` it is shown how to create a custom material behaviour. In this example, a linear elastic 
 material is recreated. It is done by creating a class that inherits from ``aka.Material`` (``LocalElastic(aka.Material)`` in this case) and register it 

@@ -1,5 +1,5 @@
-cohesive_extrinsic_ig_tg
-''''''''''''''''''''''''
+cohesive_extrinsic_ig_tg (2D)
+'''''''''''''''''''''''''''''
 
 In ``cohesive_extrinsic_ig_tg``, the insertion of cohesive element is not limited to a given location. Rather, elements at the boundaries of the block and those on the inside have a different critical stress ``sigma_c``. This is done by defining two different materials in the ``material.dat`` file::
 

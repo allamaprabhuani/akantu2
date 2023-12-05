@@ -1,5 +1,5 @@
-implicit
-''''''''
+implicit (2D)
+'''''''''''''
 
 In ``implicit``, an example of a dynamic solution with an implicit time integration is shown.
 The implicit scheme is selected using the ``_implicit_dynamic`` constant::

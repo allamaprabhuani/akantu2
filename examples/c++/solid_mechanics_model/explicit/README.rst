@@ -1,5 +1,5 @@
-explicit
-''''''''
+explicit (3D)
+'''''''''''''
 
 Corresponding files in `explicit <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit>`_:
 

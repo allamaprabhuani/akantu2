@@ -1,5 +1,5 @@
-Boundary conditions usage
-'''''''''''''''''''''''''
+Boundary conditions usage (2D)
+''''''''''''''''''''''''''''''
 
 In ``predifined_bc`` it is shown how to impose Dirichlet boundary condition
 using the predefined ``BC::Dirichlet::FixedValue``

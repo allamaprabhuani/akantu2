@@ -1,5 +1,5 @@
-Static test cases
-'''''''''''''''''
+Static test cases (2D)
+''''''''''''''''''''''
 
 In ``static``, an example of how to solve a static problem is presented. The problem geometry is shown in :numref:`fig-ex-static`. The left and bottom side of a 2D plate are blocked with rollers and nodes from the left side are displaced upward by :math:`0.01\%`
 of the length of the plate.

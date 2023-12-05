@@ -1,5 +1,5 @@
-parallel
-''''''''
+parallel (2D)
+'''''''''''''
 
 In ``parallel``, an example of how to run a 2D parallel simulation is presented.
 
