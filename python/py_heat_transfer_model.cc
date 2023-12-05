@@ -111,6 +111,10 @@ void register_heat_transfer_model(py::module & mod) {
       .def("getKgradT", &HeatTransferModel::getKgradT, py::arg("el_type"),
            py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
+      .def("getTemperatureOnQpoints",
+           &HeatTransferModel::getTemperatureOnQpoints, py::arg("el_type"),
+           py::arg("ghost_type") = _not_ghost,
+           py::return_value_policy::reference)
       .def("getTemperatureRateOnQpoints",
            &HeatTransferModel::getTemperatureRateOnQpoints, py::arg("el_type"),
            py::arg("ghost_type") = _not_ghost,

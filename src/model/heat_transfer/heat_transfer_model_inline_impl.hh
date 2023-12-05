@@ -119,6 +119,10 @@ inline UInt HeatTransferModel::getNbData(const Array<Element> & elements,
     size += nb_nodes_per_element * sizeof(Real); // temperature
     break;
   }
+  case SynchronizationTag::_htm_temperature_on_qpoints: {
+    size += getNbIntegrationPoints(elements) * sizeof(Real);
+    break;
+  }
   case SynchronizationTag::_htm_gradient_temperature: {
     // temperature gradient
     size += getNbIntegrationPoints(elements) * spatial_dimension * sizeof(Real);
@@ -143,6 +147,11 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
     packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
+  case SynchronizationTag::_htm_temperature_on_qpoints: {
+    packElementalDataHelper(temperature_on_qpoints, buffer, elements, true,
+                            getFEEngine());
+    break;
+  }
   case SynchronizationTag::_htm_gradient_temperature: {
     packElementalDataHelper(temperature_gradient, buffer, elements, true,
                             getFEEngine());
@@ -162,6 +171,11 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   switch (tag) {
   case SynchronizationTag::_htm_temperature: {
     unpackNodalDataHelper(*temperature, buffer, elements, mesh);
+    break;
+  }
+  case SynchronizationTag::_htm_temperature_on_qpoints: {
+    unpackElementalDataHelper(temperature_on_qpoints, buffer, elements, true,
+                              getFEEngine());
     break;
   }
   case SynchronizationTag::_htm_gradient_temperature: {

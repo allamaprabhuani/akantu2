@@ -79,7 +79,7 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
     std::shared_ptr<DOFManager> dof_manager)
     : HeatTransferModel(mesh, dim, id,
                         ModelType::_heat_transfer_interface_model, dof_manager),
-      temperature_on_qpoints("temperature_on_qpoints", id),
+      temperature_on_qpoints_coh("temperature_on_qpoints_coh", id),
       opening_on_qpoints("opening_on_qpoints", id),
       opening_rate("opening_rate", id), k_long_w("k_long_w", id) /*,
        k_perp_over_w("k_perp_over_w", id)*/
@@ -152,7 +152,7 @@ void HeatTransferInterfaceModel::initModel() {
   this->temperature_gradient.initialize(fem, _nb_component = spatial_dimension);
   this->k_long_w.initialize(fem, _nb_component = (spatial_dimension - 1) *
                                                  (spatial_dimension - 1));
-  this->temperature_on_qpoints.initialize(fem, _nb_component = 1);
+  this->temperature_on_qpoints_coh.initialize(fem, _nb_component = 1);
   this->opening_on_qpoints.initialize(fem, _nb_component = 1);
   if (use_opening_rate) {
     opening_rate.initialize(fem, _nb_component = 1);
@@ -372,11 +372,14 @@ void HeatTransferInterfaceModel::computeGradAndDeltaT(GhostType ghost_type) {
 /* --------------------------------------------------------------------------
  */
 void HeatTransferInterfaceModel::computeTempOnQpoints(GhostType ghost_type) {
+
+  Parent::computeTempOnQpoints(ghost_type);
+
   auto & fem_interface =
       this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
-    auto & t_on_qpoints = temperature_on_qpoints(type, ghost_type);
+    auto & t_on_qpoints = temperature_on_qpoints_coh(type, ghost_type);
 
 #define COMPUTE_T(type)                                                        \
   fem_interface.getShapeFunctions()                                            \
@@ -384,8 +387,9 @@ void HeatTransferInterfaceModel::computeTempOnQpoints(GhostType ghost_type) {
           *temperature, t_on_qpoints, 1, ghost_type);
 
     AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_T);
-#undef COMPUTE_JUMP
+#undef COMPUTE_T
   }
+  this->synchronizeField(SynchronizationTag::_htm_temperature_on_qpoints);
 }
 /* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::updateNormalOpeningAtQuadraturePoints(
@@ -501,7 +505,7 @@ void HeatTransferInterfaceModel::assembleInternalHeatRate() {
 
   Parent::assembleInternalHeatRate();
 
-  computeTempOnQpoints(_not_ghost); // for visualisation only
+  computeTempOnQpoints(_not_ghost);
   computeGradAndDeltaT(_not_ghost);
   // communicate the stresses
   AKANTU_DEBUG_INFO("Send data for residual assembly");
@@ -880,10 +884,10 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
           opening_on_qpoints, group_name, this->spatial_dimension, element_kind,
           nb_data_per_elem);
-    } else if (field_name == "temperature_on_qpoints") {
-      auto nb_data_per_elem = getNbDataPerElem(temperature_on_qpoints);
+    } else if (field_name == "temperature_on_qpoints_coh") {
+      auto nb_data_per_elem = getNbDataPerElem(temperature_on_qpoints_coh);
       field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
-          temperature_on_qpoints, group_name, this->spatial_dimension,
+          temperature_on_qpoints_coh, group_name, this->spatial_dimension,
           element_kind, nb_data_per_elem);
     } else if (field_name == "temperature_gradient") {
       auto nb_data_per_elem = getNbDataPerElem(temperature_gradient);

@@ -338,6 +338,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (ce_insertion_order)                          \
   (gm_clusters)                                 \
   (htm_temperature)                             \
+  (htm_temperature_on_qpoints)                  \
   (htm_gradient_temperature)                    \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
@@ -405,9 +406,10 @@ enum class SynchronizationTag {
   _gm_clusters, ///< synchronization of clusters
 
   // --- HeatTransfer tags ---
-  _htm_temperature,          ///< synchronization of the nodal temperature
-  _htm_gradient_temperature, ///< synchronization of the element gradient
-                             /// temperature
+  _htm_temperature,            ///< synchronization of the nodal temperature
+  _htm_temperature_on_qpoints, ///< synchronization of the qpoints temperature
+  _htm_gradient_temperature,   ///< synchronization of the element gradient
+                               /// temperature
 
   // --- FluidDiffusion tags ---
   _fdm_pressure,          ///< synchronization of the nodal pressure

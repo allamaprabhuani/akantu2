@@ -126,6 +126,9 @@ public:
 
   void assembleInternalHeatRate(GhostType ghost_type);
 
+  /// compute temperature on ips
+  virtual void computeTempOnQpoints(GhostType ghost_type);
+
 public:
   /// assemble the conductivity matrix
   virtual void assembleConductivityMatrix();

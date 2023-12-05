@@ -91,6 +91,10 @@ void register_heat_transfer_interface_model(py::module & mod) {
            &HeatTransferInterfaceModel::getLongitudinalConductivityOnQpoints,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
+      .def("getTemperatureOnQpointsCoh",
+           &HeatTransferInterfaceModel::getTemperatureOnQpointsCoh,
+           py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
+           py::return_value_policy::reference)
       .def(
           "getOpening",
           [](HeatTransferInterfaceModel & self, ElementType & el_type,

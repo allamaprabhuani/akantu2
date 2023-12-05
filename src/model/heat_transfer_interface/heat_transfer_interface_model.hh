@@ -101,8 +101,8 @@ public:
   void updateNormalOpeningAtQuadraturePoints(Array<Real> positions,
                                              GhostType ghost_type);
 
-  /// compute temperature on ip for output
-  void computeTempOnQpoints(GhostType ghost_type);
+  /// compute temperature on ips
+  void computeTempOnQpoints(GhostType ghost_type) override;
 
 private:
   /// compute the integrated longitudinal conductivity matrix (or scalar in
@@ -181,6 +181,8 @@ public:
   //                                        k_perp_over_w, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(LongitudinalConductivityOnQpoints,
                                          k_long_w, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureOnQpointsCoh,
+                                         temperature_on_qpoints_coh, Real);
   /// get the aperture on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening_on_qpoints, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Opening, opening_on_qpoints, Real);
@@ -202,7 +204,7 @@ protected:
   ElementTypeMapArray<Real> opening_rate;
 
   /// opening rate at quadrature points
-  ElementTypeMapArray<Real> temperature_on_qpoints;
+  ElementTypeMapArray<Real> temperature_on_qpoints_coh;
 
   /// longitudinal conductivity tensor (or a scalar in 2D) multiplied by opening
   /// on quadrature points

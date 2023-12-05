@@ -370,13 +370,15 @@ void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
     }
   }
 
+  computeTempOnQpoints(_not_ghost);
+
   for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & temperature_interpolated = temperature_on_qpoints(type, ghost_type);
 
     // compute the temperature on quadrature points
-    this->getFEEngine().interpolateOnIntegrationPoints(
-        *temperature, temperature_interpolated, 1, type, ghost_type);
+    // this->getFEEngine().interpolateOnIntegrationPoints(
+    //     *temperature, temperature_interpolated, 1, type, ghost_type);
 
     auto & cond = conductivity_on_qpoints(type, ghost_type);
     auto & initial_cond = initial_conductivity_array(type, ghost_type);
@@ -486,6 +488,23 @@ void HeatTransferModel::assembleInternalHeatRate(GhostType ghost_type) {
 
     this->getDOFManager().assembleElementalArrayLocalArray(
         int_bt_k_gT, *this->internal_heat_rate, type, ghost_type, 1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+ */
+void HeatTransferModel::computeTempOnQpoints(GhostType ghost_type) {
+
+  auto & fem = this->getFEEngine();
+
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
+    auto & t_on_qpoints = temperature_on_qpoints(type, ghost_type);
+
+    // compute the temperature on quadrature points
+    this->getFEEngine().interpolateOnIntegrationPoints(*temperature,
+                                                       t_on_qpoints, 1, type);
+    this->synchronizeField(SynchronizationTag::_htm_temperature_on_qpoints);
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -704,6 +723,8 @@ Real HeatTransferModel::getThermalEnergy() {
 
   auto & fem = getFEEngine();
 
+  computeTempOnQpoints(_not_ghost);
+
   for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
     auto nb_element = mesh.getNbElement(type, _not_ghost);
@@ -713,8 +734,8 @@ Real HeatTransferModel::getThermalEnergy() {
     auto & temperature_interpolated = temperature_on_qpoints(type);
 
     // compute the temperature on quadrature points
-    this->getFEEngine().interpolateOnIntegrationPoints(
-        *temperature, temperature_interpolated, 1, type);
+    // this->getFEEngine().interpolateOnIntegrationPoints(
+    //     *temperature, temperature_interpolated, 1, type);
 
     auto T_it = temperature_interpolated.begin();
     auto T_end = temperature_interpolated.end();
@@ -882,6 +903,13 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
         temperature_gradient, group_name, this->spatial_dimension, element_kind,
         nb_data_per_elem);
+  } else if (field_name == "temperature_on_qpoints") {
+    ElementTypeMap<UInt> nb_data_per_elem =
+        this->mesh.getNbDataPerElem(temperature_on_qpoints);
+
+    field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
+        temperature_on_qpoints, group_name, this->spatial_dimension,
+        element_kind, nb_data_per_elem);
   } else if (field_name == "conductivity") {
     ElementTypeMap<UInt> nb_data_per_elem =
         this->mesh.getNbDataPerElem(conductivity_on_qpoints);
