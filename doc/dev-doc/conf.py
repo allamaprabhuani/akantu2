@@ -52,6 +52,7 @@ extensions = [
     "myst_parser",
     #    "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
+    "sphinx_togglebutton",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
