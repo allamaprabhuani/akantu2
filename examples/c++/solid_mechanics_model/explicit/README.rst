@@ -3,7 +3,13 @@ explicit
 
 Corresponding files:
  - `explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`_
+.. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
+   :language: c++
+      :linenos: 21-
+      :class: toggle
  - `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
+.. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
+   :class: toggle
 
 In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
@@ -39,7 +45,3 @@ The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
             :width: 100%
 
             Dynamic solution: lateral displacement.
-
-.. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
-   :language: c++
-      :class: toggle
