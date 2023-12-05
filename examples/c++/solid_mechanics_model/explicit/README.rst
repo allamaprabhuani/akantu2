@@ -5,7 +5,6 @@ Corresponding files in `explicit <https://gitlab.com/akantu/akantu/-/blob/master
 
 .. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
    :language: c++
-   :linenos: 21-
    :class: toggle
 
 .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
