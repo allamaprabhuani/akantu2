@@ -1,16 +1,16 @@
 explicit
 ''''''''
 
-Corresponding files:
+Corresponding files in `explicit <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit>`_:
+
 .. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
    :language: c++
-   :caption: {admonition}explicit_dynamic.cc
+   :caption: {admonition} explicit_dynamic.cc
    :linenos: 21-
    :class: dropdown
 
  .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
     :language: text
-    :caption: `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
     :class: toggle
 
 In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
