@@ -5,13 +5,12 @@ Corresponding files in `explicit <https://gitlab.com/akantu/akantu/-/blob/master
 
 .. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
    :language: c++
-   :caption: {admonition} explicit_dynamic.cc
    :linenos: 21-
-   :class: dropdown
+   :class: toggle
 
- .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
-    :language: text
-    :class: toggle
+.. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
+   :language: text
+   :class: toggle
 
 In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
