@@ -2,16 +2,16 @@ explicit
 ''''''''
 
 Corresponding files:
- - `explicit_dynamic.cc <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc>`_
-   .. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
-      :language: c++
-      :caption: {admonition}explicit_dynamic.cc
-      :linenos: 21-
-      :class: dropdown
- - `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
-   .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
-      :language: text
-      :class: toggle
+.. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
+   :language: c++
+   :caption: {admonition}explicit_dynamic.cc
+   :linenos: 21-
+   :class: dropdown
+
+ .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
+    :language: text
+    :caption: `material.dat <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit/material.dat>`_
+    :class: toggle
 
 In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
