@@ -860,7 +860,8 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
     const auto & fe_engine = getFEEngine("InterfacesFEEngine");
     ElementTypeMap<UInt> res;
     for (auto ghost_type : ghost_types) {
-      for (auto & type : field.elementTypes(ghost_type)) {
+      for (auto & type :
+           field.elementTypes(spatial_dimension, ghost_type, element_kind)) {
         auto nb_quadrature_points =
             fe_engine.getNbIntegrationPoints(type, ghost_type);
         res(type, ghost_type) =
