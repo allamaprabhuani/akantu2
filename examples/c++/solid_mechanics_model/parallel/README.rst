@@ -1,6 +1,23 @@
 parallel
 ''''''''
 
+:Sources:
+
+   .. collapse:: parallel_2d.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/parallel/parallel_2d.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/parallel/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `parallel <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/parallel>`_
+
 In ``parallel``, an example of how to run a 2D parallel simulation is presented.
 
 First, the mesh needs to be distributed among the processors. This is done with::

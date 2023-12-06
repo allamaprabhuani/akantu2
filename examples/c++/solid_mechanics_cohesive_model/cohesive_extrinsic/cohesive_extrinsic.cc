@@ -29,10 +29,10 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
-  const Int spatial_dimension = 2;
+  const Int dim = 2;
   const Int max_steps = 1000;
 
-  Mesh mesh(spatial_dimension);
+  Mesh mesh(dim);
   mesh.read("triangle.msh");
 
   SolidMechanicsModelCohesive model(mesh);
@@ -43,8 +43,9 @@ int main(int argc, char * argv[]) {
 
   Real time_step = model.getStableTimeStep() * 0.05;
   model.setTimeStep(time_step);
-  std::cout << "Time step: " << time_step << std::endl;
+  std::cout << "Time step: " << time_step << "\n";
 
+  // updated the insertion limits
   CohesiveElementInserter & inserter = model.getElementInserter();
   inserter.setLimit(_y, 0.30, 0.20);
   model.updateAutomaticInsertion();
@@ -57,13 +58,13 @@ int main(int argc, char * argv[]) {
   Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (Int n = 0; n < nb_nodes; ++n) {
-    if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
-      boundary(n, 1) = true;
+  for (auto && [pos, boun] :
+       zip(make_view(position, dim), make_view(boundary, dim))) {
+    if (pos(_y) > 0.99 or pos(_y) < -0.99) {
+      boun(_y) = true;
     }
-
-    if (position(n, 0) > 0.99 || position(n, 0) < -0.99) {
-      boundary(n, 0) = true;
+    if (pos(_x) > 0.99 or pos(_x) < -0.99) {
+      boun(_x) = true;
     }
   }
 
@@ -79,17 +80,19 @@ int main(int argc, char * argv[]) {
   /// initial conditions
   Real loading_rate = 0.5;
   Real disp_update = loading_rate * time_step;
-  for (Int n = 0; n < nb_nodes; ++n) {
-    velocity(n, 1) = loading_rate * position(n, 1);
+  for (auto && [pos, vel] :
+       zip(make_view(position, dim), make_view(velocity, dim))) {
+    vel(_y) = loading_rate * pos(_y);
   }
 
   /// Main loop
   for (Int s = 1; s <= max_steps; ++s) {
 
     /// update displacement on extreme nodes
-    for (Int n = 0; n < nb_nodes; ++n) {
-      if (position(n, 1) > 0.99 || position(n, 1) < -0.99) {
-        displacement(n, 1) += disp_update * position(n, 1);
+    for (auto && [pos, disp] :
+         zip(make_view(position, dim), make_view(displacement, dim))) {
+      if (pos(_y) > 0.99 or pos(_y) < -0.99) {
+        disp(_y) += disp_update * pos(_y);
       }
     }
 
@@ -100,20 +103,19 @@ int main(int argc, char * argv[]) {
     if (s % 10 == 0) {
       model.dump();
 
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      std::cout << "passing step " << s << "/" << max_steps << "\n";
     }
   }
 
   Real Ed = model.getEnergy("dissipated");
 
   Real Edt = 200 * std::sqrt(2);
-  std::cout << Ed << " " << Edt << std::endl;
+  std::cout << Ed << " " << Edt << "\n";
   if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
+    std::cout << "The dissipated energy is incorrect"
+              << "\n";
+    return -1;
   }
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

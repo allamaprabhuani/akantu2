@@ -1,6 +1,24 @@
 cohesive_extrinsic
 ''''''''''''''''''
 
+:Sources:
+
+   .. collapse:: cohesive_extrinsic.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_cohesive_model/cohesive_extrinsic/cohesive_extrinsic.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_cohesive_model/cohesive_extrinsic/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/solid_mechanics_cohesive_model/`` `cohesive_extrinsic <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_cohesive_model/cohesive_extrinsic/>`_
+
+
 In ``cohesive_extrinsic``, an example of extrinsic cohesive elements is shown. 
 An extrinsic simulation is initialized by setting ``_is_extrinsic`` argument of ``model.initFull`` to ``true``::
     

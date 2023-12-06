@@ -1,15 +1,39 @@
 Contact mechanics model
 ```````````````````````
 
+:Sources:
+
+   .. collapse:: contact_explicit_dynamic.cc (click to expand)
+
+      .. literalinclude:: examples/c++/contact_mechanics_model/contact_explicit_dynamic.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: contact_explicit_static.cc (click to expand)
+
+      .. literalinclude:: examples/c++/contact_mechanics_model/contact_explicit_static.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/contact_mechanics_model/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/`` `contact_mechanics_model <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/contact_mechanics_model>`_
+
+
 `contact_explicit_static` and `contact_explicit_dynamic` are solving a 2D Hertz contact patch test using the ``CouplerSolidContact``.
-The two examples follow what is described extensively in section :ref:`_sect-cmm-coupling-with-smm`. The only main difference between `contact_explicit_static` and `contact_explicit_dynamic` is the solver used::
+The two examples follow what is described extensively in section :ref:`sect-cmm-coupling-with-smm`. The only main difference between `contact_explicit_static` and `contact_explicit_dynamic` is the solver used::
     
     // for contact_explicit_static
     coupler.initFull(_analysis_method = _static);  
     // for contact_explicit_dynamic
     coupler.initFull(_analysis_method = _explicit_lumped_mass);  
 
-The ``material.dat`` file contain a ``contact_detector`` and a ``contact_resolution penalty_linear`` section as explains in section :ref:`_sect-cmm-contact-detection`.
+The ``material.dat`` file contain a ``contact_detector`` and a ``contact_resolution penalty_linear`` section as explains in section :ref:`sect-cmm-contact-detection`.
 
 .. figure:: examples/c++/contact_mechanics_model/images/hertz.svg
             :align: center

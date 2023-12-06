@@ -8,9 +8,7 @@ __license__ = "LGPLv3"
 
 import math
 
-
 class SinBoundary:
-
     def __init__(self, amplitude, phase):
         self.amplitude = amplitude
         self.phase = phase

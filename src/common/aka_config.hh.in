@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <string>
+#include <string_view>
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_CONFIG_HH_
 #define AKANTU_AKA_CONFIG_HH_
@@ -43,7 +43,7 @@
                         + AKANTU_VERSION_PATCH)
 
 namespace akantu {
-std::string getVersion();
+std::string_view getVersion();
 }
 
 @AKANTU_TYPES_EXTRA_INCLUDES@

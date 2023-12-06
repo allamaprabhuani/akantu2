@@ -29,11 +29,11 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/contact_mechanics_model.cc
   model/contact_mechanics/contact_detector.hh
   model/contact_mechanics/contact_detector.cc
-  model/contact_mechanics/contact_detector_inline_impl.cc
+  model/contact_mechanics/contact_detector_inline_impl.hh
   model/contact_mechanics/contact_element.hh
   model/contact_mechanics/geometry_utils.hh
   model/contact_mechanics/geometry_utils.cc
-  model/contact_mechanics/geometry_utils_inline_impl.cc
+  model/contact_mechanics/geometry_utils_inline_impl.hh
 
   model/contact_mechanics/resolution.hh
   model/contact_mechanics/resolution.cc

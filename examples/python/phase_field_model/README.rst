@@ -4,6 +4,24 @@ Phase-field model
 static
 ''''''
 
+:Sources:
+
+   .. collapse:: phasefield-static.py (click to expand)
+
+      .. literalinclude:: examples/python/phase_field_model/phasefield-static.py
+         :language: python
+         :lines: 9-
+
+   .. collapse:: material_static.dat (click to expand)
+
+      .. literalinclude:: examples/python/phase_field_model/material_static.dat
+         :language: text
+
+:Location:
+
+   ``examples/python/`` `phase_field_model <https://gitlab.com/akantu/akantu/-/blob/master/examples/python/phase_field_model>`_
+
+
 `phasefield-static.py` shows how to setup a static phase-field fracture simulation. An imposed displacement is imposed on the top of a notched square plate.
 
 .. figure:: examples/python/phase_field_model/images/phasefield-static-geo.svg
@@ -22,6 +40,19 @@ In static simulations, we use loading steps to apply the displacement incrementa
 
 dynamic
 '''''''
+
+:Sources:
+
+   .. collapse:: phasefield-dynamic.py (click to expand)
+
+      .. literalinclude:: examples/python/phase_field_model/phasefield-dynamic.py
+         :language: python
+         :lines: 9-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/python/phase_field_model/material.dat
+         :language: text
 
 `phasefield-dynamic.py` shows how to setup a dynamic phase-field fracture simulation. A notched plate is pre-strained in mode I using Dirichlet BC and a static solve. The simulation is then continued in dynamic using an explicit Neumark scheme.
 

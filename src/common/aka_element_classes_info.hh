@@ -34,7 +34,7 @@ namespace akantu {
 /* Element Types                                                              */
 /* -------------------------------------------------------------------------- */
 // clang-format off
-#define AKANTU_ek_regular_ELEMENT_TYPE	\
+#define AKANTU_ek_regular_ELEMENT_TYPE  \
   (_point_1)                            \
   (_segment_2)                          \
   (_segment_3)                          \

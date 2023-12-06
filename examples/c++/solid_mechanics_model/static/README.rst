@@ -1,8 +1,28 @@
 Static test cases
 '''''''''''''''''
 
-In ``static``, an example of how to solve a static problem is presented. The problem geometry is shown in :numref:`fig-ex-static`. The left and bottom side of a 2D plate are blocked with rollers and nodes from the left side are displaced upward by :math:`0.01\%`
-of the length of the plate.
+:Sources:
+
+   .. collapse:: static.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/static/static.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/static/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `static <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/static>`_
+
+
+In ``static``, an example of how to solve a static problem is presented. The
+problem geometry is shown in :numref:`fig-ex-static`. The left and bottom side
+of a 2D plate are blocked with rollers and nodes from the left side are
+displaced upward by :math:`0.01\%` of the length of the plate.
 
 .. _fig-ex-static:
 .. figure:: examples/c++/solid_mechanics_model/static/images/static_BC.svg

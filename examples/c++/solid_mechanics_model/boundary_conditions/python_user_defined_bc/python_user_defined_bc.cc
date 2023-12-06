@@ -19,11 +19,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "py_aka_array.hh"
-#include "solid_mechanics_model.hh"
+#include <py_aka_array.hh>
+#include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
-#include <cmath>
-#include <iostream>
 #include <pybind11/embed.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
@@ -39,9 +37,9 @@ public:
   }
 
 public:
-  inline void operator()(__attribute__((unused)) UInt node,
-                         Vector<bool> & flags, Vector<Real> & primal,
-                         const Vector<Real> & coord) const {
+  inline void operator()(Idx /*node*/, VectorProxy<bool> & flags,
+                         VectorProxy<Real> & primal,
+                         const VectorProxy<const Real> & coord) override {
     py_sin_boundary.attr("compute")(primal, coord, flags);
   }
 
@@ -56,7 +54,7 @@ int main(int argc, char * argv[]) {
 
   py::scoped_interpreter guard{};
 
-  Int spatial_dimension = 2;
+  const Int spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("fine_mesh.msh");
@@ -67,7 +65,9 @@ int main(int argc, char * argv[]) {
   model.initFull();
 
   /// boundary conditions
-  Vector<Real> traction(2, 0.2);
+  Vector<Real, spatial_dimension> traction;
+  traction.set(0.2);
+
   SineBoundary sin_boundary(.2, 10.);
 
   model.applyBC(sin_boundary, "Fixed_x");
@@ -81,6 +81,5 @@ int main(int argc, char * argv[]) {
   model.addDumpField("blocked_dofs");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

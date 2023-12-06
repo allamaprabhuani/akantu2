@@ -1,5 +1,23 @@
-diffusion_model
-'''''''''''''''
+Diffusion Model
+```````````````
+
+:Sources:
+
+   .. collapse:: heat_diffusion_static_2d.cc (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/heat_diffusion_static_2d.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/`` `diffusion_model <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/diffusion_model>`_
+
 
 In ``diffusion_model``, examples of the ``HeatTransferModel`` are presented.
 
@@ -13,7 +31,7 @@ fictitious elastic material with a density of :math:`8940 \text{kg}/\text{m}^3`,
 a conductivity of :math:`401 \text{W}/\text{m}/\text{K}` and a specific heat 
 capacity of :math:`385 \text{J}/\text{K}/\text{kg}`. 
 
-The simulation is set following the procedure described in :ref:`_sect-dm-using`
+The simulation is set following the procedure described in :ref:`sect-dm-using`
 
 .. _fig-ex-diffusion_static:
 .. figure:: examples/c++/diffusion_model/images/diffusion_static.png
@@ -22,6 +40,19 @@ The simulation is set following the procedure described in :ref:`_sect-dm-using`
 
             Initial (left) and final (right) temperature field 
             
+
+:Sources:
+
+   .. collapse:: heat_diffusion_dynamic_2d.cc (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/heat_diffusion_static_2d.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/material.dat
+         :language: text
 
 In ``heat_diffusion_dynamics_2d.cc``, the same example is solved dynamically 
 using an explicit time scheme. The time step used is :math:`0.12 \text{s}`. The only main difference with the previous example lies in the model initiation::
@@ -36,6 +67,19 @@ using an explicit time scheme. The time step used is :math:`0.12 \text{s}`. The 
    Temperature field after 15000 time steps = 30 minutes. The lines represent 
    iso-surfaces.
    
+:Sources:
+
+   .. collapse:: heat_diffusion_dynamic_2d.cc (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/heat_diffusion_static_2d.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/diffusion_model/material.dat
+         :language: text
+
 In ``heat_diffusion_dynamics_3d.cc``, a 3D explicit dynamic heat propagation
 problem is solved. It consists of a cube having an initial temperature of
 :math:`100 \text{K}` everywhere but a centered sphere maintained at 
@@ -49,7 +93,7 @@ The mesh is initialized with::
 
 :numref:`fig-ex-diffusion_3d` presents the resulting temperature field evolution.
    
-  .. _fig-ex-diffusion_3d:
+.. _fig-ex-diffusion_3d:
 .. figure:: examples/c++/diffusion_model/images/diffusion_3d.gif
    :align: center     
    :width: 70%      

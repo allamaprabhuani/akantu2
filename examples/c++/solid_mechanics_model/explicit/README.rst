@@ -1,15 +1,23 @@
 explicit
 ''''''''
 
-Corresponding files in `explicit <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit>`_:
+:Sources:
 
-.. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
-   :language: c++
-   :class: toggle
+   .. collapse:: explicit_dynamic.cc (click to expand)
 
-.. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
-   :language: text
-   :class: toggle
+      .. literalinclude:: examples/c++/solid_mechanics_model/explicit/explicit_dynamic.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material.dat (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/explicit/material.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `explicit <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/explicit>`_
+
 
 In ``explicit``, an example of a 3D dynamic solution with an explicit time integration is shown.
 The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
@@ -18,11 +26,11 @@ The explicit scheme is selected using the ``_explicit_lumped_mass`` constant::
 
 Note that it is also the default value, hence using ``model.initFull();`` is equivalent.
 
-This example models the propagation of a wave in a 3D steel beam. The beam and the
-applied displacement in the :math:`x` direction are shown in
-:numref:`fig-ex-explicit`.
+This example models the propagation of a wave in a 3D steel beam. The beam and
+the applied displacement in the :math:`x` direction are shown in
+:numref:`fig-smm-explicit-bc`.
 
-.. _fig-ex-explicit:
+.. _fig-smm-explicit-bc:
 .. figure:: examples/c++/solid_mechanics_model/explicit/images/explicit.svg
             :align: center
             :width: 90%
@@ -37,9 +45,9 @@ imposed displacement follow a Gaussian function with a maximum amplitude of
 :math:`A = {0.01}\mathrm{m}`. The potential, kinetic and total energies are
 computed. The safety factor is equal to :math:`0.8`.
 
-The dynamic solution is depicted in :numref:`fig-ex-explicit_disp`.
+The dynamic solution is depicted in :numref:`fig-smm-explicit-disp`.
 
-.. _fig-ex-explicit_disp:
+.. _fig-smm-explicit-disp:
 .. figure:: examples/c++/solid_mechanics_model/explicit/images/bar_pulse.gif
             :align: center
             :width: 100%

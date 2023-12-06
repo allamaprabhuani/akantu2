@@ -1,5 +1,23 @@
 Boundary conditions usage
 '''''''''''''''''''''''''
+:Sources:
+
+   .. collapse:: predefined_bc.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/boundary_conditions/predefined_bc/predefined_bc.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: user_defined_bc.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/boundary_conditions/user_defined_bc/user_defined_bc.cc
+         :language: c++
+         :lines: 20-
+
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `boundary_conditions <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/boundary_conditions>`_
 
 In ``predifined_bc`` it is shown how to impose Dirichlet boundary condition
 using the predefined ``BC::Dirichlet::FixedValue``

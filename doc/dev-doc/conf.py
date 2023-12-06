@@ -52,7 +52,7 @@ extensions = [
     "myst_parser",
     #    "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
-    "sphinx_togglebutton",
+    "sphinx_toolbox.collapse",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
@@ -100,7 +100,7 @@ language = "en"
 
 
 def callback(dir, files):
-    keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat)")
+    keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat|py)")
     ignores = []
     for file in files:
         if not keep_re.match(file) and not os.path.isdir(os.path.join(dir, file)):

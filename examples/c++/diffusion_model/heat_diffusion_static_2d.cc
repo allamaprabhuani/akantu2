@@ -21,17 +21,12 @@
 /* -------------------------------------------------------------------------- */
 #include "heat_transfer_model.hh"
 /* -------------------------------------------------------------------------- */
-#include <cmath>
-#include <fstream>
-#include <iostream>
 #include <string>
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-
 /* -------------------------------------------------------------------------- */
-Int spatial_dimension = 2;
-std::string base_name;
+
+const Int spatial_dimension = 2;
 
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
@@ -64,10 +59,12 @@ int main(int argc, char * argv[]) {
       temperature(i) = 300.;
     }
 
-    if (std::abs(dx) < 1e-4 || std::abs(dy) < 1e-4)
+    if (std::abs(dx) < 1e-4 || std::abs(dy) < 1e-4) {
       blocked_dofs(i) = true;
-    if (std::abs(dx - length) < 1e-4 || std::abs(dy - length) < 1e-4)
+    }
+    if (std::abs(dx - length) < 1e-4 || std::abs(dy - length) < 1e-4) {
       blocked_dofs(i) = true;
+    }
   }
 
   model.setBaseName("heat_diffusion_static_2d");

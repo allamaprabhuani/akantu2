@@ -19,13 +19,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_group.hh"
-#include "group_manager_inline_impl.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
-#include "dumpable_inline_impl.hh"
 #include "dumper_iohelper_paraview.hh"
-/* -------------------------------------------------------------------------- */
 #include "locomotive_tools.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
@@ -173,8 +169,6 @@ int main(int argc, char * argv[]) {
     mesh.dump();
     mesh.dump("wheels");
   }
-
-  finalize();
 
   return 0;
 }
