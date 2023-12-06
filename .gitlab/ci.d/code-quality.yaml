@@ -8,9 +8,6 @@
         - third-party/eigen3
         - third-party/pybind11
         - third-party/google-test
-  only:
-    - tags
-    - branches
 
 .code_quality_gitlab_template:
   extends:
