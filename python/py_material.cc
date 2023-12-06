@@ -464,6 +464,14 @@ void register_material(py::module & mod) {
             return self.getElementFilter();
           },
           py::return_value_policy::reference)
+      .def(
+          "getElementFilter",
+          [](Material & self, ElementType el_type,
+             GhostType ghost_type = _not_ghost) -> decltype(auto) {
+            return self.getElementFilter(el_type, ghost_type);
+          },
+          py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
       /*
        * These functions override the `Parsable` interface.
        * This ensure that the `updateInternalParameters()` function is called.
