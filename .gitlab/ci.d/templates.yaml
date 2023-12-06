@@ -3,23 +3,31 @@
 
 # Split ci
 .documentation_only:
-  only:
-    changes:
-      - doc/**/*
-      - .readthedocs.yaml
-      - README.md
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: 'refs/heads/master'
+        paths:
+          - doc/**/*
+          - examples/**/*
+          - .readthedocs.yaml
+          - README.md
 
 .code_only:
-  except:
-    changes:
-      - doc/**/*
-      - .gitpod.yml
-      - .gitignore
-      - .editorconfig
-      - .readthedocs.yaml
-      - README.md
-      - AUTHORS
-      - CHANGELOG.md
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: 'refs/heads/master'
+        paths:
+          - doc/**/*
+          - .gitpod.yml
+          - .gitignore
+          - .editorconfig
+          - .readthedocs.yaml
+          - README.md
+          - AUTHORS
+          - CHANGELOG.md
+      when: never
 
 # Configuration template
 .configure:
