@@ -18,14 +18,18 @@ directory.
 Examples in both 2D and 3D are presented with the dimension is specified in the 
 respective example titles. The only distinctions between a 2D and a 3D simulation lie in 
 the mesh declaration. 
-In C++::
+In C++:
+
+.. code-block:: c++
 
     const Int spatial_dimension = 2;  // or 3 for 3D
     Mesh mesh(spatial_dimension);
     mesh.read("example_mesh.msh");
 
-In Python::
-    
+In Python:
+
+.. code-block:: python
+
     spatial_dimension = 2  # or 3 for 3D
     mesh = aka.Mesh(spatial_dimension)
     mesh.read("example_mesh.msh")
