@@ -19,15 +19,10 @@
       changes:
         compare_to: 'refs/heads/master'
         paths:
-          - doc/**/*
-          - .gitpod.yml
-          - .gitignore
-          - .editorconfig
-          - .readthedocs.yaml
-          - README.md
-          - AUTHORS
-          - CHANGELOG.md
-      when: never
+          - ./**/*.cc
+          - ./**/*.hh
+          - ./**/*.txt
+          - ./**/*.cmake
 
 # Configuration template
 .configure:
