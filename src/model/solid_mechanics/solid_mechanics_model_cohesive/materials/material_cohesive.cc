@@ -36,6 +36,8 @@
 #include "material_cohesive.hh"
 #include "aka_random_generator.hh"
 #include "dof_synchronizer.hh"
+#include "element_synchronizer.hh"
+#include "facet_synchronizer.hh"
 #include "fe_engine_template.hh"
 #include "integrator_gauss.hh"
 #include "shape_cohesive.hh"
@@ -285,6 +287,10 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
+    /// syncrhonize these two fields
+    this->model->synchronize(SynchronizationTag::_smmc_normal);
+    this->model->synchronize(SynchronizationTag::_smmc_opening);
+
     /// check if self-penetration is taking place
     checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
                      penetration(type, ghost_type), type, ghost_type);
@@ -395,6 +401,10 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
+    /// syncrhonize these two fields
+    this->model->synchronize(SynchronizationTag::_smmc_normal);
+    this->model->synchronize(SynchronizationTag::_smmc_opening);
+
     /// check if self-penetration is taking place
     checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
                      penetration(type, ghost_type), type, ghost_type);
@@ -447,6 +457,7 @@ void MaterialCohesive::computeBasis(const Array<Real> & position,
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_BASIS);
 #undef COMPUTE_BASIS
 
+  // todo add syncronization of basis
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

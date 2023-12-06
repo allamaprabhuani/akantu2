@@ -331,7 +331,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
   (smmc_facets_stress)                          \
-  (smmc_normals)                                \
+  (smmc_normal)                                \
+  (smmc_opening)                               \
   (smmc_damage)                                 \
   (giu_global_conn)                             \
   (ce_groups)                                   \
@@ -391,8 +392,8 @@ enum class SynchronizationTag {
                        ///< facet
                        /// synch
   _smmc_damage,        ///< synchronization of damage
-  _smmc_normals,       ///< synchronization of normals
-
+  _smmc_normal,        ///< synchronization of normals
+  _smmc_opening,       ///< synchronization of openings
   // --- GlobalIdsUpdater tags ---
   _giu_global_conn, ///< synchronization of global connectivities
 
