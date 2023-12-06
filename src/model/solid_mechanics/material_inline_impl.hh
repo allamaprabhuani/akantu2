@@ -246,11 +246,20 @@ Material::convertToGlobalPoint(const IntegrationPoint & local_point) const {
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbData(const Array<Element> & elements,
                                 const SynchronizationTag & tag) const {
-  if (tag == SynchronizationTag::_smm_stress) {
+  switch (tag) {
+  case SynchronizationTag::_smm_stress: {
     return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *
            spatial_dimension * sizeof(Real) *
            this->getModel().getNbIntegrationPoints(elements);
   }
+  case SynchronizationTag::_smm_gradu: {
+    return spatial_dimension * spatial_dimension * sizeof(Real) *
+           this->getModel().getNbIntegrationPoints(elements);
+  }
+  default: {
+  }
+  }
+
   return 0;
 }
 
@@ -258,12 +267,21 @@ inline UInt Material::getNbData(const Array<Element> & elements,
 inline void Material::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
-  if (tag == SynchronizationTag::_smm_stress) {
+  switch (tag) {
+  case SynchronizationTag::_smm_stress: {
     if (this->isFiniteDeformation()) {
       packElementDataHelper(piola_kirchhoff_2, buffer, elements);
       packElementDataHelper(gradu, buffer, elements);
     }
     packElementDataHelper(stress, buffer, elements);
+    break;
+  }
+  case SynchronizationTag::_smm_gradu: {
+    packElementDataHelper(gradu, buffer, elements);
+    break;
+  }
+  default: {
+  }
   }
 }
 
@@ -271,12 +289,21 @@ inline void Material::packData(CommunicationBuffer & buffer,
 inline void Material::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
                                  const SynchronizationTag & tag) {
-  if (tag == SynchronizationTag::_smm_stress) {
+  switch (tag) {
+  case SynchronizationTag::_smm_stress: {
     if (this->isFiniteDeformation()) {
       unpackElementDataHelper(piola_kirchhoff_2, buffer, elements);
       unpackElementDataHelper(gradu, buffer, elements);
     }
     unpackElementDataHelper(stress, buffer, elements);
+    break;
+  }
+  case SynchronizationTag::_smm_gradu: {
+    unpackElementDataHelper(gradu, buffer, elements);
+    break;
+  }
+  default: {
+  }
   }
 }
 

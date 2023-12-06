@@ -323,6 +323,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (size)                                        \
   (smm_mass)                                    \
   (smm_for_gradu)                               \
+  (smm_gradu)                                   \
   (smm_boundary)                                \
   (smm_uv)                                      \
   (smm_res)                                     \
@@ -378,6 +379,7 @@ enum class SynchronizationTag {
   _smm_mass,      ///< synchronization of the SolidMechanicsModel.mass
   _smm_for_gradu, ///< synchronization of the
                   /// SolidMechanicsModel.displacement
+  _smm_gradu,     ///< synchronization of the gradu for geomechanical coupling
   _smm_boundary,  ///< synchronization of the boundary, forces, velocities
                   /// and displacement
   _smm_uv,        ///< synchronization of the nodal velocities and displacement
