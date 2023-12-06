@@ -1,5 +1,5 @@
-parser
-''''''
+parser (2D)
+'''''''''''
 
 :Sources:
 
@@ -24,8 +24,8 @@ Within the main function, those parameters are retrived with::
    const ParserSection & usersect = getUserParser();
    Real parameter_name = usersect.getParameter("parameter_name");
 
-dumper
-''''''
+dumper (2D)
+'''''''''''
 
 :Sources:
 

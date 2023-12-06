@@ -1,5 +1,5 @@
-stiffness_matrix
-''''''''''''''''
+stiffness_matrix (2D)
+'''''''''''''''''''''
 
 :Sources:
 

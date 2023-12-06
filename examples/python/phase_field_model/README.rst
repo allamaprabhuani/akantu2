@@ -1,5 +1,5 @@
-Phase-field model
-`````````````````
+Phase-field model (2D)
+``````````````````````
 
 static
 ''''''

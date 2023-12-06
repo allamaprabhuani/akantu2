@@ -1,5 +1,5 @@
-custom-material
-'''''''''''''''
+custom-material (2D)
+''''''''''''''''''''
 
 :Sources:
 

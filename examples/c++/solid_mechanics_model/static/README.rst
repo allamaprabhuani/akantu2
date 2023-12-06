@@ -1,5 +1,5 @@
-Static test cases
-'''''''''''''''''
+Static test cases (2D)
+''''''''''''''''''''''
 
 :Sources:
 

@@ -1,5 +1,5 @@
-Diffusion Model
-```````````````
+Diffusion Model (2D and 3D)
+```````````````````````````
 
 :Sources:
 

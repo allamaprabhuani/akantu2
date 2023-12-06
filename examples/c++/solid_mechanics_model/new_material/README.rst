@@ -1,5 +1,5 @@
-new_material
-''''''''''''
+new_material (2D)
+'''''''''''''''''
 
 :Sources:
 

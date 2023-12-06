@@ -1,5 +1,5 @@
-Contact mechanics model
-```````````````````````
+Contact mechanics model (2D)
+````````````````````````````
 
 :Sources:
 

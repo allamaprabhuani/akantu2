@@ -1,5 +1,5 @@
-eigen_modes
-'''''''''''
+eigen_modes (2D)
+''''''''''''''''
 
 :Sources:
 
