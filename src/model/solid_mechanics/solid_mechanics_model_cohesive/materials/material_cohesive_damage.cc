@@ -407,10 +407,29 @@ void MaterialCohesiveDamage<dim>::computeLambdaOnQuad(ElementType type,
   const auto & lambda = this->model->getLambda();
   auto & lambda_on_quad = this->lambda(type, ghost_type);
 
+  std::cout << "lambda in : MaterialCohesiveDamage<dim>::computeLambdaOnQuad " << std::endl;
+  lambda.printself(std::cout << std::endl);
+  ArrayPrintHelper<true>::print_content(lambda,std::cout,0);
+
+
   auto underlying_type = Mesh::getFacetType(type);
   fem_lambda.interpolateOnIntegrationPoints(
       lambda, lambda_on_quad, dim, underlying_type, ghost_type,
       this->getElementFilter(type, ghost_type));
+
+  std::cout << "lambda_on_quad in : MaterialCohesiveDamage<dim>::computeLambdaOnQuad " << std::endl;
+  lambda_on_quad.printself(std::cout << std::endl);
+  ArrayPrintHelper<true>::print_content(lambda_on_quad,std::cout,0);
+
+  std::cout << "shapes_lambda in : MaterialCohesiveDamage<dim>::computeLambdaOnQuad " << std::endl;
+  auto shapes_lambda = fem_lambda.getShapes(underlying_type,ghost_type,0);
+  ArrayPrintHelper<true>::print_content(shapes_lambda,std::cout,0);
+
+  std::cout << "shapes_cohesive in : MaterialCohesiveDamage<dim>::computeLambdaOnQuad " << std::endl;
+  auto & fem_cohesive =
+      this->model->getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine");
+  auto shapes_cohesive = fem_cohesive.getShapes(type,ghost_type,0);
+  ArrayPrintHelper<true>::print_content(shapes_cohesive,std::cout,0);
 }
 
 /* -------------------------------------------------------------------------- */
