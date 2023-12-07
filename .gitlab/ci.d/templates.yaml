@@ -4,9 +4,8 @@
 # Split ci
 .documentation_only:
   rules:
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: 'refs/heads/master'
+    - changes:
+        compare_to: 'master'
         paths:
           - doc/**/*
           - examples/**/*
@@ -15,9 +14,8 @@
 
 .code_only:
   rules:
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: 'refs/heads/master'
+    - changes:
+        compare_to: 'master'
         paths:
           - /*.{cc, hh, txt, cmake, py}
 
