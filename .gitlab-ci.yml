@@ -342,7 +342,7 @@ package:python_pypi:
     - job: build_pip:python_package
     - job: test:python_package
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG =~ /v[0-9]+.*/
+    - if: $CI_COMMIT_TAG =~ /v[0-9]+.*/
 
 # ------------------------------------------------------------------------------
 # Code Quality
