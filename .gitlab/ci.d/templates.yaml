@@ -19,10 +19,7 @@
       changes:
         compare_to: 'refs/heads/master'
         paths:
-          - ./**/*.cc
-          - ./**/*.hh
-          - ./**/*.txt
-          - ./**/*.cmake
+          - /*.{cc, hh, txt, cmake, py}
 
 # Configuration template
 .configure:

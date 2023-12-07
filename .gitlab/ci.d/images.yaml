@@ -17,8 +17,11 @@
     - docker build --no-cache -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
     - docker push registry.gitlab.com/akantu/akantu/${IMAGE_NAME}
   rules:
-    - changes:
-        - test/ci/${IMAGE_NAME}/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: 'refs/heads/master'
+        paths:
+          - test/ci/${IMAGE_NAME}/*
 
 # ------------------------------------------------------------------------------
 .cache_build:
