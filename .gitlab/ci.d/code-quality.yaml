@@ -60,7 +60,6 @@
     - .debian_bullseye_clang
   before_script:
     - if [ 'x${CI_MERGE_REQUEST_ID}' != 'x' ]; then
-    -   env
     -   git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     -   git diff --name-only $CI_COMMIT_SHA $CI_MERGE_REQUEST_DIFF_BASE_SHA > file_list
     -   FILE_LIST_ARG='-f file_list'
