@@ -204,7 +204,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     Matrix<Real> A(spatial_dimension * size_of_shapes,
                    spatial_dimension * nb_nodes_per_element);
-
+    A.zero();
     for (Int i = 0; i < spatial_dimension * size_of_shapes; ++i) {
       A(i, i) = 1;
       A(i, i + spatial_dimension * size_of_shapes) = -1;
@@ -232,18 +232,14 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     auto at_nt_d_n_a = std::make_unique<Array<Real>>(
         nb_element * nb_quadrature_points, size_at_nt_d_n_a, "A^t*N^t*D*N*A");
 
-    Matrix<Real> N(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    Matrix<Real> N(spatial_dimension, spatial_dimension * size_of_shapes);
 
-    for (auto && data :
+    for (auto && [At_Nt_D_N_A, D, shapes] :
          zip(make_view(*at_nt_d_n_a, spatial_dimension * nb_nodes_per_element,
                        spatial_dimension * nb_nodes_per_element),
              make_view(*tangent_stiffness_matrix, spatial_dimension,
                        spatial_dimension),
              make_view(*shapes_filtered, size_of_shapes))) {
-
-      auto && At_Nt_D_N_A = std::get<0>(data);
-      auto && D = std::get<1>(data);
-      auto && shapes = std::get<2>(data);
       N.zero();
       /**
        * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
@@ -263,7 +259,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
        *{\partial{\delta}}
        * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
        **/
-      auto && NA = N * A;
+      Matrix<Real> NA = N * A;
       At_Nt_D_N_A = (D * NA).transpose() * NA;
     }
 
