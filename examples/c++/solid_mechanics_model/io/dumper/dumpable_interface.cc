@@ -23,6 +23,7 @@
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 #include "dumper_iohelper_paraview.hh"
+#include "group_manager_inline_impl.hh"
 #include "locomotive_tools.hh"
 /* -------------------------------------------------------------------------- */
 
