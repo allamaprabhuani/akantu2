@@ -30,6 +30,19 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
+
+// NonLinearSolverLinear::NonLinearSolverLinear(
+//     DOFManagerDefault & dof_manager,
+//     const NonLinearSolverType & non_linear_solver_type, const ID & id)
+//     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
+//       solver(dof_manager, "J", id + ":sparse_solver") {
+
+//   this->supported_type.insert(NonLinearSolverType::_linear);
+//   this->checkIfTypeIsSupported();
+// }
+
+/* -------------------------------------------------------------------------- */
+
 NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
@@ -66,8 +79,11 @@ NonLinearSolverNewtonRaphson::~NonLinearSolverNewtonRaphson() = default;
 
 /* ------------------------------------------------------------------------ */
 void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
+  if (this->linear) {
+    NonLinearSolverNewtonRaphson::solve_linear(solver_callback);
+    return;
+  }
   solver_callback.beforeSolveStep();
-
   this->dof_manager.updateGlobalBlockedDofs();
 
   solver_callback.predictor();
@@ -193,6 +209,33 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
   this->error = norm;
 
   return (error < this->convergence_criteria_normalized);
+}
+
+// /* ------------------------------------------------------------------------
+void NonLinearSolverNewtonRaphson::solve_linear(
+    SolverCallback & solver_callback) {
+  solver_callback.beforeSolveStep();
+  this->dof_manager.updateGlobalBlockedDofs();
+
+  solver_callback.predictor();
+
+  solver_callback.assembleMatrix("J");
+
+  // Residual computed after J to allow the model to use K to compute the
+  // residual
+  this->assembleResidual(solver_callback);
+
+  this->solver->solve();
+
+  solver_callback.corrector();
+
+  if (solver_callback.canSplitResidual()) {
+    solver_callback.assembleResidual("internal");
+  } else {
+    this->assembleResidual(solver_callback);
+  }
+
+  solver_callback.afterSolveStep(true);
 }
 
 /* -------------------------------------------------------------------------- */

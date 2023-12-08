@@ -110,11 +110,10 @@ int main(int argc, char * argv[]) {
             << " " << std::setw(8) << "force"
             << " " << std::setw(8) << "blocked" << std::endl;
 
-  for (; disp_it != callback.dispacement.end();
-       ++disp_it, ++force_it, ++blocked_it) {
-    std::cout << std::setw(8) << *disp_it << " " << std::setw(8) << *force_it
-              << " " << std::setw(8) << std::boolalpha << *blocked_it
-              << std::endl;
+  for (auto && [disp, force, blocked] :
+       zip(callback.dispacement, callback.forces, callback.blocked)) {
+    std::cout << std::setw(8) << disp << " " << std::setw(8) << force << " "
+              << std::setw(8) << std::boolalpha << blocked << std::endl;
   }
 
   finalize();

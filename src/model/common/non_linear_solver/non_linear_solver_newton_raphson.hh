@@ -52,10 +52,13 @@ public:
   /// the solver callback functions
   void solve(SolverCallback & solver_callback) override;
 
-  AKANTU_GET_MACRO_NOT_CONST(Solver, *solver, SparseSolverMumps &);
-  AKANTU_GET_MACRO(Solver, *solver, const SparseSolverMumps &);
+  AKANTU_GET_MACRO_NOT_CONST(SparseSolver, *solver, SparseSolverMumps &);
+  AKANTU_GET_MACRO(SparseSolver, *solver, const SparseSolverMumps &);
 
 protected:
+  //! function to call when a single sparse solve is demanded (1 iteration)
+  void solve_linear(SolverCallback & solver_callback);
+
   /// test the convergence compare norm of array to convergence_criteria
   bool testConvergence(const SolverVector & solver_vector);
 
@@ -89,6 +92,20 @@ private:
 
   /// Force a re-computation of the jacobian matrix
   bool force_linear_recompute{true};
+
+protected:
+  /// flag do decide if one iteration only to be done
+  bool linear{false};
+};
+
+class NonLinearSolverLinear : public NonLinearSolverNewtonRaphson {
+public:
+  NonLinearSolverLinear(DOFManagerDefault & dof_manager,
+                        const NonLinearSolverType & non_linear_solver_type,
+                        const ID & id = "non_linear_solver_linear")
+      : NonLinearSolverNewtonRaphson(dof_manager, non_linear_solver_type, id) {
+    this->linear = true;
+  }
 };
 
 } // namespace akantu

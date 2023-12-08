@@ -26,7 +26,6 @@
 #define AKANTU_NON_LINEAR_SOLVER_DEFAULT_HH_
 
 #if defined(AKANTU_USE_MUMPS)
-#include "non_linear_solver_linear.hh"
 #include "non_linear_solver_newton_raphson.hh"
 #endif
 
