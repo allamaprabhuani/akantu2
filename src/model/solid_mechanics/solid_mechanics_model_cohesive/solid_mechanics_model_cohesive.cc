@@ -586,16 +586,17 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
         }
       }
 
-      for (auto && el :
-           arange(lambda_connectivity.size() - 1, nb_new_elements)) {
+      for (auto && el : arange(nb_old_elements, nb_new_elements)) {
         element_list.push_back({underlying_type, el, ghost_type});
       }
     }
   }
   lambda_mesh->copyNodes(mesh, new_nodes);
-  lambda->resize(lambda_id,0.);
-  lambda_increment->resize(lambda_id,0.);
-  previous_lambda->resize(lambda_id,0.);
+
+  auto nb_lambda = lambda->size();
+  lambda->resize(nb_lambda, 0.);
+  lambda_increment->resize(nb_lambda, 0.);
+  previous_lambda->resize(nb_lambda, 0.);
 
   lambda_mesh->sendEvent(element_event);
   lambda_mesh->sendEvent(node_event);
@@ -714,8 +715,8 @@ ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
   ModelSolverOptions options =
       SolidMechanicsModel::getDefaultSolverOptions(type);
 
-//    if (lambda) {
-  if(true) {
+  //    if (lambda) {
+  if (true) {
     switch (type) {
     case TimeStepSolverType::_dynamic_lumped: {
       options.non_linear_solver_type = NonLinearSolverType::_lumped;
