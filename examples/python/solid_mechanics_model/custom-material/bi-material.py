@@ -5,7 +5,6 @@ __copyright__ = (
 __license__ = "LGPLv3"
 
 
-
 import akantu as aka
 import numpy as np
 

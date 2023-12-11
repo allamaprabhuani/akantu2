@@ -103,7 +103,8 @@ def callback(dir, files):
     keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat|py)")
     ignores = []
     for file in files:
-        if not keep_re.match(file) and not os.path.isdir(os.path.join(dir, file)):
+        if (not keep_re.match(file) and
+            not os.path.isdir(os.path.join(dir, file))):
             ignores.append(file)
     return ignores
 
@@ -145,10 +146,7 @@ bibtex_bibfiles = ["manual/manual-bibliography.bib"]
 # -- Project information -----------------------------------------------------
 
 project = "Akantu"
-copyright = (
-    "2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
-    + " Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
-)
+copyright = __copyright__
 author = "Nicolas Richart"
 
 # -- Options for HTML output -------------------------------------------------
@@ -230,7 +228,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Akantu.tex", "Akantu Documentation", "Nicolas Richart", "manual"),
+    (master_doc, "Akantu.tex", "Akantu Documentation",
+     "Nicolas Richart", "manual"),
 ]
 
 
@@ -238,7 +237,8 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "akantu", "Akantu Documentation", [author], 1)]
+man_pages = [(master_doc, "akantu",
+              "Akantu Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -282,6 +282,7 @@ epub_exclude_files = ["search.html"]
 
 # -- Extension configuration -------------------------------------------------
 j2_args = {}
+j2_template_path = "."
 
 if read_the_docs_build or not cmake_configure:
     j2_template_path = "."
@@ -299,7 +300,8 @@ j2_args = {
 
 print(akantu_path)
 j2_env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(j2_template_path), undefined=jinja2.DebugUndefined
+    loader=jinja2.FileSystemLoader(j2_template_path),
+    undefined=jinja2.DebugUndefined
 )
 
 j2_template = j2_env.get_template("akantu.dox.j2")
@@ -321,7 +323,8 @@ breathe_short_warning = True
 # -- Gallery ------------------------------------------------------------------
 # sphinx_gallery_conf = {
 #     'examples_dirs': os.path.join(akantu_source_path, 'examples'),
-#     'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
+#     'gallery_dirs': os.path.join(akantu_source_path, 'doc',
+#                                  'dev-doc', 'auto_examples'),
 #     'download_all_examples': False,
 #     'plot_gallery': 'False',
 #     'only_warn_on_example_error': True,
