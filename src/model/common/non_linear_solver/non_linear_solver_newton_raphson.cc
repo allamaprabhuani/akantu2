@@ -180,7 +180,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
 
 /* -------------------------------------------------------------------------- */
 bool NonLinearSolverNewtonRaphson::testConvergence(
-    const SolverVector & solver_vector) {
+    const SparseSolverVector & solver_vector) {
   AKANTU_DEBUG_IN();
 
   const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();

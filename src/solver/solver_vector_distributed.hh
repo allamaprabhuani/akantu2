@@ -27,13 +27,13 @@
 
 namespace akantu {
 
-class SolverVectorDistributed : public SolverVectorDefault {
+class SparseSolverVectorDistributed : public SparseSolverVectorDefault {
 public:
-  SolverVectorDistributed(DOFManagerDefault & dof_manager,
-                          const ID & id = "solver_vector_mumps");
+  SparseSolverVectorDistributed(DOFManagerDefault & dof_manager,
+                                const ID & id = "solver_vector_mumps");
 
-  SolverVectorDistributed(const SolverVectorDefault & vector,
-                          const ID & id = "solver_vector_mumps");
+  SparseSolverVectorDistributed(const SparseSolverVectorDefault & vector,
+                                const ID & id = "solver_vector_mumps");
 
   Array<Real> & getGlobalVector() override;
   void setGlobalVector(const Array<Real> & solution) override;

@@ -26,14 +26,14 @@
 #include "sparse_matrix_petsc.hh"
 /* -------------------------------------------------------------------------- */
 #include <petscksp.h>
-//#include <petscsys.h>
+// #include <petscsys.h>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SolverPETSc::SolverPETSc(DOFManagerPETSc & dof_manager, const ID & matrix_id,
-                         const ID & id)
+SparseSolverPETSc::SparseSolverPETSc(DOFManagerPETSc & dof_manager,
+                                     const ID & matrix_id, const ID & id)
     : SparseSolver(dof_manager, matrix_id, id), dof_manager(dof_manager),
       matrix(dof_manager.getMatrix(matrix_id)) {
   auto && mpi_comm = dof_manager.getMPIComm();
@@ -43,14 +43,14 @@ SolverPETSc::SolverPETSc(DOFManagerPETSc & dof_manager, const ID & matrix_id,
 }
 
 /* -------------------------------------------------------------------------- */
-SolverPETSc::~SolverPETSc() {
+SparseSolverPETSc::~SparseSolverPETSc() {
   if (ksp != nullptr) {
     PETSc_call(KSPDestroy, &ksp);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverPETSc::setOperators() {
+void SparseSolverPETSc::setOperators() {
   // set the matrix that defines the linear system and the matrix for
 // preconditioning (here they are the same)
 #if PETSC_VERSION_MAJOR >= 3 && PETSC_VERSION_MINOR >= 5
@@ -70,7 +70,7 @@ void SolverPETSc::setOperators() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverPETSc::solve() {
+void SparseSolverPETSc::solve() {
   Vec & rhs(this->dof_manager.getResidual());
   Vec & solution(this->dof_manager.getSolution());
 

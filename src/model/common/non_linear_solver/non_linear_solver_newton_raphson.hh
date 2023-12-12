@@ -28,7 +28,7 @@
 namespace akantu {
 class DOFManagerDefault;
 class SparseSolver;
-class SolverVector;
+class SparseSolverVector;
 } // namespace akantu
 
 namespace akantu {
@@ -60,7 +60,7 @@ protected:
   void solve_linear(SolverCallback & solver_callback);
 
   /// test the convergence compare norm of array to convergence_criteria
-  bool testConvergence(const SolverVector & solver_vector);
+  bool testConvergence(const SparseSolverVector & solver_vector);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

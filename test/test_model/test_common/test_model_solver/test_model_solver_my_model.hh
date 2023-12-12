@@ -323,7 +323,7 @@ public:
     if (not lumped) {
       res = this->mulVectMatVect(this->velocity, "M", this->velocity);
     } else {
-      Array<Real> & m = dynamic_cast<SolverVectorDefault &>(
+      Array<Real> & m = dynamic_cast<SparseSolverVectorDefault &>(
           this->getDOFManager().getLumpedMatrix("M"));
       auto it = velocity.begin();
       auto end = velocity.end();

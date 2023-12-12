@@ -31,15 +31,16 @@ class DOFManager;
 
 namespace akantu {
 
-class SolverVector {
+class SparseSolverVector {
 public:
-  SolverVector(DOFManager & dof_manager, const ID & id = "solver_vector")
+  SparseSolverVector(DOFManager & dof_manager, const ID & id = "solver_vector")
       : id(id), dof_manager(dof_manager) {}
 
-  SolverVector(const SolverVector & vector, const ID & id = "solver_vector")
+  SparseSolverVector(const SparseSolverVector & vector,
+                     const ID & id = "solver_vector")
       : id(id), dof_manager(vector.dof_manager) {}
 
-  virtual ~SolverVector() = default;
+  virtual ~SparseSolverVector() = default;
 
   // resize the vector to the size of the problem
   virtual void resize() = 0;
@@ -53,8 +54,8 @@ public:
   virtual Int size() const = 0;
   virtual Int localSize() const = 0;
 
-  virtual SolverVector & operator+(const SolverVector & y) = 0;
-  virtual SolverVector & copy(const SolverVector & y) = 0;
+  virtual SparseSolverVector & operator+(const SparseSolverVector & y) = 0;
+  virtual SparseSolverVector & copy(const SparseSolverVector & y) = 0;
 
   Int & release() { return release_; }
   Int release() const { return release_; }
@@ -75,7 +76,8 @@ protected:
   Int release_{0};
 };
 
-inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {
+inline std::ostream & operator<<(std::ostream & stream,
+                                 SparseSolverVector & _this) {
   _this.printself(stream);
   return stream;
 }

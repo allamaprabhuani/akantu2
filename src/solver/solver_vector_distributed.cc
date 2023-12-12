@@ -27,17 +27,17 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SolverVectorDistributed::SolverVectorDistributed(
+SparseSolverVectorDistributed::SparseSolverVectorDistributed(
     DOFManagerDefault & dof_manager, const ID & id)
-    : SolverVectorDefault(dof_manager, id) {}
+    : SparseSolverVectorDefault(dof_manager, id) {}
 
 /* -------------------------------------------------------------------------- */
-SolverVectorDistributed::SolverVectorDistributed(
-    const SolverVectorDefault & vector, const ID & id)
-    : SolverVectorDefault(vector, id) {}
+SparseSolverVectorDistributed::SparseSolverVectorDistributed(
+    const SparseSolverVectorDefault & vector, const ID & id)
+    : SparseSolverVectorDefault(vector, id) {}
 
 /* -------------------------------------------------------------------------- */
-Array<Real> & SolverVectorDistributed::getGlobalVector() {
+Array<Real> & SparseSolverVectorDistributed::getGlobalVector() {
   auto & synchronizer =
       dynamic_cast<DOFManagerDefault &>(dof_manager).getSynchronizer();
 
@@ -57,7 +57,8 @@ Array<Real> & SolverVectorDistributed::getGlobalVector() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
+void SparseSolverVectorDistributed::setGlobalVector(
+    const Array<Real> & solution) {
   auto & synchronizer =
       dynamic_cast<DOFManagerDefault &>(dof_manager).getSynchronizer();
   if (synchronizer.getCommunicator().whoAmI() == 0) {
@@ -68,7 +69,7 @@ void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SolverVectorDistributed::isFinite() const {
+bool SparseSolverVectorDistributed::isFinite() const {
   auto & synchronizer =
       dynamic_cast<DOFManagerDefault &>(dof_manager).getSynchronizer();
   bool is_finite = this->vector.isFinite();

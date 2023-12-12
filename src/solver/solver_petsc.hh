@@ -34,16 +34,16 @@ class DOFManagerPETSc;
 
 namespace akantu {
 
-class SolverPETSc : public SparseSolver {
+class SparseSolverPETSc : public SparseSolver {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SolverPETSc(DOFManagerPETSc & dof_manager, const ID & matrix_id,
-              const ID & id = "solver_petsc");
+  SparseSolverPETSc(DOFManagerPETSc & dof_manager, const ID & matrix_id,
+                    const ID & id = "solver_petsc");
 
-  ~SolverPETSc() override;
+  ~SparseSolverPETSc() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

@@ -98,8 +98,9 @@ int main(int argc, char * argv[]) {
   }
 
   SparseSolverMumps solver(dof_manager, "A");
+  dof_manager.assembleToResidual("disp", b);
 
-  solver.solve(x, b);
+  solver.solve();
 
   auto && check = [&](auto && xs) {
     debug::setDebugLevel(dblTest);

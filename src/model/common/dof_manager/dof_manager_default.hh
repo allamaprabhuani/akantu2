@@ -93,7 +93,7 @@ public:
 protected:
   void assembleToGlobalArray(const ID & dof_id,
                              const Array<Real> & array_to_assemble,
-                             SolverVector & global_array,
+                             SparseSolverVector & global_array,
                              Real scale_factor) override;
 
   template <typename T>
@@ -101,14 +101,14 @@ protected:
                              const Array<T> & array_to_assemble,
                              Array<T> & global_array, T scale_factor);
 
-  void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
+  void getArrayPerDOFs(const ID & dof_id, const SparseSolverVector & global,
                        Array<Real> & local) override;
 
   template <typename T>
   void getArrayPerDOFs(const ID & dof_id, const Array<T> & global_array,
                        Array<T> & local_array) const;
   void makeConsistentForPeriodicity(const ID & dof_id,
-                                    SolverVector & array) override;
+                                    SparseSolverVector & array) override;
 
 public:
   /// update the global dofs vector
@@ -173,7 +173,7 @@ public:
   SparseMatrixAIJ & getMatrix(const ID & matrix_id);
 
   /// Get an instance of a new lumped matrix
-  SolverVector & getNewLumpedMatrix(const ID & matrix_id) override;
+  SparseSolverVector & getNewLumpedMatrix(const ID & matrix_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Non Linear Solver                                                        */

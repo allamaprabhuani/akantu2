@@ -33,12 +33,13 @@ class DOFManagerDefault;
 
 namespace akantu {
 
-class SolverVectorArray : public SolverVector {
+class SparseSolverVectorArray : public SparseSolverVector {
 public:
-  SolverVectorArray(DOFManagerDefault & dof_manager, const ID & id);
-  SolverVectorArray(const SolverVectorArray & vector, const ID & id);
+  SparseSolverVectorArray(DOFManagerDefault & dof_manager, const ID & id);
+  SparseSolverVectorArray(const SparseSolverVectorArray & vector,
+                          const ID & id);
 
-  ~SolverVectorArray() override = default;
+  ~SparseSolverVectorArray() override = default;
 
   virtual Array<Real> & getVector() = 0;
   virtual const Array<Real> & getVector() const = 0;
@@ -51,31 +52,33 @@ public:
     stream << space << "]" << std::endl;
   }
 
-  using SolverVector::isDistributed;
+  using SparseSolverVector::isDistributed;
 };
 
 /* -------------------------------------------------------------------------- */
-template <class Array_> class SolverVectorArrayTmpl : public SolverVectorArray {
+template <class Array_>
+class SparseSolverVectorArrayTmpl : public SparseSolverVectorArray {
 public:
-  SolverVectorArrayTmpl(DOFManagerDefault & dof_manager, Array_ & vector,
-                        const ID & id = "solver_vector_default")
-      : SolverVectorArray(dof_manager, id), vector(vector) {}
+  SparseSolverVectorArrayTmpl(DOFManagerDefault & dof_manager, Array_ & vector,
+                              const ID & id = "solver_vector_default")
+      : SparseSolverVectorArray(dof_manager, id), vector(vector) {}
 
   template <class A = Array_,
             std::enable_if_t<not std::is_reference<A>::value> * = nullptr>
-  SolverVectorArrayTmpl(DOFManagerDefault & dof_manager,
-                        const ID & id = "solver_vector_default")
-      : SolverVectorArray(dof_manager, id), vector(0, 1, id + ":vector") {}
+  SparseSolverVectorArrayTmpl(DOFManagerDefault & dof_manager,
+                              const ID & id = "solver_vector_default")
+      : SparseSolverVectorArray(dof_manager, id), vector(0, 1, id + ":vector") {
+  }
 
-  SolverVectorArrayTmpl(const SolverVectorArrayTmpl & vector,
-                        const ID & id = "solver_vector_default")
-      : SolverVectorArray(vector, id), vector(vector.vector) {}
+  SparseSolverVectorArrayTmpl(const SparseSolverVectorArrayTmpl & vector,
+                              const ID & id = "solver_vector_default")
+      : SparseSolverVectorArray(vector, id), vector(vector.vector) {}
 
   operator const Array<Real> &() const override { return getVector(); };
   virtual operator Array<Real> &() { return getVector(); };
 
-  SolverVector & operator+(const SolverVector & y) override;
-  SolverVector & copy(const SolverVector & y) override;
+  SparseSolverVector & operator+(const SparseSolverVector & y) override;
+  SparseSolverVector & copy(const SparseSolverVector & y) override;
 
   void resize() override {
     static_assert(not std::is_const<std::remove_reference_t<Array_>>::value,
@@ -110,20 +113,20 @@ public:
 protected:
   Array_ vector;
 
-  template <class A> friend class SolverVectorArrayTmpl;
+  template <class A> friend class SparseSolverVectorArrayTmpl;
 };
 
 /* -------------------------------------------------------------------------- */
-using SolverVectorDefault = SolverVectorArrayTmpl<Array<Real>>;
+using SparseSolverVectorDefault = SparseSolverVectorArrayTmpl<Array<Real>>;
 
 /* -------------------------------------------------------------------------- */
 template <class Array>
-using SolverVectorDefaultWrap = SolverVectorArrayTmpl<Array &>;
+using SparseSolverVectorDefaultWrap = SparseSolverVectorArrayTmpl<Array &>;
 
 template <class Array>
 decltype(auto) make_solver_vector_default_wrap(DOFManagerDefault & dof_manager,
                                                Array & vector) {
-  return SolverVectorDefaultWrap<Array>(dof_manager, vector);
+  return SparseSolverVectorDefaultWrap<Array>(dof_manager, vector);
 }
 
 } // namespace akantu

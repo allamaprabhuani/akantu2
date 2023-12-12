@@ -42,11 +42,11 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 DOFManagerDefault::DOFManagerDefault(const ID & id)
     : DOFManager(id), synchronizer(nullptr) {
-  residual = std::make_unique<SolverVectorDefault>(
+  residual = std::make_unique<SparseSolverVectorDefault>(
       *this, std::string(id + ":residual"));
-  solution = std::make_unique<SolverVectorDefault>(
+  solution = std::make_unique<SparseSolverVectorDefault>(
       *this, std::string(id + ":solution"));
-  data_cache = std::make_unique<SolverVectorDefault>(
+  data_cache = std::make_unique<SparseSolverVectorDefault>(
       *this, std::string(id + ":data_cache"));
 }
 
@@ -56,19 +56,19 @@ DOFManagerDefault::DOFManagerDefault(Mesh & mesh, const ID & id)
   if (this->mesh->isDistributed()) {
     this->synchronizer = std::make_unique<DOFSynchronizer>(
         *this, this->id + ":dof_synchronizer");
-    residual = std::make_unique<SolverVectorDistributed>(
+    residual = std::make_unique<SparseSolverVectorDistributed>(
         *this, std::string(id + ":residual"));
-    solution = std::make_unique<SolverVectorDistributed>(
+    solution = std::make_unique<SparseSolverVectorDistributed>(
         *this, std::string(id + ":solution"));
-    data_cache = std::make_unique<SolverVectorDistributed>(
+    data_cache = std::make_unique<SparseSolverVectorDistributed>(
         *this, std::string(id + ":data_cache"));
 
   } else {
-    residual = std::make_unique<SolverVectorDefault>(
+    residual = std::make_unique<SparseSolverVectorDefault>(
         *this, std::string(id + ":residual"));
-    solution = std::make_unique<SolverVectorDefault>(
+    solution = std::make_unique<SparseSolverVectorDefault>(
         *this, std::string(id + ":solution"));
-    data_cache = std::make_unique<SolverVectorDefault>(
+    data_cache = std::make_unique<SparseSolverVectorDefault>(
         *this, std::string(id + ":data_cache"));
   }
 }
@@ -77,8 +77,8 @@ DOFManagerDefault::DOFManagerDefault(Mesh & mesh, const ID & id)
 DOFManagerDefault::~DOFManagerDefault() = default;
 
 /* -------------------------------------------------------------------------- */
-void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
-                                                     SolverVector & array) {
+void DOFManagerDefault::makeConsistentForPeriodicity(
+    const ID & dof_id, SparseSolverVector & array) {
   auto & dof_data = this->getDOFDataTyped<DOFDataDefault>(dof_id);
   if (dof_data.support_type != _dst_nodal) {
     return;
@@ -90,7 +90,7 @@ void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
 
   this->mesh->getPeriodicNodeSynchronizer()
       .reduceSynchronizeWithPBCSlaves<AddOperation>(
-          aka::as_type<SolverVectorDefault>(array).getVector());
+          aka::as_type<SparseSolverVectorDefault>(array).getVector());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -138,11 +138,11 @@ void DOFManagerDefault::assembleToGlobalArray(
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assembleToGlobalArray(
     const ID & dof_id, const Array<Real> & array_to_assemble,
-    SolverVector & global_array_v, Real scale_factor) {
+    SparseSolverVector & global_array_v, Real scale_factor) {
 
   assembleToGlobalArray(
       dof_id, array_to_assemble,
-      aka::as_type<SolverVectorDefault>(global_array_v).getVector(),
+      aka::as_type<SparseSolverVectorDefault>(global_array_v).getVector(),
       scale_factor);
 }
 
@@ -183,8 +183,8 @@ SparseMatrix & DOFManagerDefault::getNewMatrix(const ID & id,
 }
 
 /* -------------------------------------------------------------------------- */
-SolverVector & DOFManagerDefault::getNewLumpedMatrix(const ID & id) {
-  return this->registerLumpedMatrix<SolverVectorDefault>(*this, id);
+SparseSolverVector & DOFManagerDefault::getNewLumpedMatrix(const ID & id) {
+  return this->registerLumpedMatrix<SparseSolverVectorDefault>(*this, id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -251,11 +251,11 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
-                                        const SolverVector & global_array,
+                                        const SparseSolverVector & global_array,
                                         Array<Real> & local_array) {
-  getArrayPerDOFs(dof_id,
-                  aka::as_type<SolverVectorDefault>(global_array).getVector(),
-                  local_array);
+  getArrayPerDOFs(
+      dof_id, aka::as_type<SparseSolverVectorDefault>(global_array).getVector(),
+      local_array);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -263,8 +263,9 @@ void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
     const ID & dof_id, const ID & A_id, const Array<Real> & x,
     Real scale_factor) {
   const auto & A =
-      aka::as_type<SolverVectorArray>(this->getLumpedMatrix(A_id)).getVector();
-  auto & cache = aka::as_type<SolverVectorArray>(*this->data_cache);
+      aka::as_type<SparseSolverVectorArray>(this->getLumpedMatrix(A_id))
+          .getVector();
+  auto & cache = aka::as_type<SparseSolverVectorArray>(*this->data_cache);
 
   cache.zero();
   this->assembleToGlobalArray(dof_id, x, cache.getVector(), scale_factor);
@@ -305,10 +306,10 @@ void DOFManagerDefault::assembleMatMulVectToArray(const ID & dof_id,
                                                   Array<Real> & array,
                                                   Real scale_factor) {
   if (mesh->isDistributed()) {
-    DOFManager::assembleMatMulVectToArray_<SolverVectorDistributed>(
+    DOFManager::assembleMatMulVectToArray_<SparseSolverVectorDistributed>(
         dof_id, A_id, x, array, scale_factor);
   } else {
-    DOFManager::assembleMatMulVectToArray_<SolverVectorDefault>(
+    DOFManager::assembleMatMulVectToArray_<SparseSolverVectorDefault>(
         dof_id, A_id, x, array, scale_factor);
   }
 }
@@ -398,17 +399,20 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
 
 /* -------------------------------------------------------------------------- */
 Array<Real> & DOFManagerDefault::getSolutionArray() {
-  return dynamic_cast<SolverVectorDefault *>(this->solution.get())->getVector();
+  return dynamic_cast<SparseSolverVectorDefault *>(this->solution.get())
+      ->getVector();
 }
 
 /* -------------------------------------------------------------------------- */
 const Array<Real> & DOFManagerDefault::getResidualArray() const {
-  return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
+  return dynamic_cast<SparseSolverVectorDefault *>(this->residual.get())
+      ->getVector();
 }
 
 /* -------------------------------------------------------------------------- */
 Array<Real> & DOFManagerDefault::getResidualArray() {
-  return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
+  return dynamic_cast<SparseSolverVectorDefault *>(this->residual.get())
+      ->getVector();
 }
 
 /* -------------------------------------------------------------------------- */

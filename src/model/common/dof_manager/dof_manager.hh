@@ -34,7 +34,7 @@ class TermsToAssemble;
 class NonLinearSolver;
 class TimeStepSolver;
 class SparseMatrix;
-class SolverVector;
+class SparseSolverVector;
 class SolverCallback;
 } // namespace akantu
 
@@ -205,7 +205,7 @@ protected:
   /// Assemble a array to a global one
   void assembleMatMulVectToGlobalArray(const ID & dof_id, const ID & A_id,
                                        const Array<Real> & x,
-                                       SolverVector & array,
+                                       SparseSolverVector & array,
                                        Real scale_factor = 1.);
 
   /// common function that can be called by derived class with proper matrice
@@ -351,8 +351,9 @@ protected:
                                       std::unique_ptr<SparseMatrix> & matrix);
 
   /// register a lumped matrix (aka a Vector)
-  SolverVector & registerLumpedMatrix(const ID & matrix_id,
-                                      std::unique_ptr<SolverVector> & matrix);
+  SparseSolverVector &
+  registerLumpedMatrix(const ID & matrix_id,
+                       std::unique_ptr<SparseSolverVector> & matrix);
 
   /// register a non linear solver instantiated by a derived class
   NonLinearSolver &
@@ -405,24 +406,26 @@ protected:
   }
 
   template <class MatType, class DMType>
-  SolverVector & registerLumpedMatrix(DMType & dm, const ID & id) {
+  SparseSolverVector & registerLumpedMatrix(DMType & dm, const ID & id) {
     ID matrix_id = this->id + ":lumped_mtx:" + id;
-    std::unique_ptr<SolverVector> sm = std::make_unique<MatType>(dm, matrix_id);
+    std::unique_ptr<SparseSolverVector> sm =
+        std::make_unique<MatType>(dm, matrix_id);
     return this->registerLumpedMatrix(matrix_id, sm);
   }
 
 protected:
   virtual void makeConsistentForPeriodicity(const ID & dof_id,
-                                            SolverVector & array) = 0;
+                                            SparseSolverVector & array) = 0;
 
   virtual void assembleToGlobalArray(const ID & dof_id,
                                      const Array<Real> & array_to_assemble,
-                                     SolverVector & global_array,
+                                     SparseSolverVector & global_array,
                                      Real scale_factor) = 0;
 
 public:
   /// extract degrees of freedom (identified by ID) from a global solver array
-  virtual void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
+  virtual void getArrayPerDOFs(const ID & dof_id,
+                               const SparseSolverVector & global,
                                Array<Real> & local) = 0;
 
   /// Get the reference of an existing matrix
@@ -432,11 +435,11 @@ public:
   bool hasMatrix(const ID & matrix_id) const;
 
   /// Get an instance of a new lumped matrix
-  virtual SolverVector & getNewLumpedMatrix(const ID & matrix_id) = 0;
+  virtual SparseSolverVector & getNewLumpedMatrix(const ID & matrix_id) = 0;
   /// Get the lumped version of a given matrix
-  const SolverVector & getLumpedMatrix(const ID & matrix_id) const;
+  const SparseSolverVector & getLumpedMatrix(const ID & matrix_id) const;
   /// Get the lumped version of a given matrix
-  SolverVector & getLumpedMatrix(const ID & matrix_id);
+  SparseSolverVector & getLumpedMatrix(const ID & matrix_id);
 
   /// check if the given matrix exists
   bool hasLumpedMatrix(const ID & matrix_id) const;
@@ -615,7 +618,7 @@ protected:
   using SparseMatricesMap = std::map<ID, std::unique_ptr<SparseMatrix>>;
 
   /// type to store all the lumped matrices
-  using LumpedMatricesMap = std::map<ID, std::unique_ptr<SolverVector>>;
+  using LumpedMatricesMap = std::map<ID, std::unique_ptr<SparseSolverVector>>;
 
   /// type to store all the non linear solver
   using NonLinearSolversMap = std::map<ID, std::unique_ptr<NonLinearSolver>>;
@@ -654,13 +657,13 @@ protected:
 
   /// rhs to the system of equation corresponding to the residual linked to the
   /// different dofs
-  std::unique_ptr<SolverVector> residual;
+  std::unique_ptr<SparseSolverVector> residual;
 
   /// solution of the system of equation corresponding to the different dofs
-  std::unique_ptr<SolverVector> solution;
+  std::unique_ptr<SparseSolverVector> solution;
 
   /// a vector that helps internally to perform some tasks
-  std::unique_ptr<SolverVector> data_cache;
+  std::unique_ptr<SparseSolverVector> data_cache;
 
   /// define the dofs type, local, shared, ghost
   Array<NodeFlag> dofs_flag;

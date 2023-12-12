@@ -75,12 +75,12 @@ public:
 
   DOFManager & operator*() { return *dof_manager; }
   DOFManager * operator->() { return dof_manager.get(); }
-  void getArrayPerDOFs(const ID & id, SolverVector & vector,
+  void getArrayPerDOFs(const ID & id, SparseSolverVector & vector,
                        Array<Real> & array) {
     dof_manager->getArrayPerDOFs(id, vector, array);
   }
 
-  SolverVector & residual() { return *dof_manager->residual; }
+  SparseSolverVector & residual() { return *dof_manager->residual; }
 
 private:
   std::unique_ptr<DOFManager> dof_manager;
