@@ -593,10 +593,9 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
   }
   lambda_mesh->copyNodes(mesh, new_nodes);
 
-  auto nb_lambda = lambda->size();
-  lambda->resize(nb_lambda, 0.);
-  lambda_increment->resize(nb_lambda, 0.);
-  previous_lambda->resize(nb_lambda, 0.);
+  lambda->resize(lambda_id, 0.);
+  lambda_increment->resize(lambda_id, 0.);
+  previous_lambda->resize(lambda_id, 0.);
 
   lambda_mesh->sendEvent(element_event);
   lambda_mesh->sendEvent(node_event);
