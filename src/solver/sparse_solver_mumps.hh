@@ -48,8 +48,15 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// solve using residual and solution from the dof_manager
+  void solve() override;
+
+private:
   /// build the profile and do the analysis part
   void initialize() override;
+
+  // /// solve the system
+  // virtual void solve(Array<Real> & x, const Array<Real> & b);
 
   /// analysis (symbolic facto + permutations)
   void analysis() override;
@@ -57,13 +64,6 @@ public:
   /// factorize the matrix
   void factorize() override;
 
-  /// solve the system
-  virtual void solve(Array<Real> & x, const Array<Real> & b);
-
-  /// solve using residual and solution from the dof_manager
-  void solve() override;
-
-private:
   /// print the error if any happened in mumps
   void printError();
 

@@ -27,7 +27,7 @@
 
 namespace akantu {
 class DOFManagerDefault;
-class SparseSolverMumps;
+class SparseSolver;
 class SolverVector;
 } // namespace akantu
 
@@ -52,8 +52,8 @@ public:
   /// the solver callback functions
   void solve(SolverCallback & solver_callback) override;
 
-  AKANTU_GET_MACRO_NOT_CONST(SparseSolver, *solver, SparseSolverMumps &);
-  AKANTU_GET_MACRO(SparseSolver, *solver, const SparseSolverMumps &);
+  AKANTU_GET_MACRO_NOT_CONST(SparseSolver, *sparse_solver, SparseSolver &);
+  AKANTU_GET_MACRO(SparseSolver, *sparse_solver, const SparseSolver &);
 
 protected:
   //! function to call when a single sparse solve is demanded (1 iteration)
@@ -67,7 +67,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 private:
   /// Sparse solver used for the linear solves
-  std::unique_ptr<SparseSolverMumps> solver;
+  std::unique_ptr<SparseSolver> sparse_solver;
 
   /// Type of convergence criteria
   SolveConvergenceCriteria convergence_criteria_type;
@@ -97,6 +97,7 @@ protected:
   /// flag do decide if one iteration only to be done
   bool linear{false};
 };
+/* -------------------------------------------------------------------------- */
 
 class NonLinearSolverLinear : public NonLinearSolverNewtonRaphson {
 public:

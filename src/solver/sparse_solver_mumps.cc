@@ -269,24 +269,24 @@ void SparseSolverMumps::factorize() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseSolverMumps::solve(Array<Real> & x, const Array<Real> & b) {
-  auto & synch = this->dof_manager.getSynchronizer();
+// void SparseSolverMumps::solve(Array<Real> & x, const Array<Real> & b) {
+//   auto & synch = this->dof_manager.getSynchronizer();
 
-  if (this->prank == 0) {
-    this->master_rhs_solution.resize(this->dof_manager.getSystemSize());
-    synch.gather(b, this->master_rhs_solution);
-  } else {
-    synch.gather(b);
-  }
+//   if (this->prank == 0) {
+//     this->master_rhs_solution.resize(this->dof_manager.getSystemSize());
+//     synch.gather(b, this->master_rhs_solution);
+//   } else {
+//     synch.gather(b);
+//   }
 
-  this->solveInternal();
+//   this->solveInternal();
 
-  if (this->prank == 0) {
-    synch.scatter(x, this->master_rhs_solution);
-  } else {
-    synch.scatter(x);
-  }
-}
+//   if (this->prank == 0) {
+//     synch.scatter(x, this->master_rhs_solution);
+//   } else {
+//     synch.scatter(x);
+//   }
+// }
 
 /* -------------------------------------------------------------------------- */
 void SparseSolverMumps::solve() {

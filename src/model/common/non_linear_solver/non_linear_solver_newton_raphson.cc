@@ -47,8 +47,8 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      solver(std::make_unique<SparseSolverMumps>(dof_manager, "J",
-                                                 id + ":sparse_solver")) {
+      sparse_solver(std::make_unique<SparseSolverMumps>(
+          dof_manager, "J", id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
@@ -126,7 +126,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
       solver_callback.assembleMatrix("J");
     }
 
-    this->solver->solve();
+    this->sparse_solver->solve();
 
     solver_callback.corrector();
 
@@ -225,7 +225,7 @@ void NonLinearSolverNewtonRaphson::solve_linear(
   // residual
   this->assembleResidual(solver_callback);
 
-  this->solver->solve();
+  this->sparse_solver->solve();
 
   solver_callback.corrector();
 

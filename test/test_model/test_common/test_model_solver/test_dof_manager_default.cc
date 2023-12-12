@@ -34,12 +34,12 @@ using namespace akantu;
 class MySolverCallback : public SolverCallback {
 public:
   MySolverCallback(Real F, DOFManagerDefault & dof_manager, Int nb_dofs = 3)
-      : dof_manager(dof_manager), dispacement(nb_dofs, 1, "disp"),
+      : dof_manager(dof_manager), displacement(nb_dofs, 1, "disp"),
         blocked(nb_dofs, 1), forces(nb_dofs, 1), nb_dofs(nb_dofs) {
-    dof_manager.registerDOFs("disp", dispacement, _dst_generic);
+    dof_manager.registerDOFs("disp", displacement, _dst_generic);
     dof_manager.registerBlockedDOFs("disp", blocked);
 
-    dispacement.set(0.);
+    displacement.set(0.);
     forces.set(0.);
     blocked.set(false);
 
@@ -81,7 +81,7 @@ public:
   void corrector() override {}
 
   DOFManagerDefault & dof_manager;
-  Array<Real> dispacement;
+  Array<Real> displacement;
   Array<bool> blocked;
   Array<Real> forces;
 
@@ -103,15 +103,12 @@ int main(int argc, char * argv[]) {
 
   dof_manager.getMatrix("K").saveMatrix("K_dof_manager_default.mtx");
 
-  auto disp_it = callback.dispacement.begin();
-  auto force_it = callback.forces.begin();
-  auto blocked_it = callback.blocked.begin();
   std::cout << std::setw(8) << "disp"
             << " " << std::setw(8) << "force"
             << " " << std::setw(8) << "blocked" << std::endl;
 
   for (auto && [disp, force, blocked] :
-       zip(callback.dispacement, callback.forces, callback.blocked)) {
+       zip(callback.displacement, callback.forces, callback.blocked)) {
     std::cout << std::setw(8) << disp << " " << std::setw(8) << force << " "
               << std::setw(8) << std::boolalpha << blocked << std::endl;
   }

@@ -330,7 +330,7 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
 
       AKANTU_DEBUG_ASSERT(
           dofs_array.size() == node_group.size(),
-          "The array of dof is too shot to be associated to nodes.");
+          "The array of dof is too short to be associated to nodes.");
 
       std::tie(nb_local_dofs, nb_pure_local) =
           countDOFsForNodes(dof_data, node_group.size(),
