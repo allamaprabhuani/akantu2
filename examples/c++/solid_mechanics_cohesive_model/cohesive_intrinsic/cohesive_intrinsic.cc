@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_group.hh"
 #include "mesh_iterators.hh"
 #include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
@@ -28,8 +27,8 @@
 
 using namespace akantu;
 
-static void updateDisplacement(SolidMechanicsModelCohesive &,
-                               const ElementGroup &, Real);
+static void updateDisplacement(SolidMechanicsModelCohesive & model,
+                               const ElementGroup & group, Real increment);
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char * argv[]) {
@@ -43,7 +42,7 @@ int main(int argc, char * argv[]) {
 
   SolidMechanicsModelCohesive model(mesh);
   // To restric the insertion to the range [-0.26, -0.24] in the x direction
-  model.getElementInserter().setLimit(_x, -0.26, -0.24); 
+  model.getElementInserter().setLimit(_x, -0.26, -0.24);
 
   /// model initialization
   // _is_extrinsic = false for intrinsic
@@ -52,18 +51,14 @@ int main(int argc, char * argv[]) {
 
   Real time_step = model.getStableTimeStep() * 0.8;
   model.setTimeStep(time_step);
-  std::cout << "Time step: " << time_step << std::endl;
+  std::cout << "Time step: " << time_step << "\n";
 
   Array<bool> & boundary = model.getBlockedDOFs();
 
   Int nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
-  for (Int dim = 0; dim < spatial_dimension; ++dim) {
-    for (Int n = 0; n < nb_nodes; ++n) {
-      boundary(n, dim) = true;
-    }
-  }
+  boundary.set(true);
 
   model.setBaseName("intrinsic");
   model.addDumpFieldVector("displacement");
@@ -82,8 +77,9 @@ int main(int argc, char * argv[]) {
       mesh,
       [&](auto && el) {
         mesh.getBarycenter(el, barycenter);
-        if (barycenter(_x) > -0.25)
+        if (barycenter(_x) > -0.25) {
           elements.add(el, true);
+        }
       },
       _element_kind = _ek_regular);
 
@@ -98,23 +94,22 @@ int main(int argc, char * argv[]) {
     updateDisplacement(model, elements, increment);
     if (s % 1 == 0) {
       model.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      std::cout << "passing step " << s << "/" << max_steps << "\n";
     }
   }
 
   Real Ed = model.getEnergy("dissipated");
   Real Edt = 2 * sqrt(2);
 
-  std::cout << Ed << " " << Edt << std::endl;
+  std::cout << Ed << " " << Edt << "\n";
 
   if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
+    std::cout << "The dissipated energy is incorrect"
+              << "\n";
+    return -1;
   }
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

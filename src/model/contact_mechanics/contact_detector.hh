@@ -216,6 +216,6 @@ private:
 
 } // namespace akantu
 
-#include "contact_detector_inline_impl.cc"
+#include "contact_detector_inline_impl.hh"
 
 #endif /* AKANTU_CONTACT_DETECTOR_HH_ */

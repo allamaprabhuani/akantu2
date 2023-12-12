@@ -26,19 +26,16 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-#define bar_length 10.
-#define bar_height 4.
-akantu::Real eps = 1e-10;
-
 int main(int argc, char * argv[]) {
   akantu::initialize("material.dat", argc, argv);
 
   Int max_steps = 10000;
-  Real epot, ekin;
+  Real epot{0.};
+  Real ekin{0.};
 
-  const Int spatial_dimension = 2;
+  const Int dim = 2;
 
-  Mesh mesh(spatial_dimension);
+  Mesh mesh(dim);
   mesh.read("barre_trou.msh");
 
   /// model creation
@@ -47,7 +44,7 @@ int main(int argc, char * argv[]) {
   /// model initialization
   model.initFull(_analysis_method = _explicit_lumped_mass);
 
-  std::cout << model.getMaterial(0) << std::endl;
+  std::cout << model.getMaterial(0) << "\n";
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step / 10.);
@@ -57,7 +54,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed_y");
 
   // Neumann boundary condition
-  Matrix<Real> stress(2, 2);
+  Matrix<Real> stress(dim, dim);
   stress.eye(3e2);
   model.applyBC(BC::Neumann::FromStress(stress), "Traction");
 
@@ -78,14 +75,15 @@ int main(int argc, char * argv[]) {
     epot = model.getEnergy("potential");
     ekin = model.getEnergy("kinetic");
 
-    if (s % 100 == 0)
+    if (s % 100 == 0) {
       std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-                << std::endl;
+                << "\n";
+    }
 
-    if (s % 1000 == 0)
+    if (s % 1000 == 0) {
       model.dump();
+    }
   }
 
-  akantu::finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

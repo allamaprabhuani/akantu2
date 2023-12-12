@@ -1,7 +1,13 @@
 Solid Mechanics Model
 `````````````````````
 
-.. include:: examples/python/solid_mechanics_model/plate_hole/README.rst
+The Solid Mechanics Model is initialized with:
+
+.. code-block:: python
+
+   model = aka.SolidMechanicsModel(mesh)
+
+.. include:: examples/python/solid_mechanics_model/plate-hole/README.rst
 
 .. include:: examples/python/solid_mechanics_model/dynamics/README.rst
 

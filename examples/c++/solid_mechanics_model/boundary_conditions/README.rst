@@ -1,7 +1,26 @@
-Boundary conditions usage
-'''''''''''''''''''''''''
+Boundary conditions usage (2D)
+''''''''''''''''''''''''''''''
 
-In ``predifined_bc`` it is shown how to impose Dirichlet boundary condition
+:Sources:
+
+   .. collapse:: predefined_bc.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/boundary_conditions/predefined_bc/predefined_bc.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: user_defined_bc.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/boundary_conditions/user_defined_bc/user_defined_bc.cc
+         :language: c++
+         :lines: 20-
+
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `boundary_conditions <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/boundary_conditions>`_
+
+In ``predefined_bc`` it is shown how to impose Dirichlet boundary condition
 using the predefined ``BC::Dirichlet::FixedValue``
 (:numref:`fig-ex-predefined_bc`). Three built-in Dirichlet functors exist:
 ``FixedValue``, ``FlagOnly`` and ``IncrementValue``.
@@ -21,6 +40,6 @@ that a Neumann BC is also imposed.
 .. _fig-ex-user_defined_bc:
 .. figure:: examples/c++/solid_mechanics_model/boundary_conditions/images/user_defined_bc_displ_mag.png
             :align: center
-            :width: 70%
+            :width: 60%
 
             Displacement magnitude for the user_defined_bc example.

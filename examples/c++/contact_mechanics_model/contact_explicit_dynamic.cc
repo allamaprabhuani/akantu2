@@ -19,25 +19,21 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "contact_mechanics_model.hh"
 #include "coupler_solid_contact.hh"
 #include "non_linear_solver.hh"
-#include "solid_mechanics_model.hh"
-#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-
 /* -------------------------------------------------------------------------- */
+
 int main(int argc, char * argv[]) {
 
   const Int spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
-  Real time_step;
-  Real time_factor = 0.1;
-  UInt max_steps = 20000;
-  Real max_displacement = 5e-3;
+  Real time_step{0.};
+  Real time_factor{0.1};
+  UInt max_steps{20000};
+  Real max_displacement{5e-3};
 
   Mesh mesh(spatial_dimension);
   mesh.read("hertz.msh");
@@ -64,7 +60,7 @@ int main(int argc, char * argv[]) {
   time_step = solid.getStableTimeStep();
   time_step *= time_factor;
   std::cout << "Time Step = " << time_step << "s (" << time_step << "s)"
-            << std::endl;
+            << "\n";
   coupler.setTimeStep(time_step);
 
   coupler.setBaseName("contact-explicit-dynamic");
@@ -87,7 +83,6 @@ int main(int argc, char * argv[]) {
   auto increment = max_displacement / max_steps;
 
   for (auto i : arange(max_steps)) {
-
     solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading");
 
     coupler.solveStep();
@@ -103,12 +98,12 @@ int main(int argc, char * argv[]) {
 
     // dumping energies
     if (i % 1000 == 0) {
-
       Real epot = solid.getEnergy("potential");
       Real ekin = solid.getEnergy("kinetic");
 
       std::cerr << i << "," << i * increment << "," << epot << "," << ekin
-                << "," << epot + ekin << "," << std::endl;
+                << "," << epot + ekin << ","
+                << "\n";
     }
 
     if (i % 1000 == 0) {
@@ -116,6 +111,5 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

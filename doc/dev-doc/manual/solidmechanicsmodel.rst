@@ -388,6 +388,8 @@ standard elements when
 in which :math:`\sigma_\st{n}` is the tensile normal traction and $\tau$ the
 resulting tangential one (:numref:`fig-smm-coh-insertion`).
 
+.. _sect-smm-extrinsic-insertion:
+
 Extrinsic approach
 """"""""""""""""""
 

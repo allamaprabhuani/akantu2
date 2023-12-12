@@ -22,8 +22,6 @@
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-#include <iostream>
-/* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char * argv[]) {
@@ -59,7 +57,6 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Neumann::FromStress(eigen_stress),
                 usersect.getParameterValue<std::string>("inner_holes"));
 
-  model.setDirectory("./paraview");
   model.setBaseName("swiss_cheese");
   model.addDumpFieldVector("displacement");
 
@@ -71,7 +68,5 @@ int main(int argc, char * argv[]) {
 
   model.dump();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -19,16 +19,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "contact_mechanics_model.hh"
 #include "coupler_solid_contact.hh"
 #include "non_linear_solver.hh"
-#include "solid_mechanics_model.hh"
-#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-
 /* -------------------------------------------------------------------------- */
+
 int main(int argc, char * argv[]) {
 
   const Int spatial_dimension = 2;
@@ -68,10 +64,9 @@ int main(int argc, char * argv[]) {
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
 
-  auto max_steps = 100u;
+  auto max_steps = 100U;
 
   for (auto _ [[gnu::unused]] : arange(max_steps)) {
-
     auto increment = 1e-4;
     coupler.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading");
 
@@ -79,6 +74,5 @@ int main(int argc, char * argv[]) {
     coupler.dump();
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

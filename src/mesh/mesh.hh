@@ -712,4 +712,9 @@ inline auto Mesh::getNbElement(const Int spatial_dimension,
 #include "element_type_map_tmpl.hh"
 #include "mesh_inline_impl.hh"
 
+/* -------------------------------------------------------------------------- */
+#include "element_group.hh"
+#include "node_group.hh"
+/* -------------------------------------------------------------------------- */
+
 #endif /* AKANTU_MESH_HH_ */
