@@ -248,10 +248,12 @@ inline bool ContactDetector::isValidSelfContact(
   // Check 1 : master node is not connected to elements connected to
   // slave node
   Vector<Real> slave_normal(spatial_dimension);
-  for (auto & element : filter_if(slave_elements, [](auto && element) {
-         return element.kind() == _ek_regular;
-       })) {
 
+  auto predicate = [](auto && element) {
+    return element.kind() == _ek_regular;
+  };
+
+  for (auto && element : filter_if(slave_elements, predicate)) {
     auto && connectivity = this->mesh.getConnectivity(element);
 
     auto coords = mesh.extractNodalValuesFromElement(positions, element);

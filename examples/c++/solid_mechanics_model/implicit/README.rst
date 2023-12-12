@@ -1,5 +1,23 @@
-implicit
-''''''''
+implicit (2D)
+'''''''''''''
+
+:Sources:
+
+   .. collapse:: implicit_dynamic.cc (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/implicit/implicit_dynamic.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material_dynamic.dat (click to expand)
+
+      .. literalinclude:: examples/c++/solid_mechanics_model/implicit/material_dynamic.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/solid_mechanics_model/`` `implicit <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/solid_mechanics_model/implicit>`_
+
 
 In ``implicit``, an example of a dynamic solution with an implicit time integration is shown.
 The implicit scheme is selected using the ``_implicit_dynamic`` constant::
@@ -23,7 +41,7 @@ beam is given by:
 .. math::
 
     u\left(\frac{L}{2}, t\right)
-    = \frac{1}{\pi^4} \left(1 - cos\left(\pi^2 t\right) +
+    \approxeq \frac{1}{\pi^4} \left(1 - cos\left(\pi^2 t\right) +
     \frac{1}{81}\left(1 - cos\left(3^2 \pi^2 t\right)\right) +
     \frac{1}{625}\left(1 - cos\left(5^2 \pi^2 t\right)\right)\right)
 
@@ -49,7 +67,7 @@ beam at 3 different times during the simulation: time steps 0, 1000 and
 .. _fig-ex-implicit-dynamic_solution:
 .. figure:: examples/c++/solid_mechanics_model/implicit/images/dynamic_analysis.png
             :align: center
-            :width: 40%
+            :width: 50%
 
             Deformed beam at three different times (displacement :math:`\times
             10`).

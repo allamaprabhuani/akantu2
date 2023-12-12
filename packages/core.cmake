@@ -361,6 +361,5 @@ mark_as_advanced(ADDR2LINE_COMMAND)
 
 package_declare_extra_files_to_package(core
   SOURCES
-    common/aka_element_classes_info.hh.in
     common/aka_config.hh.in
   )

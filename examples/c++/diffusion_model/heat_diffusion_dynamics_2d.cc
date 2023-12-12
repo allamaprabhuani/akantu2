@@ -23,10 +23,10 @@
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-const Int spatial_dimension = 2;
 /* -------------------------------------------------------------------------- */
+
+const Int spatial_dimension = 2;
 
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
 
   // get stable time step
   Real time_step = model.getStableTimeStep() * 0.8;
-  std::cout << "time step is:" << time_step << std::endl;
+  std::cout << "time step is:" << time_step << "\n";
   model.setTimeStep(time_step);
 
   // boundary conditions
@@ -59,10 +59,13 @@ int main(int argc, char * argv[]) {
     Real dy = 0.0;
     Real dz = 0.0;
 
-    if (spatial_dimension > 1)
+    if (spatial_dimension > 1) {
       dy = nodes(i, 1) - length / 4.;
-    if (spatial_dimension == 3)
+    }
+    if (spatial_dimension == 3) {
       dz = nodes(i, 2) - length / 4.;
+    }
+
     Real d = sqrt(dx * dx + dy * dy + dz * dz);
     if (d < 0.1) {
       boundary(i) = true;
@@ -80,13 +83,15 @@ int main(int argc, char * argv[]) {
   for (int i = 0; i < max_steps; i++) {
     model.solveStep();
 
-    if (i % 100 == 0)
+    if (i % 100 == 0) {
       model.dump();
-    if (i % 10 == 0)
-      std::cout << "Step " << i << "/" << max_steps << std::endl;
+    }
+    if (i % 10 == 0) {
+      std::cout << "Step " << i << "/" << max_steps << "\n";
+    }
   }
   std::cout << "\n\n Stable Time Step is : " << time_step << "\n \n"
-            << std::endl;
+            << "\n";
 
   return 0;
 }

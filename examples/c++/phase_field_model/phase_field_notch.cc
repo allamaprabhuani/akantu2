@@ -20,18 +20,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_phasefield.hh"
-#include "group_manager.hh"
-#include "non_linear_solver.hh"
 #include "phase_field_element_filter.hh"
-#include "phase_field_model.hh"
-#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <chrono>
-#include <fstream>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
+/* -------------------------------------------------------------------------- */
+
 using clk = std::chrono::high_resolution_clock;
 using second = std::chrono::duration<double>;
 using millisecond = std::chrono::duration<double, std::milli>;
@@ -54,7 +50,6 @@ int main(int argc, char * argv[]) {
 
   // Each model can bet set separately
   model.initFull(_analysis_method = _static);
-
   phase.initFull(_analysis_method = _static);
 
   // Dirichlet BC
@@ -69,7 +64,7 @@ int main(int argc, char * argv[]) {
   model.addDumpField("damage");
   model.dump();
 
-  Int nb_steps = 1000;
+  const Int nb_steps = 1000;
   Real increment = 6e-6;
   Int nb_staggered_steps = 5;
 
@@ -77,18 +72,18 @@ int main(int argc, char * argv[]) {
 
   // Main loop over the loading steps
   for (Int s = 1; s < nb_steps; ++s) {
-
     if (s >= 500) {
       increment = 2e-6;
       nb_staggered_steps = 10;
     }
 
     if (s % 200 == 0) {
-      constexpr char wheel[] = "/-\\|";
+      constexpr std::array<char, 5> wheel{"/-\\|"};
       auto elapsed = clk::now() - start_time;
       auto time_per_step = elapsed / s;
-      std::cout << "\r[" << wheel[(s / 10) % 4] << "] " << std::setw(5) << s
-                << "/" << nb_steps << " (" << std::setprecision(2) << std::fixed
+      int idx = (s / 10) % 4;
+      std::cout << "\r[" << wheel.at(idx) << "] " << std::setw(5) << s << "/"
+                << nb_steps << " (" << std::setprecision(2) << std::fixed
                 << std::setw(8) << millisecond(time_per_step).count()
                 << "ms/step - elapsed: " << std::setw(8)
                 << second(elapsed).count() << "s - ETA: " << std::setw(8)

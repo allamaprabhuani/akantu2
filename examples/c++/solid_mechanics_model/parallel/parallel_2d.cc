@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "communicator.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -47,8 +46,9 @@ int main(int argc, char * argv[]) {
   SolidMechanicsModel model(mesh);
   model.initFull();
 
-  if (prank == 0)
-    std::cout << model.getMaterial(0) << std::endl;
+  if (prank == 0) {
+    std::cout << model.getMaterial(0) << "\n";
+  }
 
   model.setBaseName("multi");
   model.addDumpFieldVector("displacement");
@@ -79,19 +79,21 @@ int main(int argc, char * argv[]) {
   }
 
   Real time_step = model.getStableTimeStep() * time_factor;
-  std::cout << "Time Step = " << time_step << "s" << std::endl;
+  std::cout << "Time Step = " << time_step << "s"
+            << "\n";
   model.setTimeStep(time_step);
 
   model.dump();
   for (Int s = 1; s <= max_steps; ++s) {
     model.solveStep();
-    if (s % 200 == 0)
+    if (s % 200 == 0) {
       model.dump();
+    }
 
-    if (prank == 0 && s % 100 == 0)
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+    if (prank == 0 && s % 100 == 0) {
+      std::cout << "passing step " << s << "/" << max_steps << "\n";
+    }
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

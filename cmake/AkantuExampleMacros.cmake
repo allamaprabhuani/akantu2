@@ -87,7 +87,7 @@ function(add_example et_name desc)
   string(TOUPPER ${et_name} upper_name)
 
   if(NOT _build_all_ex)
-    option(AKANTU_BUILD_ALL_EXAMPLES "Activate all examples" OFF)
+    option(AKANTU_BUILD_ALL_EXAMPLES "Activate all examples" ON)
     set( _build_all_ex TRUE)
   endif()
 

@@ -19,9 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "solid_mechanics_model.hh"
-/* -------------------------------------------------------------------------- */
 #include <fstream>
+#include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -90,8 +89,4 @@ int main(int argc, char * argv[]) {
   }
 
   energy.close();
-
-  finalize();
-
-  return EXIT_SUCCESS;
 }

@@ -19,13 +19,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "contact_mechanics_model.hh"
 #include "coupler_solid_cohesive_contact.hh"
-#include "solid_mechanics_model_cohesive.hh"
-#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
+/* -------------------------------------------------------------------------- */
 
 int main(int argc, char * argv[]) {
 
@@ -33,9 +30,9 @@ int main(int argc, char * argv[]) {
   initialize("material-cohesive.dat", argc, argv);
 
   Real time_step{0.};
-  Real time_factor = 0.1;
-  UInt max_steps = 25000;
-  Real max_displacement = 1e-3;
+  Real time_factor{0.1};
+  UInt max_steps{25000};
+  Real max_displacement{1e-3};
 
   Mesh mesh(spatial_dimension);
   mesh.read("cohesive-contact.msh");
@@ -61,7 +58,7 @@ int main(int argc, char * argv[]) {
   time_step = solid.getStableTimeStep();
   time_step *= time_factor;
   std::cout << "Time Step = " << time_step << "s (" << time_step << "s)"
-            << std::endl;
+            << "\n";
   coupler.setTimeStep(time_step);
 
   coupler.setBaseName("cohesive-contact-explicit-dynamic");
@@ -81,7 +78,6 @@ int main(int argc, char * argv[]) {
   auto increment = max_displacement / max_steps;
 
   for (auto i : arange(max_steps)) {
-
     coupler.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "loading");
     coupler.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "fixed");
 
@@ -100,12 +96,12 @@ int main(int argc, char * argv[]) {
 
     // dumping energies
     if (i % 1000 == 0) {
-
       Real epot = solid.getEnergy("potential");
       Real ekin = solid.getEnergy("kinetic");
 
       std::cerr << i << "," << i * increment << "," << epot << "," << ekin
-                << "," << epot + ekin << "," << std::endl;
+                << "," << epot + ekin << ","
+                << "\n";
     }
 
     if (i % 1000 == 0) {
@@ -114,7 +110,6 @@ int main(int argc, char * argv[]) {
   }
 
   for (auto i : arange(max_steps)) {
-
     solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading");
     solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "fixed");
 
@@ -133,12 +128,12 @@ int main(int argc, char * argv[]) {
 
     // dumping energies
     if (i % 1000 == 0) {
-
       Real epot = solid.getEnergy("potential");
       Real ekin = solid.getEnergy("kinetic");
 
       std::cerr << i << "," << i * increment << "," << epot << "," << ekin
-                << "," << epot + ekin << "," << std::endl;
+                << "," << epot + ekin << ","
+                << "\n";
     }
 
     if (i % 1000 == 0) {

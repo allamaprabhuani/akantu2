@@ -37,7 +37,7 @@ public:
 public:
   inline void operator()(Idx node, VectorProxy<bool> & /*flags*/,
                          VectorProxy<Real> & disp,
-                         const VectorProxy<const Real> & coord) {
+                         const VectorProxy<const Real> & coord) override {
     Real sign = std::signbit(coord(axis)) ? -1. : 1.;
     disp(axis) += sign * this->disp;
     model.getVelocity()(node, axis) = sign * vel;
@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
 
   Real time_step = model.getStableTimeStep() * 0.05;
   model.setTimeStep(time_step);
-  std::cout << "Time step: " << time_step << std::endl;
+  std::cout << "Time step: " << time_step << "\n";
 
   model.assembleMassLumped();
 
@@ -108,9 +108,9 @@ int main(int argc, char * argv[]) {
   Real loading_rate = 0.1;
   // bar_height  = 2
   Real VI = loading_rate * 2 * 0.5;
-  for (auto && data : zip(make_view(position, spatial_dimension),
-                          make_view(velocity, spatial_dimension))) {
-    std::get<1>(data) = loading_rate * std::get<0>(data);
+  for (auto && [pos, vel] : zip(make_view(position, spatial_dimension),
+                                make_view(velocity, spatial_dimension))) {
+    vel = loading_rate * pos;
   }
 
   model.dump();
@@ -133,7 +133,7 @@ int main(int argc, char * argv[]) {
 
     if (s % 10 == 0) {
       model.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      std::cout << "passing step " << s << "/" << max_steps << "\n";
     }
   }
 

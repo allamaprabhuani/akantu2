@@ -143,6 +143,6 @@ public:
 
 } // namespace akantu
 
-#include "geometry_utils_inline_impl.cc"
+#include "geometry_utils_inline_impl.hh"
 
 #endif /* AKANTU_GEOMETRY_UTILS_HH_ */

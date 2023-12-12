@@ -19,22 +19,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <fstream>
+#include "heat_transfer_model.hh"
+/* -------------------------------------------------------------------------- */
 #include <iostream>
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "heat_transfer_model.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-
-/* -------------------------------------------------------------------------- */
 using namespace akantu;
-
-Int spatial_dimension = 3;
-ElementType type = _tetrahedron_4;
-
 /* -------------------------------------------------------------------------- */
+
+const Int spatial_dimension = 3;
 
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
@@ -48,8 +40,8 @@ int main(int argc, char * argv[]) {
 
   // get and set stable time step
   Real time_step = model.getStableTimeStep() * 0.8;
-  std::cout << "Stable Time Step is : " << time_step / .8 << std::endl;
-  std::cout << "time step is:" << time_step << std::endl;
+  std::cout << "Stable Time Step is : " << time_step / .8 << "\n";
+  std::cout << "time step is:" << time_step << "\n";
   model.setTimeStep(time_step);
 
   /// boundary conditions
@@ -58,8 +50,7 @@ int main(int argc, char * argv[]) {
   Array<Real> & temperature = model.getTemperature();
   auto nb_nodes = mesh.getNbNodes();
 
-  double length;
-  length = 1.;
+  double length = 1.;
 
   for (Int i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
@@ -68,7 +59,9 @@ int main(int argc, char * argv[]) {
     Real dx = nodes(i, 0) - length / 2.;
     Real dy = nodes(i, 1) - length / 2.;
     Real dz = nodes(i, 2) - length / 2.;
+
     Real d = sqrt(dx * dx + dy * dy + dz * dz);
+
     if (d < 0.1) {
       boundary(i) = true;
       temperature(i) = 300.;
@@ -86,11 +79,12 @@ int main(int argc, char * argv[]) {
   for (int i = 0; i < max_steps; i++) {
     model.solveStep();
 
-    if (i % 100 == 0)
+    if (i % 100 == 0) {
       model.dump();
+    }
 
     if (i % 10 == 0) {
-      std::cout << "Step " << i << "/" << max_steps << std::endl;
+      std::cout << "Step " << i << "/" << max_steps << "\n";
     }
   }
 

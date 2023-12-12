@@ -46,12 +46,13 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
-    'sphinx_rtd_theme',
+    "sphinx_rtd_theme",
     "sphinxcontrib.bibtex",
     "breathe",
     "myst_parser",
-#    "sphinx_gallery.gen_gallery",
+    #    "sphinx_gallery.gen_gallery",
     "sphinx_copybutton",
+    "sphinx_toolbox.collapse",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
@@ -71,7 +72,9 @@ else:  # most probably running by hand
         pass
 
 
-if akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@":  # Concatenation is to avoid cmake to replace it
+if (
+    akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@"
+):  # Concatenation is to avoid cmake to replace it
     raise Exception("Something went really wrong")
 
 sys.path.insert(0, akantu_source_path)
@@ -82,8 +85,8 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = [".rst", ".md"]
+# source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
@@ -93,11 +96,11 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+language = "en"
 
 
 def callback(dir, files):
-    keep_re = re.compile(r'.*\.(svg|gif|png|md|rst)')
+    keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat|py)")
     ignores = []
     for file in files:
         if (not keep_re.match(file) and
@@ -105,10 +108,13 @@ def callback(dir, files):
             ignores.append(file)
     return ignores
 
-shutil.copytree(os.path.join(akantu_source_path, "examples"),
-                os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
-                ignore=callback,
-                dirs_exist_ok=True)
+
+shutil.copytree(
+    os.path.join(akantu_source_path, "examples"),
+    os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
+    ignore=callback,
+    dirs_exist_ok=True,
+)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -122,9 +128,12 @@ exclude_patterns = [
 ]
 
 exclude_patterns.extend(
-    glob.glob("examples/**/*.rst",
-              root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
-              recursive=True))
+    glob.glob(
+        "examples/**/*.rst",
+        root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
+        recursive=True,
+    )
+)
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -137,10 +146,7 @@ bibtex_bibfiles = ["manual/manual-bibliography.bib"]
 # -- Project information -----------------------------------------------------
 
 project = "Akantu"
-copyright = (
-    "2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
-    + " Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
-)
+copyright = __copyright__
 author = "Nicolas Richart"
 
 # -- Options for HTML output -------------------------------------------------
@@ -192,7 +198,9 @@ mathjax3_config = {
         },
         "packages": {"[+]": ["ams"]},
     },
-    "loader": {"load": ["[tex]/ams"]},
+    "loader": {
+        "load": ["[tex]/ams"],
+    },
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -229,7 +237,8 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "akantu", "Akantu Documentation", [author], 1)]
+man_pages = [(master_doc, "akantu",
+              "Akantu Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -273,6 +282,7 @@ epub_exclude_files = ["search.html"]
 
 # -- Extension configuration -------------------------------------------------
 j2_args = {}
+j2_template_path = "."
 
 if read_the_docs_build or not cmake_configure:
     j2_template_path = "."
@@ -313,7 +323,8 @@ breathe_short_warning = True
 # -- Gallery ------------------------------------------------------------------
 # sphinx_gallery_conf = {
 #     'examples_dirs': os.path.join(akantu_source_path, 'examples'),
-#     'gallery_dirs': os.path.join(akantu_source_path, 'doc', 'dev-doc', 'auto_examples'),
+#     'gallery_dirs': os.path.join(akantu_source_path, 'doc',
+#                                  'dev-doc', 'auto_examples'),
 #     'download_all_examples': False,
 #     'plot_gallery': 'False',
 #     'only_warn_on_example_error': True,

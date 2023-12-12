@@ -22,13 +22,9 @@
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-
-#define bar_length 0.01
-#define bar_height 0.01
-
 /* -------------------------------------------------------------------------- */
+
 int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
@@ -42,28 +38,30 @@ int main(int argc, char * argv[]) {
   /// model initialization
   model.initFull(_analysis_method = _static);
 
+  /// configure dumper
   model.setBaseName("static");
   model.addDumpFieldVector("displacement");
   model.addDumpField("external_force");
   model.addDumpField("internal_force");
+  model.addDumpField("blocked_dofs");
   model.addDumpField("grad_u");
   model.addDumpField("stress");
 
   /// Dirichlet boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed_x");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed_y");
-  model.applyBC(BC::Dirichlet::FixedValue(0.0001, _y), "Displacement");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0001, _x), "Displacement");
   model.dump();
 
+  /// set the limits for the Newton-Raphson solver
   auto & solver = model.getNonLinearSolver();
   solver.set("max_iterations", 2);
   solver.set("threshold", 2e-4);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
+  /// static solve
   model.solveStep();
   model.dump();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

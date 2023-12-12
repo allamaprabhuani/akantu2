@@ -30,12 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "communicator.hh"
 #include "coupler_solid_phasefield.hh"
-#include "group_manager.hh"
-#include "non_linear_solver.hh"
-#include "phase_field_model.hh"
-#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <chrono>
 #include <fstream>
@@ -130,6 +125,5 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

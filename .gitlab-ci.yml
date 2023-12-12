@@ -10,6 +10,14 @@ stages:
   - code_quality
   - deploy
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v?[0-9]+[.][0-9]+([.][0-9]+)?$/
+
 include:
   local: ".gitlab/ci.d/*.yaml"
 
@@ -195,6 +203,7 @@ configure:python_package:
   extends:
     - .manylinux_2014_x64_gcc
     - .build_release
+    - .code_only
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       paths:
@@ -259,6 +268,7 @@ build_akantu:python_package:
 build_pip:python_package:
   stage: build_tests
   extends:
+    - .code_only
     - .build_release
     - .manylinux_2014_x64_gcc
   cache:
@@ -288,6 +298,8 @@ build_pip:python_package:
 test:python_package:
   stage: test
   image: python:3.10
+  extends:
+    - .code_only
   needs:
     - job: build_pip:python_package
   script:
@@ -302,6 +314,8 @@ test:python_package:
 package:python_gitlab:
   stage: deploy
   image: python:latest
+  extends:
+    - .code_only
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token
@@ -311,12 +325,15 @@ package:python_gitlab:
   needs:
     - job: build_pip:python_package
     - job: test:python_package
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 
 package:python_pypi:
   stage: deploy
   image: python:latest
+  extends:
+    - .code_only
   script:
     - pip install twine
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__
@@ -324,8 +341,8 @@ package:python_pypi:
   needs:
     - job: build_pip:python_package
     - job: test:python_package
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG =~ /v[0-9]+.*/
 
 # ------------------------------------------------------------------------------
 # Code Quality

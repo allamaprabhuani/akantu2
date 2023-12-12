@@ -21,7 +21,6 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-#include <cmath>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
 
@@ -35,7 +34,7 @@ public:
 public:
   inline void operator()(Idx /*node*/, VectorProxy<bool> & flags,
                          VectorProxy<Real> & primal,
-                         const VectorProxy<const Real> & coord) {
+                         const VectorProxy<const Real> & coord) override {
     DIRICHLET_SANITY_CHECK;
     flags(axis) = true;
     primal(axis) = -amplitude * std::sin(phase * coord(1));
@@ -73,6 +72,5 @@ int main(int argc, char * argv[]) {
   model.addDumpField("blocked_dofs");
   model.dump();
 
-  finalize();
-  return EXIT_SUCCESS;
+  return 0;
 }

@@ -1,8 +1,26 @@
-Phase-field model
-`````````````````
+Phase-field model (2D) [Unstable]
+`````````````````````````````````
 
 static
 ''''''
+
+:Sources:
+
+   .. collapse:: phase_field_notch.cc (click to expand)
+
+      .. literalinclude:: examples/c++/phase_field_model/phase_field_notch.cc
+         :language: c++
+         :lines: 20-
+
+   .. collapse:: material_notch.dat (click to expand)
+
+      .. literalinclude:: examples/c++/phase_field_model/material_notch.dat
+         :language: text
+
+:Location:
+
+   ``examples/c++/`` `phase_field_model <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/phase_field_model>`_
+
 
 `phase_field_notch.cc` shows hot to set a quasi-static fracture simulation with phase-field. The geometry of the solid is a square plate with a notch. The loading is an imposed displacement at the top of the plate (mode I). 
 
