@@ -240,7 +240,11 @@ PhaseFieldFactory & PhaseField::getFactory() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseField::getEnergy() {
+Real PhaseField::getEnergy(const ID & energy_id) {
+  if (energy_id != "dissipated") {
+    return 0.;
+  }
+
   Real edis = 0.;
   auto & fem = this->getFEEngine();
 
@@ -257,7 +261,11 @@ Real PhaseField::getEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseField::getEnergy(const Element & element) {
+Real PhaseField::getEnergy(const ID & energy_id, const Element & element) {
+  if (energy_id != "dissipated") {
+    return 0.;
+  }
+
   auto & fem = this->getFEEngine();
   Vector<Real> edis_on_quad_points(fem.getNbIntegrationPoints(element.type));
   computeDissipatedEnergyByElement(element.type, element.element,

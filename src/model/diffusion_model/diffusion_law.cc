@@ -106,8 +106,8 @@ void DiffusionLaw::assembleDiffusivityMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int DiffusionLaw::getNbData(const Array<Element> & elements,
-                                   const SynchronizationTag & tag) const {
+Int DiffusionLaw::getNbData(const Array<Element> & elements,
+                            const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   Int size = 0;
@@ -129,9 +129,9 @@ inline Int DiffusionLaw::getNbData(const Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionLaw::packData(CommunicationBuffer & buffer,
-                                   const Array<Element> & elements,
-                                   const SynchronizationTag & tag) const {
+void DiffusionLaw::packData(CommunicationBuffer & buffer,
+                            const Array<Element> & elements,
+                            const SynchronizationTag & tag) const {
   switch (tag) {
   case SynchronizationTag::_diffusion_gradient: {
     packElementalDataHelper(this->grad_u, buffer, elements,
@@ -145,9 +145,9 @@ inline void DiffusionLaw::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void DiffusionLaw::unpackData(CommunicationBuffer & buffer,
-                                     const Array<Element> & elements,
-                                     const SynchronizationTag & tag) {
+void DiffusionLaw::unpackData(CommunicationBuffer & buffer,
+                              const Array<Element> & elements,
+                              const SynchronizationTag & tag) {
   switch (tag) {
   case SynchronizationTag::_diffusion_gradient: {
     unpackElementalDataHelper(grad_u, buffer, elements, getFEEngine());

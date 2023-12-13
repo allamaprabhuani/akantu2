@@ -20,7 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 #if defined(__INTEL_COMPILER)
-//#pragma warning ( disable : 383 )
+// #pragma warning ( disable : 383 )
 #elif defined(__clang__) // test clang to be sure that when we test for gnu it
 // is only gnu
 #elif (defined(__GNUC__) || defined(__GNUG__))
@@ -49,6 +49,51 @@ Real Parser::parseReal(const std::string & value,
       section);
   grammar.name("algebraic_grammar");
   return Parser::parseType<Real>(value, grammar);
+}
+
+/* -------------------------------------------------------------------------- */
+RandomParameter<Real>
+Parser::parseRandomParameter(const std::string & value,
+                             const ParserSection & section) {
+#if !defined(DOXYGEN)
+  using boost::spirit::ascii::space_type;
+  parser::RandomGeneratorGrammar<std::string::const_iterator, space_type>
+      grammar(section);
+  grammar.name("random_grammar");
+  auto rg = Parser::parseType<parser::ParsableRandomGenerator>(value, grammar);
+
+  Vector<Real> params = rg.parameters;
+  switch (params.size()) {
+  case 0:
+    return make_random_parameter(rg.base, rg.type);
+  case 1:
+    return make_random_parameter(rg.base, rg.type, params(0));
+  case 2:
+    return make_random_parameter(rg.base, rg.type, params(0), params(1));
+  }
+
+  return make_random_parameter(rg.base, rg.type);
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+Vector<Real> Parser::parseVector(const std::string & value,
+                                 const ParserSection & section) {
+  using boost::spirit::ascii::space_type;
+  parser::VectorGrammar<std::string::const_iterator, space_type> grammar(
+      section);
+  grammar.name("vector_grammar");
+  return Parser::parseType<parser::parsable_vector>(value, grammar);
+}
+
+/* -------------------------------------------------------------------------- */
+Matrix<Real> Parser::parseMatrix(const std::string & value,
+                                 const ParserSection & section) {
+  using boost::spirit::ascii::space_type;
+  parser::MatrixGrammar<std::string::const_iterator, space_type> grammar(
+      section);
+  grammar.name("matrix_grammar");
+  return Parser::parseType<parser::parsable_matrix>(value, grammar);
 }
 
 } // namespace akantu

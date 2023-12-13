@@ -43,7 +43,7 @@
 #include "py_solid_mechanics_model.hh"
 #endif
 
-#if defined(AKANTU_HEAT_TRANSFER)
+#if defined(AKANTU_DIFFUSION)
 #include "py_heat_transfer_model.hh"
 #endif
 
@@ -98,7 +98,7 @@ void register_all(pybind11::module & mod) {
   register_constitutive_law_selector(mod);
   register_constitutive_law_internal_handler(mod);
 
-#if defined(AKANTU_HEAT_TRANSFER)
+#if defined(AKANTU_DIFFUSION)
   register_heat_transfer_model(mod);
 #endif
 

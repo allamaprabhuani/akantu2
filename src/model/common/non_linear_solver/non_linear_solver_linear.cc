@@ -24,6 +24,18 @@
 #include "solver_callback.hh"
 /* -------------------------------------------------------------------------- */
 
+#if !defined(AKANTU_USE_MUMPS) && !defined(AKANTU_USE_PETSC)
+#include "sparse_solver_eigen.hh"
+namespace akantu {
+using SparseSolverType = SparseSolverEigen;
+}
+#else
+#include "sparse_solver_mumps.hh"
+namespace akantu {
+using SparseSolverType = SparseSolverMumps;
+}
+#endif
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
@@ -31,9 +43,8 @@ NonLinearSolverLinear::NonLinearSolverLinear(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager),
-      solver(dof_manager, "J", id + ":sparse_solver") {
-
+      dof_manager(dof_manager), solver(std::make_unique<SparseSolverType>(
+                                    dof_manager, "J", id + ":sparse_solver")) {
   this->supported_type.insert(NonLinearSolverType::_linear);
   this->checkIfTypeIsSupported();
 }
@@ -41,7 +52,7 @@ NonLinearSolverLinear::NonLinearSolverLinear(
 /* -------------------------------------------------------------------------- */
 NonLinearSolverLinear::~NonLinearSolverLinear() = default;
 
-/* ------------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
 void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
   solver_callback.beforeSolveStep();
   this->dof_manager.updateGlobalBlockedDofs();
@@ -54,7 +65,7 @@ void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
   // residual
   this->assembleResidual(solver_callback);
 
-  this->solver.solve();
+  this->solver->solve();
 
   solver_callback.corrector();
 

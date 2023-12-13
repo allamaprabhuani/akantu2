@@ -60,6 +60,9 @@ public:
     stream << "RandGenerator [seed=" << _seed << "]";
   }
 
+
+  
+  std::default_random_engine & getGenerator(); // Needed on apple clang
   /* ------------------------------------------------------------------------ */
 public:
   static void seed(long int s) {
@@ -168,7 +171,7 @@ public:
       : distribution(std::move(dist)) {}
 
   T operator()(RandomGenerator<Idx> & gen) override {
-    return distribution(gen);
+    return this->distribution(gen.getGenerator());
   }
 
   std::unique_ptr<RandomDistribution<T>> make_unique() const override {
@@ -305,6 +308,10 @@ auto make_random_parameter(
   return RandomParameter<T>(base, std::uniform_real_distribution<T>(0., 0.));
 }
 
+
+
+  template<typename T>
+  std::default_random_engine & RandomGenerator<T>::getGenerator() {  return generator; } // Needed on apple clang
 } // namespace akantu
 
 #endif /* AKANTU_AKA_RANDOM_GENERATOR_HH_ */

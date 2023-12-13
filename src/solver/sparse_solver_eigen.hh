@@ -19,49 +19,58 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "non_linear_solver.hh"
+#include "sparse_solver.hh"
+/* -------------------------------------------------------------------------- */
+#include <Eigen/Sparse>
+#include <Eigen/SparseLU>
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_NON_LINEAR_SOLVER_LINEAR_HH_
-#define AKANTU_NON_LINEAR_SOLVER_LINEAR_HH_
+#ifndef AKANTU_SOLVER_EIGEN_HH_
+#define AKANTU_SOLVER_EIGEN_HH_
 
 namespace akantu {
 class DOFManagerDefault;
-class SparseSolver;
 } // namespace akantu
 
 namespace akantu {
 
-class NonLinearSolverLinear : public NonLinearSolver {
+class SparseSolverEigen : public SparseSolver {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  NonLinearSolverLinear(DOFManagerDefault & dof_manager,
-                        const NonLinearSolverType & non_linear_solver_type,
-                        const ID & id = "non_linear_solver_linear");
-  ~NonLinearSolverLinear() override;
+  SparseSolverEigen(DOFManagerDefault & dof_manager, const ID & matrix_id,
+                    const ID & id = "sparse_solver_eigen");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// Function that solve the non linear system described by the dof manager and
-  /// the solver callback functions
-  void solve(SolverCallback & solver_callback) override;
+  void initialize() override{};
 
-  AKANTU_GET_MACRO_NOT_CONST(Solver, *solver, SparseSolver &);
-  AKANTU_GET_MACRO(Solver, *solver, const SparseSolver &);
+  /// solve using residual and solution from the dof_manager
+  void solve() override;
+
+private:
+  void setA();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
+private:
+  /// DOFManager used by the Eigen implementation of the SparseSolver
   DOFManagerDefault & dof_manager;
 
-  /// Sparse solver used for the linear solves
-  std::unique_ptr<SparseSolver> solver;
+  /// matrix release at last solve
+  Int last_profile_release{-1};
+
+  /// matrix release at last solve
+  Int last_value_release{-1};
+
+  Eigen::SparseMatrix<Real> A;
+  Eigen::SparseLU<Eigen::SparseMatrix<Real>> solver;
 };
 
 } // namespace akantu
 
-#endif /* AKANTU_NON_LINEAR_SOLVER_LINEAR_HH_ */
+#endif /* AKANTU_SOLVER_EIGEN_HH_ */

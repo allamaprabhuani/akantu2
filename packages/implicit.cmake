@@ -23,13 +23,22 @@
 package_declare(implicit META
   DESCRIPTION "Add support for implicit time scheme")
 
+
 set(AKANTU_IMPLICIT_SOLVER "Mumps"
   CACHE STRING "Solver activated in Akantu")
+
 set_property(CACHE AKANTU_IMPLICIT_SOLVER PROPERTY STRINGS
+  Eigen
   Mumps
   PETSc
   Mumps+PETSc
-  )
+)
+
+package_is_activated(parallel _is_parallel)
+
+if(_is_parallel AND AKANTU_IMPLICIT_SOLVER MATCHES "Eigen")
+  message(WARNING "The Eigen solver does not work in parallel")
+endif()
 
 if(AKANTU_IMPLICIT_SOLVER MATCHES "Mumps")
   package_add_dependencies(implicit PRIVATE Mumps)

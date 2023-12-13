@@ -27,7 +27,7 @@
 
 namespace akantu {
 class DOFManagerDefault;
-class SparseSolverMumps;
+class SparseSolver;
 class SolverVector;
 } // namespace akantu
 
@@ -52,8 +52,8 @@ public:
   /// the solver callback functions
   void solve(SolverCallback & solver_callback) override;
 
-  AKANTU_GET_MACRO_NOT_CONST(Solver, *solver, SparseSolverMumps &);
-  AKANTU_GET_MACRO(Solver, *solver, const SparseSolverMumps &);
+  AKANTU_GET_MACRO_NOT_CONST(Solver, *solver, SparseSolver &);
+  AKANTU_GET_MACRO(Solver, *solver, const SparseSolver &);
 
 protected:
   /// test the convergence compare norm of array to convergence_criteria
@@ -66,7 +66,7 @@ private:
   DOFManagerDefault & dof_manager;
 
   /// Sparse solver used for the linear solves
-  std::unique_ptr<SparseSolverMumps> solver;
+  std::unique_ptr<SparseSolver> solver;
 
   /// Type of convergence criteria
   SolveConvergenceCriteria convergence_criteria_type;

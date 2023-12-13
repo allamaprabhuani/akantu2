@@ -49,7 +49,11 @@ else()
   include(AkantuSimulationMacros)
 endif()
 
-find_package(Eigen3 REQUIRED QUIET)
+set(AKANTU_DEPENDENCIES_TO_IMPORT @AKANTU_TARGETS_TO_IMPORT@)
+include(CMakeFindDependencyMacro)
+foreach(_pkg ${AKANTU_DEPENDENCIES_TO_IMPORT})
+  find_dependency(${_pkg})
+endforeach()
 
 # Akantu exported targets
 include("${AKANTU_CMAKE_DIR}/AkantuTargets.cmake")

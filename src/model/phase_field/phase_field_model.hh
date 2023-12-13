@@ -167,16 +167,16 @@ public:
   /// get the PhaseFieldModel::blocked_dofs vector
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
 
-  /**
-   * @brief Returns the total dissipated energy
-   */
-  Real getEnergy();
+  /// Returns the total dissipated energy
+  [[nodiscard]] virtual Real getEnergy(const ID & energy_id = "dissipated");
 
   /// Compute dissipated energy for an individual element
-  Real getEnergy(const Element & element);
+  [[nodiscard]] virtual Real getEnergy(const ID & energy_id,
+                                       const Element & element);
 
   /// Compute dissipated energy for an element group
-  Real getEnergy(const ID & group_id);
+  [[nodiscard]] virtual Real getEnergy(const ID & energy_id,
+                                       const ID & group_id);
 
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 

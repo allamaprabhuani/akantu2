@@ -27,6 +27,7 @@
 #include <diffusion_model.hh>
 #include <heat_diffusion.hh>
 #include <heat_transfer_model.hh>
+#include <model_options.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 // #include <pybind11/operators.h>
