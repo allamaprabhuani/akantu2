@@ -34,7 +34,6 @@
 #define IOHELPER_COMMON_H_
 /* -------------------------------------------------------------------------- */
 
-#define USING_ZLIB
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>

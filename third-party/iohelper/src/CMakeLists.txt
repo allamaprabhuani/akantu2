@@ -70,12 +70,10 @@ set(IOHELPER_COMMON_HEADERS
 add_library(iohelper ${IOHELPER_COMMON_SRC})
 
 # link library with other libraries
-target_link_libraries(iohelper ${IOHELPER_EXTERNAL_LIBS})
 target_include_directories(iohelper
   PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
   INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
             $<INSTALL_INTERFACE:include/iohelper>
-  PUBLIC ${ZLIB_INCLUDE_DIR} ${ZLIB_INCLUDE_DIRS}
   )
 
 
@@ -109,6 +107,5 @@ if("${IOHELPER_TARGETS_EXPORT}" STREQUAL "IOHelperLibraryDepends")
   install(EXPORT IOHelperLibraryDepends DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/IOHelper
     COMPONENT dev)
 endif()
-
 
 set(IOHELPER_INCLUDE_DIRS ${IOHelper_SOURCE_DIR}/src CACHE INTERNAL "Internal include directorie to link with IOHelper as a subproject")

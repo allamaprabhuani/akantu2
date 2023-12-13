@@ -90,7 +90,12 @@ void register_phase_field_model(py::module & mod) {
            })
       .def("setTimeStep", &PhaseFieldModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
-      .def("getEnergy", [](PhaseFieldModel & self) { return self.getEnergy(); })
+      .def(
+          "getEnergy",
+          [](PhaseFieldModel & self, const ID & energy_id) {
+            return self.getEnergy(energy_id);
+          },
+          py::arg("energy_id") = "dissipated")
       .def(
           "getEnergy",
           [](PhaseFieldModel & self, const std::string & group_id) {

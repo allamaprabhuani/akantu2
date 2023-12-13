@@ -106,10 +106,11 @@ public:
 
   /// return the damage energyfor the subset of elements contained
   /// by the phasefield
-  virtual Real getEnergy();
+  [[nodiscard]] Real getEnergy(const ID & energy_id) override;
 
   /// Compute dissipated energy for an individual element
-  Real getEnergy(const Element & element);
+  [[nodiscard]] Real getEnergy(const ID & energy_id,
+                               const Element & element) override;
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
   AKANTU_GET_MACRO_AUTO(Strain, strain);

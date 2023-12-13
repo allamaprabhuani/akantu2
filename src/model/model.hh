@@ -85,7 +85,7 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
-#ifdef AKANTU_HEAT_TRANSFER
+#ifdef AKANTU_DIFFUSION
     case ModelType::_heat_transfer_model:
       this->initFullImpl(HeatTransferModelOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});

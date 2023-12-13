@@ -33,6 +33,7 @@
 #include "constitutive_laws_handler.hh"
 #include "non_local_manager.hh"
 #include "parsable.hh"
+#include "mesh_iterators.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_CONSTITUTIVE_LAWS_HANDLER_TMPL_HH

@@ -35,7 +35,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_
   package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-attributes")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.9) OR
+    (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14.0))
   package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template -Wno-unknown-attributes")
 endif()
 
@@ -146,8 +147,6 @@ package_declare_sources(core
   io/parser/parsable.hh
   io/parser/parser.cc
   io/parser/parser_real.cc
-  io/parser/parser_random.cc
-  io/parser/parser_types.cc
   io/parser/parser_input_files.cc
   io/parser/parser.hh
   io/parser/parser_tmpl.hh
@@ -254,8 +253,12 @@ package_declare_sources(core
   model/common/non_linear_solver/non_linear_solver.cc
   model/common/non_linear_solver/non_linear_solver.hh
   model/common/non_linear_solver/non_linear_solver_default.hh
+  model/common/non_linear_solver/non_linear_solver_linear.cc
+  model/common/non_linear_solver/non_linear_solver_linear.hh
   model/common/non_linear_solver/non_linear_solver_lumped.cc
   model/common/non_linear_solver/non_linear_solver_lumped.hh
+  model/common/non_linear_solver/non_linear_solver_newton_raphson.cc
+  model/common/non_linear_solver/non_linear_solver_newton_raphson.hh
 
   model/common/time_step_solvers/time_step_solver.hh
   model/common/time_step_solvers/time_step_solver.cc
@@ -294,6 +297,8 @@ package_declare_sources(core
   solver/sparse_matrix_inline_impl.hh
   solver/sparse_solver.cc
   solver/sparse_solver.hh
+  solver/sparse_solver_eigen.cc
+  solver/sparse_solver_eigen.hh
   solver/sparse_solver_inline_impl.hh
   solver/terms_to_assemble.hh
 

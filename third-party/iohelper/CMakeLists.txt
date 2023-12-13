@@ -41,13 +41,6 @@ enable_language(CXX)
 #===============================================================================
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 
-find_package (ZLIB)
-
-if(ZLIB_FOUND)
-  set (IOHELPER_EXTERNAL_LIBS ${IOHELPER_EXTERNAL_LIBS} ${ZLIB_LIBRARIES})
-  include_directories(${ZLIB_INCLUDE_DIR})
-endif()
-
 #===============================================================================
 # Version Number
 #===============================================================================

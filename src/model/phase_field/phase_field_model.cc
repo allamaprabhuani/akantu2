@@ -186,12 +186,13 @@ ModelSolverOptions PhaseFieldModel::getDefaultSolverOptions(
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseFieldModel::getEnergy() {
+Real PhaseFieldModel::getEnergy(const ID & energy_id) {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
-  for_each_constitutive_law(
-      [&energy](auto && phase_field) { energy += phase_field.getEnergy(); });
+  for_each_constitutive_law([&energy, &energy_id](auto && phase_field) {
+    energy += phase_field.getEnergy(energy_id);
+  });
 
   /// reduction sum over all processors
   mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
@@ -201,21 +202,22 @@ Real PhaseFieldModel::getEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseFieldModel::getEnergy(const Element & element) {
+Real PhaseFieldModel::getEnergy(const ID & energy_id, const Element & element) {
   auto pf_element = element;
   auto phase_index = this->getConstitutiveLawByElement()(element);
   pf_element.element = this->getConstitutiveLawLocalNumbering()(element);
-  Real energy = this->getConstitutiveLaw(phase_index).getEnergy(pf_element);
+  Real energy =
+      this->getConstitutiveLaw(phase_index).getEnergy(energy_id, pf_element);
   return energy;
 }
 
 /* -------------------------------------------------------------------------- */
-Real PhaseFieldModel::getEnergy(const ID & group_id) {
+Real PhaseFieldModel::getEnergy(const ID & energy_id, const ID & group_id) {
   auto && group = mesh.getElementGroup(group_id);
   auto energy = 0.;
   for (auto && type : group.elementTypes()) {
     for (auto el : group.getElementsIterable(type)) {
-      energy += getEnergy(el);
+      energy += this->getEnergy(energy_id, el);
     }
   }
 

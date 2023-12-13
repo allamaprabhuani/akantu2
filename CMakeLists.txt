@@ -122,7 +122,6 @@ else()
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
-
 include(AkantuExtraCompilationProfiles)
 #===============================================================================
 # Dependencies

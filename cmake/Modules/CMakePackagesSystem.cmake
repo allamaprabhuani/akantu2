@@ -653,6 +653,15 @@ function(package_get_all_compilation_flags LANG FLAGS)
 endfunction()
 
 # ------------------------------------------------------------------------------
+# Get export list for all activated packages
+# ------------------------------------------------------------------------------
+function(package_get_all_target_to_import targets)
+  _package_get_variable_for_activated(TARGET_TO_IMPORT _tmp)
+  set(${targets} ${_tmp} PARENT_SCOPE)
+endfunction()
+
+
+# ------------------------------------------------------------------------------
 # Documentation informations
 # ------------------------------------------------------------------------------
 function(package_get_all_documentation_files doc_files)
