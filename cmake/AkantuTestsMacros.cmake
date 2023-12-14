@@ -114,6 +114,8 @@ macro tries to determine it in a "clever" way
 
 set(AKANTU_DRIVER_SCRIPT ${AKANTU_CMAKE_DIR}/akantu_test_driver.sh)
 
+include(GoogleTest)
+
 # ==============================================================================
 macro(add_test_tree dir)
   if(AKANTU_TESTS)
@@ -525,10 +527,10 @@ function(register_test test_name)
     list(APPEND _arguments -e "./${test_name}")
   endif()
 
-  if(_register_test_GTEST)
-    list(APPEND _extra_args "--" "--gtest_output=xml:${PROJECT_BINARY_DIR}/gtest_reports/${test_name}.xml")
-  endif()
-  
+  # if(_register_test_GTEST)
+  #   list(APPEND _extra_args "--" "--gtest_output=xml:${PROJECT_BINARY_DIR}/gtest_reports/${test_name}.xml")
+  # endif()
+
   list(APPEND _arguments -E "${PROJECT_BINARY_DIR}/akantu_environement.sh")
 
   package_is_activated(parallel _is_parallel)
@@ -538,11 +540,12 @@ function(register_test test_name)
   endif()
 
   if(_register_test_PARALLEL AND _is_parallel)
-    set(_exe ${MPIEXEC})
+    set(_mpi_launcher ${MPIEXEC})
     if(NOT _exe)
-      set(_exe ${MPIEXEC_EXECUTABLE})
+      set(_mpi_launcher ${MPIEXEC_EXECUTABLE})
     endif()
-    list(APPEND _arguments -p "${_exe} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG}")
+    set(_mpi_launcher "${_mpi_launcher} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG}")
+    list(APPEND _arguments -p "${_mpi_launcher}")
     if(_register_test_PARALLEL_LEVEL)
       set(_procs "${_register_test_PARALLEL_LEVEL}")
     else()
@@ -564,6 +567,8 @@ function(register_test test_name)
     if(NOT _procs)
       set(_procs 2)
     endif()
+  else()
+    set(_procs 1)
   endif()
 
   if(_register_test_POSTPROCESS)
@@ -583,18 +588,35 @@ function(register_test test_name)
     list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
-  #string(REPLACE ";" " " _command "${_arguments}")
 
   # register them test
-  if(_procs)
-    foreach(p ${_procs})
-      add_test(NAME ${test_name}_${p} COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} ${_extra_args})
-      set_property(TEST ${test_name}_${p} PROPERTY PROCESSORS ${p})
-    endforeach()
-  else()
-    add_test(NAME ${test_name} COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} ${_extra_args})
-    set_property(TEST ${test_name} PROPERTY PROCESSORS 1)
-  endif()
+  foreach(p ${_procs})
+    set(_suffix)
+    if(p GREATER 1)
+      set(_suffix _${p})
+    endif()
+
+    if(_register_test_GTEST)
+      if(_mpi_launcher)
+        separate_arguments(_launcher UNIX_COMMAND "${_mpi_launcher} ${p}")
+        set_property(TARGET ${test_name} PROPERTY CROSSCOMPILING_EMULATOR "${_launcher}")
+      endif()
+      gtest_discover_tests(${test_name}
+        TEST_SUFFIX "${_suffix}"
+        #NO_PRETTY_TYPES
+        PROPERTIES
+          PROCESSORS ${p}
+          ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}
+      )
+
+      if(_mpi_launcher)
+        set_property(TARGET ${test_name} PROPERTY CROSSCOMPILING_EMULATOR "")
+      endif()
+    else()
+      add_test(NAME ${test_name}${_suffix} COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} ${_extra_args})
+      set_property(TEST ${test_name}${_suffix} PROPERTY PROCESSORS ${p})
+    endif()
+  endforeach()
 endfunction()
 
 function(register_test_files_to_package)
