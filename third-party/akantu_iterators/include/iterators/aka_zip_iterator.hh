@@ -175,7 +175,7 @@ namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
 
   template <class... Iterators>
   using NamedZipIterator = ZipIterator_<tuple::named_tuple, Iterators...>;
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Iterators>
@@ -231,11 +231,28 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
     static inline auto append(ZipContainer_ && zip_container,
                               OtherContainers &&... cont);
 
-    template <typename Tag, class OtherContainers>
+    template <size_t Tag, class OtherContainers,
+              class InnerContainer = containers_t,
+              std::enable_if_t<not tuple::is_named_tuple_v<InnerContainer>> * =
+                  nullptr>
     static inline auto replace(ZipContainer_ && zip_container,
                                OtherContainers && cont);
 
-    template <typename Tag>
+    template <
+        typename Tag, class OtherContainers,
+        class InnerContainer = containers_t,
+        std::enable_if_t<tuple::is_named_tuple_v<InnerContainer>> * = nullptr>
+    static inline auto replace(ZipContainer_ && zip_container,
+                               OtherContainers && cont);
+
+    template <size_t Tag, class InnerContainer = containers_t,
+              std::enable_if_t<not tuple::is_named_tuple_v<InnerContainer>> * =
+                  nullptr>
+    static inline auto remove(ZipContainer_ && zip_container);
+
+    template <
+        typename Tag, class InnerContainer = containers_t,
+        std::enable_if_t<tuple::is_named_tuple_v<InnerContainer>> * = nullptr>
     static inline auto remove(ZipContainer_ && zip_container);
 
   private:
@@ -251,7 +268,7 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class... Containers>
   using NamedZipContainer = ZipContainer_<tuple::named_tuple, Containers...>;
 
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace containers AKA_ITERATOR_EXPORT_NAMESPACE
 
 /* -------------------------------------------------------------------------- */
 template <class... Containers,
@@ -287,8 +304,21 @@ constexpr inline auto zip_append(ZipContainer && zip_container,
   return std::decay_t<ZipContainer>::append(FWD(zip_container), FWD(cont)...);
 }
 
+template <
+    size_t Tag, class ZipContainer, class OtherContainer,
+    std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value and
+                     not tuple::is_named_tuple_v<
+                         typename ZipContainer::containers_t>> * = nullptr>
+constexpr inline auto zip_replace(ZipContainer && zip_container,
+                                  OtherContainer && cont) {
+  return std::decay_t<ZipContainer>::template replace<Tag>(FWD(zip_container),
+                                                           FWD(cont));
+}
+
 template <typename Tag, class ZipContainer, class OtherContainer,
-          std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value> * =
+          std::enable_if_t<
+              std::is_rvalue_reference<ZipContainer &&>::value and
+              tuple::is_named_tuple_v<typename ZipContainer::containers_t>> * =
               nullptr>
 constexpr inline auto zip_replace(ZipContainer && zip_container,
                                   OtherContainer && cont) {
@@ -307,13 +337,31 @@ constexpr inline auto zip_replace(ZipContainer && zip_container,
                                                            FWD(cont._value));
 }
 
+template <
+    size_t Tag, class ZipContainer,
+    std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value and
+                     not tuple::is_named_tuple_v<
+                         typename ZipContainer::containers_t>> * = nullptr>
+constexpr inline auto zip_remove(ZipContainer && zip_container) {
+  return std::decay_t<ZipContainer>::template remove<Tag>(FWD(zip_container));
+}
+
 template <typename Tag, class ZipContainer,
-          std::enable_if_t<std::is_rvalue_reference<ZipContainer &&>::value> * =
+          std::enable_if_t<
+              std::is_rvalue_reference<ZipContainer &&>::value and
+              tuple::is_named_tuple_v<typename ZipContainer::containers_t>> * =
               nullptr>
 constexpr inline auto zip_remove(ZipContainer && zip_container) {
   return std::decay_t<ZipContainer>::template remove<Tag>(FWD(zip_container));
 }
 
+template <class ZipContainer, class Tag,
+          std::enable_if_t<std::is_rvalue_reference_v<ZipContainer &&> and
+                           tuple::is_named_tag_v<Tag>> * = nullptr>
+constexpr inline auto zip_remove(ZipContainer && zip_container,
+                                 const Tag & /*tag*/) {
+  return std::decay_t<ZipContainer>::template remove<Tag>(FWD(zip_container));
+}
 /* -------------------------------------------------------------------------- */
 namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class Tuple, std::size_t... Is,
@@ -335,7 +383,7 @@ namespace details AKA_ITERATOR_EXPORT_NAMESPACE {
     return zip(make_named_tag<tuple_name_tag_t<Is, std::decay_t<Tuple>>>() =
                    FWD(std::get<Is>(FWD(tuple)))...);
   }
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace details AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class Tuple>
 constexpr inline auto make_zip_from_tuple(Tuple && tuple) {
@@ -356,7 +404,8 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   }
 
   template <template <class...> class Tuple, class... Containers>
-  template <typename Tag, class OtherContainer>
+  template <size_t Tag, class OtherContainer, class InnerContainer,
+            std::enable_if_t<not tuple::is_named_tuple_v<InnerContainer>> *>
   inline auto
   ZipContainer_<Tuple, Containers...>::replace(ZipContainer_ && zip_container,
                                                OtherContainer && cont) {
@@ -365,13 +414,34 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   }
 
   template <template <class...> class Tuple, class... Containers>
-  template <typename Tag>
+  template <typename Tag, class OtherContainer, class InnerContainer,
+            std::enable_if_t<tuple::is_named_tuple_v<InnerContainer>> *>
+  inline auto
+  ZipContainer_<Tuple, Containers...>::replace(ZipContainer_ && zip_container,
+                                               OtherContainer && cont) {
+    return make_zip_from_tuple(
+        tuple::replace<Tag>(FWD(zip_container.containers), FWD(cont)));
+  }
+
+  template <template <class...> class Tuple, class... Containers>
+  template <size_t Tag, class InnerContainer,
+            std::enable_if_t<not tuple::is_named_tuple_v<InnerContainer>> *>
   inline auto
   ZipContainer_<Tuple, Containers...>::remove(ZipContainer_ && zip_container) {
     return make_zip_from_tuple(
         tuple::remove<Tag>(FWD(zip_container.containers)));
   }
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+
+  template <template <class...> class Tuple, class... Containers>
+  template <typename Tag, class InnerContainer,
+            std::enable_if_t<tuple::is_named_tuple_v<InnerContainer>> *>
+  inline auto
+  ZipContainer_<Tuple, Containers...>::remove(ZipContainer_ && zip_container) {
+    return make_zip_from_tuple(
+        tuple::remove<Tag>(FWD(zip_container.containers)));
+  }
+
+} // namespace containers AKA_ITERATOR_EXPORT_NAMESPACE
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
