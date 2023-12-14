@@ -585,7 +585,8 @@ function(register_test test_name)
     endif()
 
   if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
-    list(APPEND _arguments -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
+    list(APPEND _arguments
+      -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
 
 
@@ -596,6 +597,14 @@ function(register_test test_name)
       set(_suffix _${p})
     endif()
 
+    set(_properties
+      PROCESSORS ${p}
+      ENVIRONMENT
+        PYTHONPATH=${PROJECT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}
+        ASAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/asan_akantu.supp"
+        LSAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/lsan_akantu.supp:print_suppressions=0"
+      )
+
     if(_register_test_GTEST)
       if(_mpi_launcher)
         separate_arguments(_launcher UNIX_COMMAND "${_mpi_launcher} ${p}")
@@ -603,18 +612,18 @@ function(register_test test_name)
       endif()
       gtest_discover_tests(${test_name}
         TEST_SUFFIX "${_suffix}"
+        PROPERTIES ${_properties}
         #NO_PRETTY_TYPES
-        PROPERTIES
-          PROCESSORS ${p}
-          ENVIRONMENT PYTHONPATH=${CMAKE_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}
       )
 
       if(_mpi_launcher)
         set_property(TARGET ${test_name} PROPERTY CROSSCOMPILING_EMULATOR "")
       endif()
     else()
-      add_test(NAME ${test_name}${_suffix} COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} ${_extra_args})
-      set_property(TEST ${test_name}${_suffix} PROPERTY PROCESSORS ${p})
+      add_test(NAME ${test_name}${_suffix}
+        COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} ${_extra_args})
+      set_test_properties(${test_name}${_suffix}
+        PROPERTIES ${_properties})
     endif()
   endforeach()
 endfunction()
