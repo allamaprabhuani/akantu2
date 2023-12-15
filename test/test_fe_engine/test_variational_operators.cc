@@ -52,7 +52,7 @@ struct TensorField {
   int getNbComponent() { throw; };
 
   TensorField & transpose() { throw; };
-  TensorField & dot(TensorField & f);
+  TensorField & operator*(TensorField & f);
 };
 
 struct NodalTensorField : public TensorField {
@@ -71,7 +71,7 @@ struct IntegrationPointTensorField : public TensorField {
   IntegrationPointTensorField(const std::string & name, Support & support)
       : TensorField(name, support) {}
 
-  void eval(Array<Real> & output) override { throw; };
+  void eval(Array<Real> &) override { throw; };
 };
 
 struct DotField : public TensorField {
@@ -79,12 +79,22 @@ struct DotField : public TensorField {
   DotField(TensorField & f1, TensorField & f2)
       : TensorField(f1.name + "." + f2.name, f1.support), field1(f1),
         field2(f2) {}
-  void eval(Array<Real> & output) override { throw; };
+  void eval(Array<Real> & output) override;
+
   TensorField & field1;
   TensorField & field2;
 };
 
-TensorField & TensorField::dot(TensorField & f) {
+void DotField::eval(Array<Real> & output) {
+  Array<Real> o1, o2;
+  field1.eval(o1);
+  field2.eval(o2);
+  for (auto && [o, o1, o2] : zip(output, o1, o2)) {
+    o = o1 * o2;
+  }
+};
+
+TensorField & TensorField::operator*(TensorField & f) {
   return *new DotField{*this, f};
 }
 
@@ -104,23 +114,10 @@ struct FieldIntegrator {
   static Array<Real> integrate(TensorField & field, Support & support) {
     auto nb_element = support.elem_filter.size();
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(support.type);
-    // auto nb_quadrature_points =
-    //     support.fem.getNbIntegrationPoints(support.type, support.ghost_type);
-
-    /**
-     * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by
-     * @f$ \sum_q \mathbf{B}^t
-     * \mathbf{\sigma}_q \overline w_q J_q@f$
-     */
-    // auto int_sigma_dphi_dx = std::make_unique<Array<Real>>(
-    //     nb_element, nb_nodes_per_element * support.spatial_dimension,
-    //    "int_sigma_x_dphi_/_dX");
     Array<Real> res(nb_element,
                     nb_nodes_per_element * support.spatial_dimension,
                     "int_sigma_x_dphi_/_dX");
 
-    // auto size_of_shapes_derivatives =
-    // shapes_derivatives.getNbComponent();
     auto nb_component = field.getNbComponent();
 
     Array<Real> field_eval;
@@ -155,7 +152,7 @@ TYPED_TEST(TestFEMFixture, consistent_force) {
   GradientOperator grad{support};
   IntegrationPointTensorField stress("stress", support);
 
-  auto f = FieldIntegrator::integrate(stress.dot(grad), support);
+  auto f = FieldIntegrator::integrate(stress * grad, support);
   std::cout << f << std::endl;
 }
 
@@ -168,7 +165,7 @@ TYPED_TEST(TestFEMFixture, stiffness_matrix) {
   GradientOperator grad{support};
   IntegrationPointTensorField elastic_tensor("C", support);
 
-  auto f = FieldIntegrator::integrate(
-      grad.transpose().dot(elastic_tensor.dot(grad)), support);
+  auto f = FieldIntegrator::integrate(grad.transpose() * elastic_tensor * grad,
+                                      support);
   std::cout << f << std::endl;
 }
