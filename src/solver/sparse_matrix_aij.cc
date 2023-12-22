@@ -78,11 +78,7 @@ void SparseMatrixAIJ::applyBoundary(Real block_val) {
     if (is_blocked(ni) or is_blocked(nj)) {
 
       std::get<2>(ij_a) =
-          std::get<0>(ij_a) != std::get<1>(ij_a) ? 0.
-          : this->dof_manager.isLocalOrMasterDOF(
-                this->dof_manager.globalToLocalEquationNumber(ni))
-              ? block_val
-              : 0.;
+          std::get<0>(ij_a) != std::get<1>(ij_a) ? 0. : std::get<2>(ij_a);
     }
   }
 
