@@ -391,7 +391,7 @@ void FluidDiffusionModel::assemblePermeabilityMatrix(
                   type, ghost_type);
 
     this->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "pressure", *K_e, type, ghost_type, _symmetric);
+        "K", "pressure", *K_e, type, _symmetric);
   }
 
   permeability_matrix_release = permeability_release[ghost_type];

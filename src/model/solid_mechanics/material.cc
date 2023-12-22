@@ -490,7 +490,7 @@ void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
   delete bt_d_b;
 
   model.getDOFManager().assembleElementalMatricesToMatrix(
-      "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
+      "K", "displacement", *K_e, type, _symmetric, elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();
@@ -563,7 +563,7 @@ void Material::assembleStiffnessMatrixNL(ElementType type,
   delete bt_s_b;
 
   model.getDOFManager().assembleElementalMatricesToMatrix(
-      "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
+      "K", "displacement", *K_e, type, _symmetric, elem_filter);
 
   delete K_e;
 
@@ -656,7 +656,7 @@ void Material::assembleStiffnessMatrixL2(ElementType type,
   delete bt_d_b;
 
   model.getDOFManager().assembleElementalMatricesToMatrix(
-      "K", "displacement", *K_e, type, ghost_type, _symmetric, elem_filter);
+      "K", "displacement", *K_e, type, _symmetric, elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();

@@ -313,13 +313,13 @@ void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
-    ElementType type, GhostType ghost_type,
-    const MatrixType & elemental_matrix_type,
+    ElementType type, const MatrixType & elemental_matrix_type,
     const Array<UInt> & filter_elements) {
-  this->addToProfile(matrix_id, dof_id, type, ghost_type);
+  this->addToProfile(matrix_id, dof_id, type, _not_ghost);
+  this->addToProfile(matrix_id, dof_id, type, _ghost);
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
-      A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,
+      A, dof_id, elementary_mat, type, _not_ghost, elemental_matrix_type,
       filter_elements);
 }
 
@@ -413,7 +413,7 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
 
     for (UInt i = 0; i < size_mat; ++i) {
       UInt c_irn = element_eq_nb(i);
-      if (c_irn < size) {
+      if (c_irn < size and c_irn >= 0) {
         for (UInt j = 0; j < size_mat; ++j) {
           UInt c_jcn = element_eq_nb(j);
           if (c_jcn < size) {

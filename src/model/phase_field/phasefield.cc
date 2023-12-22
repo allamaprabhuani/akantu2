@@ -247,7 +247,7 @@ void PhaseField::assembleStiffnessMatrix(GhostType ghost_type) {
                   type, ghost_type, elem_filter);
 
     model.getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "damage", *K_n, type, _not_ghost, _symmetric, elem_filter);
+        "K", "damage", *K_n, type, _symmetric, elem_filter);
 
     /// compute @f$ K_{\grad d} = \int_e \mathbf{B}^t * \mathbf{W} *
     /// \mathbf{B}@f$
@@ -258,7 +258,7 @@ void PhaseField::assembleStiffnessMatrix(GhostType ghost_type) {
                   type, ghost_type, elem_filter);
 
     model.getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "damage", *K_b, type, _not_ghost, _symmetric, elem_filter);
+        "K", "damage", *K_b, type, _symmetric, elem_filter);
   }
 
   AKANTU_DEBUG_OUT();

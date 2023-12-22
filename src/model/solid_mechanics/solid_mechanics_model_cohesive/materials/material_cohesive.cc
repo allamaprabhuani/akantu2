@@ -363,7 +363,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     delete at_nt_d_n_a;
 
     model->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "displacement", *K_e, type, ghost_type, _unsymmetric, elem_filter);
+        "K", "displacement", *K_e, type, _unsymmetric, elem_filter);
 
     delete K_e;
   }

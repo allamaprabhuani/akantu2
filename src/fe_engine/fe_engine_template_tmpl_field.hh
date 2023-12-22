@@ -550,8 +550,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
       local_mat, int_field_times_shapes, lmat_size * lmat_size, ghost_type);
 
   // assemble the elemental values to the matrix
-  dof_manager.assembleElementalMatricesToMatrix(
-      matrix_id, dof_id, int_field_times_shapes, type, ghost_type);
+  dof_manager.assembleElementalMatricesToMatrix(matrix_id, dof_id,
+                                                int_field_times_shapes, type);
 
   AKANTU_DEBUG_OUT();
 }

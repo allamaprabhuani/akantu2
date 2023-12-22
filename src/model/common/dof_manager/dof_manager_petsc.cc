@@ -207,12 +207,11 @@ void DOFManagerPETSc::getArrayPerDOFs(const ID & dof_id,
 /* -------------------------------------------------------------------------- */
 void DOFManagerPETSc::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
-    ElementType type, GhostType ghost_type,
-    const MatrixType & elemental_matrix_type,
+    ElementType type, const MatrixType & elemental_matrix_type,
     const Array<UInt> & filter_elements) {
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
-      A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,
+      A, dof_id, elementary_mat, type, _not_ghost, elemental_matrix_type,
       filter_elements);
 
   A.applyModifications();

@@ -321,7 +321,7 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
                             nb_nodes_per_element * nb_nodes_per_element, type);
 
     this->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "temperature", *K_e, type, _not_ghost, _unsymmetric);
+        "K", "temperature", *K_e, type, _unsymmetric);
   }
 
   crack_conductivity_matrix_release = this->conductivity_matrix_release;

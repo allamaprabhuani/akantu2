@@ -142,7 +142,6 @@ public:
   virtual void assembleElementalMatricesToMatrix(
       const ID & matrix_id, const ID & dof_id,
       const Array<Real> & elementary_mat, ElementType type,
-      GhostType ghost_type = _not_ghost,
       const MatrixType & elemental_matrix_type = _symmetric,
       const Array<UInt> & filter_elements = empty_filter) = 0;
 

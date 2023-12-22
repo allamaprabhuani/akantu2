@@ -145,7 +145,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
                           type);
 
   getDOFManager().assembleElementalMatricesToMatrix(
-      "K", "displacement", *int_bt_d_b, type, _not_ghost, _symmetric);
+      "K", "displacement", *int_bt_d_b, type, _symmetric);
 
   AKANTU_DEBUG_OUT();
 }

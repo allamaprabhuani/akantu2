@@ -348,7 +348,7 @@ void HeatTransferModel::assembleConductivityMatrix() {
                   type);
 
     this->getDOFManager().assembleElementalMatricesToMatrix(
-        "K", "temperature", *K_e, type, _not_ghost, _symmetric);
+        "K", "temperature", *K_e, type, _symmetric);
   }
 
   conductivity_matrix_release = conductivity_release[_not_ghost];

@@ -602,8 +602,7 @@ void MaterialReinforcement<Mat, dim>::assembleStiffnessMatrixInterface(
       getBackgroundFilter(interface_type, background_type, ghost_type);
 
   emodel.getDOFManager().assembleElementalMatricesToMatrix(
-      "K", "displacement", K_interface, background_type, ghost_type, _symmetric,
-      filter);
+      "K", "displacement", K_interface, background_type, _symmetric, filter);
 
   AKANTU_DEBUG_OUT();
 }
