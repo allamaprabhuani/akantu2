@@ -146,6 +146,7 @@ void register_mesh(py::module & mod) {
           py::return_value_policy::reference)
       .def("isLocalOrMasterNode", &Mesh::isLocalOrMasterNode)
       .def("getNbNodes", &Mesh::getNbNodes)
+      .def("getGlobalNodesIds", &Mesh::getGlobalNodesIds)
       .def("getLowerBounds", &Mesh::getLowerBounds)
       .def("getUpperBounds", &Mesh::getUpperBounds)
       .def(
@@ -262,7 +263,20 @@ void register_mesh(py::module & mod) {
             return _types;
           },
           py::arg("spatial_dimension") = _all_dimensions,
-          py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular);
+          py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular)
+      .def(
+          "getDataPointerUInt",
+          [](Mesh & self, const std::string & data_name, ElementType el_type,
+             GhostType ghost_type, UInt nb_component, bool size_to_nb_element,
+             bool resize_with_parent) -> decltype(auto) {
+            return self.getDataPointer<UInt>(data_name, el_type, ghost_type,
+                                             nb_component, size_to_nb_element,
+                                             resize_with_parent);
+          },
+          py::return_value_policy::reference, py::arg("data_name"),
+          py::arg("el_type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("nb_component") = 1, py::arg("size_to_nb_element") = true,
+          py::arg("resize_with_parent") = false);
 
   /* ------------------------------------------------------------------------
    */
