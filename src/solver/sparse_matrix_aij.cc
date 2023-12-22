@@ -53,7 +53,10 @@ SparseMatrixAIJ::SparseMatrixAIJ(DOFManagerDefault & dof_manager,
 SparseMatrixAIJ::SparseMatrixAIJ(const SparseMatrixAIJ & matrix, const ID & id)
     : SparseMatrix(matrix, id), dof_manager(matrix.dof_manager),
       irn(matrix.irn, id + ":irn"), jcn(matrix.jcn, id + ":jcn"),
-      a(matrix.a, id + ":a") {}
+      a(matrix.a, id + ":a") {
+  copyProfile(matrix);
+  copyContent(matrix);
+}
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ::~SparseMatrixAIJ() = default;
