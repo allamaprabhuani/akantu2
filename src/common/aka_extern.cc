@@ -90,7 +90,10 @@ const Array<UInt> empty_filter(0, 1, "empty_filter");
 /* -------------------------------------------------------------------------- */
 template <> long int RandomGenerator<UInt>::_seed = 5489U;
 template <> std::default_random_engine RandomGenerator<UInt>::generator(5489U);
-/* -------------------------------------------------------------------------- */
+template <> long int RandomGenerator<Real>::_seed = 5489U;
+template <> std::default_random_engine RandomGenerator<Real>::generator(5489U);
+/* --------------------------------------------------------------------------
+ */
 int Tag::max_tag = 0;
 
 /* -------------------------------------------------------------------------- */

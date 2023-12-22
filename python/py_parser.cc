@@ -31,6 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_random_generator.hh"
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <aka_common.hh>
@@ -127,5 +128,11 @@ void register_parser(py::module & mod) {
         getStaticParser().parse(input_file);
       },
       "Parse an Akantu input file");
+  mod.def("randomGeneratorUIntSetSeed",
+          [](UInt seed) { RandomGenerator<UInt>::seed(seed); });
+  mod.def("randomGeneratorUIntGetSeed",
+          []() { return RandomGenerator<UInt>::seed(); });
+  mod.def("randomGeneratorRealSetSeed",
+          [](UInt seed) { RandomGenerator<Real>::seed(seed); });
 }
 } // namespace akantu
