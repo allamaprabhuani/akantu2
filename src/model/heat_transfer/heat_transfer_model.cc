@@ -100,6 +100,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
     this->registerSynchronizer(synchronizer,
                                SynchronizationTag::_htm_temperature);
     this->registerSynchronizer(synchronizer,
+                               SynchronizationTag::_htm_temperature_on_qpoints);
+    this->registerSynchronizer(synchronizer,
                                SynchronizationTag::_htm_gradient_temperature);
   }
 
@@ -502,8 +504,8 @@ void HeatTransferModel::computeTempOnQpoints(GhostType ghost_type) {
     auto & t_on_qpoints = temperature_on_qpoints(type, ghost_type);
 
     // compute the temperature on quadrature points
-    this->getFEEngine().interpolateOnIntegrationPoints(*temperature,
-                                                       t_on_qpoints, 1, type);
+    this->getFEEngine().interpolateOnIntegrationPoints(
+        *temperature, t_on_qpoints, 1, type, ghost_type);
     this->synchronizeField(SynchronizationTag::_htm_temperature_on_qpoints);
   }
 }
