@@ -160,6 +160,12 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
                                SynchronizationTag::_smm_stress);
     this->registerSynchronizer(*cohesive_synchronizer,
                                SynchronizationTag::_smm_boundary);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_smmc_normal);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_smmc_opening);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_smmc_damage);
   }
 
   this->inserter = std::make_unique<CohesiveElementInserter>(
