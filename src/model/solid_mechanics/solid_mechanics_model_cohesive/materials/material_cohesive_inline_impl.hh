@@ -55,7 +55,7 @@ inline UInt MaterialCohesive::getNbData(const Array<Element> & elements,
 
   switch (tag) {
   case SynchronizationTag::_smm_stress: {
-    return 2 * spatial_dimension * sizeof(Real) *
+    return 4 * spatial_dimension * sizeof(Real) *
            this->getModel().getNbIntegrationPoints(elements,
                                                    "CohesiveFEEngine");
   }
@@ -89,6 +89,8 @@ inline void MaterialCohesive::packData(CommunicationBuffer & buffer,
     packElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
     packElementDataHelper(contact_tractions, buffer, elements,
                           "CohesiveFEEngine");
+    packElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
+    packElementDataHelper(opening, buffer, elements, "CohesiveFEEngine");
     break;
   }
   case SynchronizationTag::_smmc_damage: {
@@ -117,6 +119,8 @@ inline void MaterialCohesive::unpackData(CommunicationBuffer & buffer,
     unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
     unpackElementDataHelper(contact_tractions, buffer, elements,
                             "CohesiveFEEngine");
+    unpackElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
+    unpackElementDataHelper(opening, buffer, elements, "CohesiveFEEngine");
     break;
   }
   case SynchronizationTag::_smmc_damage: {

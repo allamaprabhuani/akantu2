@@ -398,9 +398,6 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     /// compute traction @f$\mathbf{t}@f$
     computeTraction(normal(type, ghost_type), type, ghost_type);
   }
-  /// syncrhonize these two fields
-  this->model->synchronize(SynchronizationTag::_smmc_normal);
-  this->model->synchronize(SynchronizationTag::_smmc_opening);
   AKANTU_DEBUG_OUT();
 }
 
