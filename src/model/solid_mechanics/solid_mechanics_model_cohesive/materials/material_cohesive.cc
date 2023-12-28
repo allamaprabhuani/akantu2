@@ -383,16 +383,6 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
            spatial_dimension, ghost_type, _ek_cohesive)) {
     Array<UInt> & elem_filter = element_filter(type, ghost_type);
 
-    UInt nb_element = elem_filter.size();
-    if (nb_element == 0) {
-      continue;
-    }
-
-    UInt nb_quadrature_points =
-        nb_element * fem_cohesive.getNbIntegrationPoints(type, ghost_type);
-
-    // normal.resize(nb_quadrature_points);
-
     /// compute normals @f$\mathbf{n}@f$
     computeNormal(model->getCurrentPosition(), normal(type, ghost_type), type,
                   ghost_type);
@@ -401,10 +391,6 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
-    /// syncrhonize these two fields
-    // this->model->synchronize(SynchronizationTag::_smmc_normal);
-    // this->model->synchronize(SynchronizationTag::_smmc_opening);
-
     /// check if self-penetration is taking place
     checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
                      penetration(type, ghost_type), type, ghost_type);
@@ -412,7 +398,9 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     /// compute traction @f$\mathbf{t}@f$
     computeTraction(normal(type, ghost_type), type, ghost_type);
   }
-
+  /// syncrhonize these two fields
+  this->model->synchronize(SynchronizationTag::_smmc_normal);
+  this->model->synchronize(SynchronizationTag::_smmc_opening);
   AKANTU_DEBUG_OUT();
 }
 
@@ -434,8 +422,6 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
 #undef COMPUTE_NORMAL
-
-  this->model->synchronize(SynchronizationTag::_smmc_normal);
 
   AKANTU_DEBUG_OUT();
 }
@@ -480,7 +466,6 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_OPENING);
 #undef COMPUTE_OPENING
 
-  this->model->synchronize(SynchronizationTag::_smmc_opening);
   AKANTU_DEBUG_OUT();
 }
 
