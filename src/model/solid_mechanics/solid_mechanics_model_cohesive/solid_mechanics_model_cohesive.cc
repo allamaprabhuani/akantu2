@@ -164,8 +164,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
                                SynchronizationTag::_smmc_normal);
     this->registerSynchronizer(*cohesive_synchronizer,
                                SynchronizationTag::_smmc_opening);
-    this->registerSynchronizer(*cohesive_synchronizer,
-                               SynchronizationTag::_smmc_damage);
   }
 
   this->inserter = std::make_unique<CohesiveElementInserter>(
