@@ -91,9 +91,10 @@ inline void MaterialCohesive::packData(CommunicationBuffer & buffer,
                           "CohesiveFEEngine");
     break;
   }
-  case SynchronizationTag::_smmc_damage:
+  case SynchronizationTag::_smmc_damage: {
     packElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
     break;
+  }
   case SynchronizationTag::_smmc_normal: {
     packElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
     break;
@@ -118,15 +119,18 @@ inline void MaterialCohesive::unpackData(CommunicationBuffer & buffer,
                             "CohesiveFEEngine");
     break;
   }
-  case SynchronizationTag::_smmc_damage:
+  case SynchronizationTag::_smmc_damage: {
     unpackElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
     break;
-  case SynchronizationTag::_smmc_normal:
+  }
+  case SynchronizationTag::_smmc_normal: {
     unpackElementDataHelper(normal, buffer, elements, "CohesiveFEEngine");
     break;
-  case SynchronizationTag::_smmc_opening:
+  }
+  case SynchronizationTag::_smmc_opening: {
     unpackElementDataHelper(opening, buffer, elements, "CohesiveFEEngine");
     break;
+  }
   default: {
   }
   }
