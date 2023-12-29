@@ -506,8 +506,8 @@ void HeatTransferModel::computeTempOnQpoints(GhostType ghost_type) {
     // compute the temperature on quadrature points
     this->getFEEngine().interpolateOnIntegrationPoints(
         *temperature, t_on_qpoints, 1, type, ghost_type);
-    this->synchronizeField(SynchronizationTag::_htm_temperature_on_qpoints);
   }
+  this->synchronizeField(SynchronizationTag::_htm_temperature_on_qpoints);
 }
 /* -------------------------------------------------------------------------- */
 Real HeatTransferModel::getStableTimeStep() {

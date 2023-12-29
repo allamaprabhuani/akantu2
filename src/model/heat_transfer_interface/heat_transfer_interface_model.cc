@@ -105,6 +105,8 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
 
     this->registerSynchronizer(*cohesive_synchronizer,
                                SynchronizationTag::_htm_gradient_temperature);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_htm_temperature_on_qpoints);
 
     auto & mesh_facets = this->mesh.getMeshFacets();
     auto & facet_synchronizer = mesh_facets.getElementSynchronizer();
