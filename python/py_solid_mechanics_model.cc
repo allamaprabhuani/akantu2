@@ -181,6 +181,14 @@ void register_solid_mechanics_model(py::module & mod) {
            })
       .def("getMaterialSelector", &SolidMechanicsModel::getMaterialSelector)
       .def(
+          "getMaterialLocalNumbering",
+          [](SolidMechanicsModel & self, ElementType & el_type,
+             GhostType ghost_type) -> decltype(auto) {
+            return self.getMaterialLocalNumbering(el_type, ghost_type);
+          },
+          py::arg("el_type"), py::arg("ghost_type"),
+          py::return_value_policy::reference)
+      .def(
           "getMaterialByElement",
           [](const SolidMechanicsModel & self) -> decltype(auto) {
             return self.getMaterialByElement();
