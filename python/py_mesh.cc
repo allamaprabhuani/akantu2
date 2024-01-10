@@ -243,6 +243,8 @@ void register_mesh(py::module & mod) {
       .def("getPeriodicSlaves", &Mesh::getPeriodicSlaves)
       .def("isPeriodicSlave", &Mesh::isPeriodicSlave)
       .def("isPeriodicMaster", &Mesh::isPeriodicMaster)
+      .def("getBarycenter", &Mesh::getBarycenter)
+      .def("getBarycenters", &Mesh::getBarycenters)
       .def(
           "getMeshFacets",
           [](const Mesh & self) -> const Mesh & {
