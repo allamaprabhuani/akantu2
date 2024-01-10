@@ -119,6 +119,12 @@ namespace {
       internal_field.setDefaultValue(value);
     }
 
+    template <typename T>
+    void setDefaultValueToInternalPrevious(const ID & int_id, const T value) {
+      auto & internal_field = this->template getInternal<T>(int_id).previous();
+      internal_field.setDefaultValue(value);
+    }
+
   protected:
     std::map<std::string, std::shared_ptr<ElementTypeMapBase>> internals;
   };
@@ -148,6 +154,18 @@ namespace {
              [](Material & self, const ID & int_id, const UInt value) {
                return dynamic_cast<PyMaterial<_Material> &>(self)
                    .template setDefaultValueToInternal<UInt>(int_id, value);
+             })
+        .def("setDefaultValueToInternalPreviousReal",
+             [](Material & self, const ID & int_id, const Real value) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template setDefaultValueToInternalPrevious<Real>(int_id,
+                                                                     value);
+             })
+        .def("setDefaultValueToInternalPreviousUInt",
+             [](Material & self, const ID & int_id, const UInt value) {
+               return dynamic_cast<PyMaterial<_Material> &>(self)
+                   .template setDefaultValueToInternalPrevious<UInt>(int_id,
+                                                                     value);
              });
   }
 
@@ -301,6 +319,18 @@ namespace {
                return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
                    .template setDefaultValueToInternal<UInt>(int_id, value);
              })
+        .def("setDefaultValueToInternalPreviousReal",
+             [](_Material & self, const ID & int_id, const Real value) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template setDefaultValueToInternalPrevious<Real>(int_id,
+                                                                     value);
+             })
+        .def("setDefaultValueToInternalPreviousUInt",
+             [](_Material & self, const ID & int_id, const UInt value) {
+               return dynamic_cast<PyMaterialCohesive<_Material> &>(self)
+                   .template setDefaultValueToInternalPrevious<UInt>(int_id,
+                                                                     value);
+             })
         .def("computeTraction",
              [](_Material & self, const Array<Real> & normal,
                 ElementType el_type, GhostType ghost_type) {
@@ -433,6 +463,16 @@ void register_material(py::module & mod) {
            [](Material & self, const ID & int_id, const UInt value) {
              return dynamic_cast<PyMaterial<Material> &>(self)
                  .setDefaultValueToInternal<UInt>(int_id, value);
+           })
+      .def("setDefaultValueToInternalPrevioiusReal",
+           [](Material & self, const ID & int_id, const Real value) {
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .setDefaultValueToInternalPrevious<Real>(int_id, value);
+           })
+      .def("setDefaultValueToInternalPreviousUInt",
+           [](Material & self, const ID & int_id, const UInt value) {
+             return dynamic_cast<PyMaterial<Material> &>(self)
+                 .setDefaultValueToInternalPrevious<UInt>(int_id, value);
            })
       .def(
           "getInternalReal",
