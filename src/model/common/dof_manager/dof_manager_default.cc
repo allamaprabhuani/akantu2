@@ -316,21 +316,26 @@ void DOFManagerDefault::assembleElementalMatricesToMatrix(
     ElementType type, const MatrixType & elemental_matrix_type,
     const Array<UInt> & filter_elements) {
   this->addToProfile(matrix_id, dof_id, type, _not_ghost);
-  this->addToProfile(matrix_id, dof_id, type, _ghost);
+  UInt nb_proc = mesh->getCommunicator().getNbProc();
+  if (nb_proc > 1 && mesh->isDistributed()) {
+    this->addToProfile(matrix_id, dof_id, type, _ghost);
+  }
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
       A, dof_id, elementary_mat, type, _not_ghost, elemental_matrix_type,
       filter_elements);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::assemblePreassembledMatrix(
     const ID & matrix_id, const TermsToAssemble & terms) {
   auto & A = getMatrix(matrix_id);
   DOFManager::assemblePreassembledMatrix_(A, terms);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::assembleMatMulVectToArray(const ID & dof_id,
                                                   const ID & A_id,
                                                   const Array<Real> & x,
@@ -345,7 +350,8 @@ void DOFManagerDefault::assembleMatMulVectToArray(const ID & dof_id,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
                                      ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -429,22 +435,26 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Array<Real> & DOFManagerDefault::getSolutionArray() {
   return dynamic_cast<SolverVectorDefault *>(this->solution.get())->getVector();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 const Array<Real> & DOFManagerDefault::getResidualArray() const {
   return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Array<Real> & DOFManagerDefault::getResidualArray() {
   return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::onNodesAdded(const Array<UInt> & nodes_list,
                                      const NewNodesEvent & event) {
   DOFManager::onNodesAdded(nodes_list, event);
@@ -454,7 +464,8 @@ void DOFManagerDefault::onNodesAdded(const Array<UInt> & nodes_list,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::resizeGlobalArrays() {
   DOFManager::resizeGlobalArrays();
 
@@ -464,7 +475,8 @@ void DOFManagerDefault::resizeGlobalArrays() {
   matrix_profiled_dofs.clear();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void DOFManagerDefault::updateGlobalBlockedDofs() {
   DOFManager::updateGlobalBlockedDofs();
 
@@ -480,17 +492,20 @@ void DOFManagerDefault::updateGlobalBlockedDofs() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Array<bool> & DOFManagerDefault::getBlockedDOFs() {
   return global_blocked_dofs_uint;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
   return global_blocked_dofs_uint;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
