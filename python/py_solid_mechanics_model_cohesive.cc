@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include "element_synchronizer.hh"
 #include <non_linear_solver.hh>
 #include <solid_mechanics_model_cohesive.hh>
 /* -------------------------------------------------------------------------- */
@@ -126,6 +127,46 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
       .def("getTangents", &SolidMechanicsModelCohesive::getTangents,
            py::arg("type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
+      .def("getCohesiveSynchronizer",
+           &SolidMechanicsModelCohesive::getCohesiveSynchronizer)
+      .def(
+          "getCohesiveSendScheme",
+          [](SolidMechanicsModelCohesive & self, UInt proc) {
+            const CommunicationSendRecv & sr = _send;
+            auto && scheme =
+                self.getCohesiveSynchronizer().getCommunications().getScheme(
+                    proc, sr);
+            auto pranc =
+                self.getCohesiveSynchronizer().getCommunicator().whoAmI();
+            if (scheme.size() > 0) {
+              std::cout << pranc << " sends to " << proc << " " << scheme.size()
+                        << " " << scheme(0).ghost_type << " ";
+              for (auto && coh_el : scheme) {
+                std::cout << coh_el.element << " ";
+              }
+              std::cout << std::endl;
+            }
+          },
+          py::arg("proc"))
+      .def(
+          "getCohesiveRecvScheme",
+          [](SolidMechanicsModelCohesive & self, UInt proc) {
+            const CommunicationSendRecv & sr = _recv;
+            auto && scheme =
+                self.getCohesiveSynchronizer().getCommunications().getScheme(
+                    proc, sr);
+            auto pranc =
+                self.getCohesiveSynchronizer().getCommunicator().whoAmI();
+            if (scheme.size() > 0) {
+              std::cout << pranc << " recvs from " << proc << " "
+                        << scheme.size() << " " << scheme(0).ghost_type << " ";
+              for (auto && coh_el : scheme) {
+                std::cout << coh_el.element << " ";
+              }
+              std::cout << std::endl;
+            }
+          },
+          py::arg("proc"))
       .def("updateAutomaticInsertion",
            &SolidMechanicsModelCohesive::updateAutomaticInsertion);
 }

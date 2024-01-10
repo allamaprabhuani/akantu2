@@ -179,10 +179,10 @@ public:
   AKANTU_GET_MACRO(Communications, communications,
                    const Communications<Entity> &);
 
-protected:
   AKANTU_GET_MACRO_NOT_CONST(Communications, communications,
                              Communications<Entity> &);
 
+protected:
   virtual Int getRank(const Entity & entity) const = 0;
 
   /* ------------------------------------------------------------------------ */
