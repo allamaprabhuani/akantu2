@@ -1,6 +1,8 @@
 @article{vocialta_3d_2016,
 	title = {{3D} dynamic fragmentation with parallel dynamic insertion of cohesive elements},
 	issn = {1097-0207},
+  volume = {109},
+  number = {12},
 	url = {http://onlinelibrary.wiley.com/doi/10.1002/nme.5339/abstract},
 	doi = {10.1002/nme.5339},
 	language = {en},
@@ -10,7 +12,7 @@
 	month = jan,
 	year = {2016},
 	keywords = {Cohesive elements, Dynamic fragmentation, high performance computing, numerical instability},
-	pages = {n/a--n/a},
+	pages = {1655--1678},
 }
 
 @article{taheri_mousavi_dynamic_2015,
@@ -46,6 +48,8 @@
 
 @article{wolff_non-local_2014,
 	title = {A non-local continuum damage approach to model dynamic crack branching},
+  volume = {101},
+  number = {12},
 	copyright = {Copyright © 2014 John Wiley \& Sons, Ltd.},
 	issn = {1097-0207},
 	url = {http://onlinelibrary.wiley.com/doi/10.1002/nme.4837/abstract},
@@ -54,9 +58,10 @@
 	urldate = {2015-02-02},
 	journal = {International Journal for Numerical Methods in Engineering},
 	author = {Wolff, Cyprien and Richart, Nicolas and Molinari, Jean-François},
+  month = dec,
 	year = {2014},
 	keywords = {brittle failure, continuum damage model, dynamic crack branching, finite-element method, non-local approach, PMMA},
-	pages = {n/a--n/a},
+	pages = {933--949},
 }
 
 @article{brun_hybrid_2021,
@@ -491,4 +496,137 @@ Section: Physical Sciences},
 	year = {2022},
 	keywords = {Coarsening, Elasto-frictional instabilities, Friction, Nonlinear dynamics, Self-healing slip pulses},
 	pages = {104607},
+}
+
+@article{espinha_scalable_2013,
+	title = {Scalable parallel dynamic fracture simulation using an extrinsic cohesive zone model},
+	volume = {266},
+	issn = {0045-7825},
+	url = {http://www.sciencedirect.com/science/article/pii/S0045782513001783},
+	doi = {10.1016/j.cma.2013.07.008},
+	abstract = {Abstract
+In order to achieve realistic cohesive fracture simulation, a parallel computational framework is developed in conjunction with the parallel topology based data structure (ParTopS). Communications with remote partitions are performed by employing proxy nodes, proxy elements and ghost nodes, while synchronizations are identified on the basis of computational patterns (at-node, at-element, nodes-to-element, and elements-to-node). Several approaches to parallelize a serial code are discussed. An approach combining local computations and replicated computations with stable iterators is proposed, which is shown to be the most efficient one among the approaches discussed in this study. Furthermore, computational experiments demonstrate the scalability of the parallel dynamic fracture simulation framework for both 2D and 3D problems. The total execution time of a test problem remains nearly constant when the number of processors increases at the same rate as the number of elements.},
+	urldate = {2013-12-05},
+	journal = {Computer Methods in Applied Mechanics and Engineering},
+	author = {Espinha, Rodrigo and Park, Kyoungsoo and Paulino, Glaucio H. and Celes, Waldemar},
+	month = nov,
+	year = {2013},
+	keywords = {Parallel topology based data structure, Parallel computing, Dynamic fracture, Extrinsic cohesive zone model},
+	pages = {144--161},
+	file = {Espinha et al. - 2013 - Scalable parallel dynamic fracture simulation usin.html:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/GHZT36QU/Espinha et al. - 2013 - Scalable parallel dynamic fracture simulation usin.html:text/html;Espinha et al. - 2013 - Scalable parallel dynamic fracture simulation usin.pdf:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/BB8UBI45/Espinha et al. - 2013 - Scalable parallel dynamic fracture simulation usin.pdf:application/pdf;ScienceDirect Full Text PDF:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/PIC7ZBQU/Espinha et al. - 2013 - Scalable parallel dynamic fracture simulation usin.pdf:application/pdf;ScienceDirect Snapshot:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/2J5KRUGX/S0045782513001783.html:text/html},
+}
+
+@article{arndt_dealii_2023,
+  title   = {The \texttt{deal.II} Library, Version 9.5},
+  author  = {Daniel Arndt and Wolfgang Bangerth and Maximilian Bergbauer and
+             Marco Feder and Marc Fehling and Johannes Heinz and
+             Timo Heister and Luca Heltai and Martin Kronbichler and
+             Matthias Maier and Peter Munch and Jean-Paul Pelteret and
+             Bruno Turcksin and David Wells and Stefano Zampini},
+  journal = {Journal of Numerical Mathematics},
+  year    = {2023},
+  doi     = {10.1515/jnma-2023-0089},
+  pages   = {231--246},
+  volume  = {31},
+  number  = {3},
+  url     = {https://dealii.org/deal95-preprint.pdf}
+}
+
+@article{anderson_mfem_2021,
+  title = {{MFEM}: A Modular Finite Element Methods Library},
+  author = {R. Anderson and J. Andrej and A. Barker and J. Bramwell and J.-S. Camier and
+            J. Cerveny and V. Dobrev and Y. Dudouit and A. Fisher and Tz. Kolev and W. Pazner and
+            M. Stowell and V. Tomov and I. Akkerman and J. Dahm and D. Medina and S. Zampini},
+  journal = {Computers \& Mathematics with Applications},
+  doi = {10.1016/j.camwa.2020.06.009},
+  volume = {81},
+  pages = {42-74},
+  year = {2021}
+}
+
+@article{alexander_moose_2022,
+   title = {2.0 - {MOOSE}: Enabling massively parallel multiphysics simulation},
+   author = {Alexander D. Lindsay and Derek R. Gaston and Cody J. Permann and Jason M. Miller and
+             David Andr{\v{s}} and Andrew E. Slaughter and Fande Kong and Joshua Hansel and
+             Robert W. Carlsen and Casey Icenhour and Logan Harbour and Guillaume L. Giudicelli
+             and Roy H. Stogner and Peter German and Jacob Badger and Sudipta Biswas and
+             Leora Chapuis and Christopher Green and Jason Hales and Tianchen Hu and Wen Jiang
+             and Yeon Sang Jung and Christopher Matthews and Yinbin Miao and April Novak and
+             John W. Peterson and Zachary M. Prince and Andrea Rovinelli and Sebastian Schunert
+             and Daniel Schwen and Benjamin W. Spencer and Swetha Veeraraghavan and Antonio Recuero
+             and Dewen Yushu and Yaqi Wang and Andy Wilkins and Christopher Wong},
+    year = {2022},
+ journal = {{SoftwareX}},
+  volume = {20},
+   pages = {101202},
+    issn = {2352-7110},
+     doi = {https://doi.org/10.1016/j.softx.2022.101202},
+     url = {https://www.sciencedirect.com/science/article/pii/S2352711022001200},
+keywords = {Multiphysics, Object-oriented, Finite-element, Framework},
+}
+
+@article{patzak_oofem_2012,
+	title = {{OOFEM} — an {Object}-oriented {Simulation} {Tool} for {Advanced} {Modeling} of {Materials} and {Structures}},
+	volume = {52},
+	copyright = {Copyright (c) 2015 Acta Polytechnica},
+	issn = {1805-2363},
+	url = {https://ojs.cvut.cz/ojs/index.php/ap/article/view/1678},
+	doi = {10.14311/1678},
+	abstract = {The aim of this paper is to describe the object-oriented design of the finite element based simulation code. The overall, object-oriented structure is described, and the role of the fundamental classes is discussed. The paper discusses the advanced parallel, adaptive, and multiphysics capabilities of the OOFEM code, and illustrates them on the basis of selected examples.},
+	language = {en},
+	number = {6},
+	urldate = {2024-01-16},
+	journal = {Acta Polytechnica},
+	author = {Patzák, Bořek},
+	month = jan,
+	year = {2012},
+	note = {Number: 6},
+	keywords = {finite element analysis, multiphysics simulations, object-oriented design, parallel and distributed processing},
+	file = {Full Text PDF:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/R2R9NXHM/Patzák - 2012 - OOFEM — an Object-oriented Simulation Tool for Adv.pdf:application/pdf},
+}
+
+@article{renard_getfem_2021,
+	title = {{GetFEM}: {Automated} {FE} {Modeling} of {Multiphysics} {Problems} {Based} on a {Generic} {Weak} {Form} {Language}},
+	volume = {47},
+	issn = {0098-3500, 1557-7295},
+	shorttitle = {{GetFEM}},
+	url = {https://dl.acm.org/doi/10.1145/3412849},
+	doi = {10.1145/3412849},
+	abstract = {This paper presents the major mathematical and implementation features of a weak form language (GWFL) for an automated ﬁnite element (FE) solution of partial diﬀerential equation systems. The language is implemented in the GetFEM framework and strategic modeling and software architecture choices both for the language and the framework are presented in detail. Moreover, conceptual similarities and diﬀerences to existing high level FE frameworks are discussed. Special attention is given to the concept of a generic transformation mechanism that contributes to the high expressive power of GWFL, allowing to interconnect multiple computational domains or parts of the same domain. Finally, the capabilities of the language for expressing strongly coupled multiphysics problems in a compact and readable form are shown by means of modeling examples.},
+	language = {en},
+	number = {1},
+	urldate = {2024-01-16},
+	journal = {ACM Transactions on Mathematical Software},
+	author = {Renard, Yves and Poulios, Konstantinos},
+	month = mar,
+	year = {2021},
+	pages = {1--31},
+	file = {Renard and Poulios - 2021 - GetFEM Automated FE Modeling of Multiphysics Prob.pdf:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/VFCS4RDB/Renard and Poulios - 2021 - GetFEM Automated FE Modeling of Multiphysics Prob.pdf:application/pdf},
+}
+
+@article{kaczmarczyk_mofem_2020,
+	title = {{MoFEM}: {An} open source, parallel finite element library},
+	volume = {5},
+	issn = {2475-9066},
+	shorttitle = {{MoFEM}},
+	url = {https://joss.theoj.org/papers/10.21105/joss.01441},
+	doi = {10.21105/joss.01441},
+	abstract = {Kaczmarczyk et al., (2020). MoFEM: An open source, parallel finite element library. Journal of Open Source Software, 5(45), 1441, https://doi.org/10.21105/joss.01441},
+	language = {en},
+	number = {45},
+	urldate = {2024-01-16},
+	journal = {Journal of Open Source Software},
+	author = {Kaczmarczyk, Łukasz and Ullah, Zahur and Lewandowski, Karol and Meng, Xuan and Zhou, Xiao-Yi and Athanasiadis, Ignatios and Nguyen, Hoang and Chalons-Mouriesse, Christophe-Alexandre and Richardson, Euan J. and Miur, Euan and Shvarts, Andrei G. and Wakeni, Mebratu and Pearce, Chris J.},
+	month = jan,
+	year = {2020},
+	pages = {1441},
+	file = {Full Text PDF:/home/richart/.zotero/zotero/ri99drhw.default/zotero/storage/BGXRA2BF/Kaczmarczyk et al. - 2020 - MoFEM An open source, parallel finite element lib.pdf:application/pdf},
+}
+
+@misc{baratta_dolfinx_2023,
+	title = {{DOLFINx}: the next generation {FEniCS} problem solving environment},
+	author = {Baratta, Igor A. and Dean, Joseph P. and Dokken, Jørgen S. and Habera, Michal and Hale, Jack S. and Richardson, Chris N. and Rognes, Marie E. and Scroggs, Matthew W. and Sime, Nathan and Wells, Garth N.},
+	year = {2023},
+	doi = {10.5281/zenodo.10447666},
+	note = {Published: preprint},
 }
