@@ -19,7 +19,7 @@ authors:
     affiliation: 1
   - name: Lucas Frérot
     orcid: 0000-0002-4138-1052
-    affiliation: "1, 2"
+    affiliation: "1, 2, 7"
   - name: David Kammer
     orcid: 0000-0003-3782-9368
     affiliation: "1, 3"
@@ -53,7 +53,7 @@ authors:
 affiliations:
   - name: Civil Engineering Institute, École Polytechnique Fédérale de Lausanne, Switzerland
     index: 1
-  - name: Department of Microsystems Engineering, Univeristy of Freiburg, Germany
+  - name: Department of Microsystems Engineering, University of Freiburg, Germany
     index: 2
   - name: Institute for Building Materials, ETH Zurich, Switzerland
     index: 3
@@ -63,6 +63,8 @@ affiliations:
     index: 5
   - name: The Hong Kong University of Science and Technology, Department of Civil and Environmental Engineering
     index: 6
+  - name: Institut Jean le Rond d'Alembert, CNRS UMR 7190, Sorbonne Université, France
+    index: 7
 
 date: February 2023
 bibliography: paper.bib
