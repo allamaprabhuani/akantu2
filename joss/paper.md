@@ -128,22 +128,22 @@ The \autoref{fig:cohesive_insertion} taken from @vocialta_numerical_2018
 illustrates the usage of cohesive elements to simulate the dynamic fragmentation
 of tempered glass panes.
 
-Where Akantu differs from other existing codes is in the ability to combine
-fracture dynamics and contact mechanics by introducing explicit surfaces through
-cohesive elements. Other open-source parallel finite-element codes capable of
-performing fracture and/or contact mechanics simulations exist. Among the most
-well-known are deal.II (@arndt_dealii_2023), FEniCS (@baratta_dolfinx_2023),
+Akantu differs from other existing codes in its ability to combine
+fracture dynamics and contact mechanics by introducing new free surfaces through
+cohesive elements insertion strategy. Other open-source parallel finite-element codes are capable of
+performing fracture and/or contact mechanics simulations: among others, the most
+well-known that can be cited are deal.II (@arndt_dealii_2023), FEniCS (@baratta_dolfinx_2023),
 GetFEM (@renard_getfem_2021), MFEM (@anderson_mfem_2021), MoFEM
 (@kaczmarczyk_mofem_2020), Moose (@alexander_moose_2022), OOFEM
-(@patzak_oofem_2012). Those codes can do fracture mechanics through continuum
-damage modeling, phase-field and in some cases, X-FEM. Some of them simulate
-cohesive element by using a discontinuous Galerkin formulation. Only a subset of
+(@patzak_oofem_2012). These codes can do fracture mechanics through continuum
+damage modeling, phase-field and in some cases, X-FEM. Some of them implement traction-separation laws 
+(cohesive elements) by means of a discontinuous Galerkin formulation. Only a subset of
 these codes is capable of performing contact mechanics computations. If we
-consider the dynamic insertion of cohesive elements, which avoid the extra cost
-of having interface elements everywhere and allows to represent the newly formed
-surfaces, to our knowledge only one other code is capable of doing such
-simulation in parallel (@espinha_scalable_2013), but it is not an open-source
-code.
+consider the dynamic insertion of cohesive elements, which avoids the burden 
+of having interface elements pre-inserted everywhere and allows representing explicitely the newly formed
+cracked surfaces, there is only one other code capable of doing such
+simulations in parallel (@espinha_scalable_2013), to our best knowledge. However this software is not 
+distributed as open-source.
 
 # Scaling analysis
 
