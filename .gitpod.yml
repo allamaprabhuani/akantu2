@@ -1,7 +1,7 @@
 tasks:
   - name: configure
     init: sudo apt -y install cmake libboost-dev libopenblas-dev gfortran
-    command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -S . -B build
+    command: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DAKANTU_IMPLICIT_SOLVER:STRING=Eigen -S . -B build
     env:
       DEBIAN_FRONTEND: noninteractive
 
