@@ -87,7 +87,7 @@ If it does not work you can edit url to http://graal.ens-lyon.fr/MUMPS/MUMPS_5.3
 
 .. code-block:: bash
 
- > brew edit brewsci/num
+ > brew edit brewsci-mumps
 
 Configuring and compilation
 ```````````````````````````
