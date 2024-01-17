@@ -298,6 +298,8 @@
 
 .test_python_package:
   stage: test
+  extends:
+    - .code_only 
   needs:
     - job: build_pip:python_package_macos
   script:
