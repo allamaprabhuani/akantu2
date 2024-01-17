@@ -368,26 +368,21 @@ mumps_find_dependencies()
 set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} CACHE INTERNAL "" FORCE)
 #===============================================================================
 include(FindPackageHandleStandardArgs)
-if(CMAKE_VERSION VERSION_GREATER 2.8.12)
-  if(MUMPS_INCLUDE_DIR)
-    file(STRINGS ${MUMPS_INCLUDE_DIR}/dmumps_c.h _versions
-      REGEX "^#define MUMPS_VERSION .*")
-    foreach(_ver ${_versions})
-      string(REGEX MATCH "MUMPS_VERSION *\"([0-9.]+)\"" _tmp "${_ver}")
-      set(_mumps_VERSION ${CMAKE_MATCH_1})
-    endforeach()
-    set(MUMPS_VERSION "${_mumps_VERSION}" CACHE INTERNAL "")
-  endif()
-
-  find_package_handle_standard_args(Mumps
-    REQUIRED_VARS ${_mumps_required_vars}
-    MUMPS_INCLUDE_DIR
-    VERSION_VAR MUMPS_VERSION
-    )
-else()
-  find_package_handle_standard_args(Mumps DEFAULT_MSG
-    ${_mumps_required_vars} MUMPS_INCLUDE_DIR)
+if(MUMPS_INCLUDE_DIR)
+  file(STRINGS ${MUMPS_INCLUDE_DIR}/dmumps_c.h _versions
+    REGEX "^#define MUMPS_VERSION .*")
+  foreach(_ver ${_versions})
+    string(REGEX MATCH "MUMPS_VERSION *\"([0-9.]+)\"" _tmp "${_ver}")
+    set(_mumps_VERSION ${CMAKE_MATCH_1})
+  endforeach()
+  set(MUMPS_VERSION "${_mumps_VERSION}" CACHE INTERNAL "")
 endif()
+
+find_package_handle_standard_args(Mumps
+  REQUIRED_VARS ${_mumps_required_vars}
+  MUMPS_INCLUDE_DIR
+  VERSION_VAR MUMPS_VERSION
+)
 
 if(Mumps_FOUND)
   set(Mumps_FIND_COMPONENTS_SAVE "${Mumps_FIND_COMPONENTS}" CACHE INTERNAL "")

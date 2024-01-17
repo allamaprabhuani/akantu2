@@ -32,27 +32,21 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.16.3)
 
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-if(CMAKE_VERSION VERSION_GREATER 3.12)
-  cmake_policy(SET CMP0074 NEW)
-endif()
+cmake_policy(SET CMP0074 NEW)
 
 set(AKANTU_COPYRIGHT "2010-2021, EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)")
 set(AKANTU_MAINTAINER "Nicolas Richart")
 set(AKANTU_HOMEPAGE_URL "https://akantu.ch")
 
-if(CMAKE_VERSION VERSION_GREATER 3.12)
-  project(Akantu
-    HOMEPAGE_URL "https://akantu.ch")
-else()
-  project(Akantu)
-endif()
-  
+project(Akantu
+  HOMEPAGE_URL "https://akantu.ch")
+
 enable_language(CXX)
 
 set(ENV{RUNNING_IN_CMAKE} True)  # Used by sphinx but could be used by any script
@@ -149,11 +143,7 @@ endif()
 # Documentation
 #===============================================================================
 if(AKANTU_DOCUMENTATION OR AKANTU_DOCUMENTATION_MANUAL)
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
-    file(GLOB_RECURSE AKANTU_EXAMPLES_DOC_SRCS CONFIGURE_DEPENDS "examples/*.rst")
-  else()
-    file(GLOB_RECURSE AKANTU_EXAMPLES_DOC_SRCS "examples/*.rst")
-  endif()
+  file(GLOB_RECURSE AKANTU_EXAMPLES_DOC_SRCS CONFIGURE_DEPENDS "examples/*.rst")
   add_subdirectory(doc)
 else()
   set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")
