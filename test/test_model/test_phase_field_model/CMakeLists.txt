@@ -50,6 +50,12 @@ register_test(test_phase_field_optimal
   PACKAGE phase_field
   )
 
+register_test(test_phase_field_optimal_linear
+  SOURCES test_phase_field_optimal_linear.cc
+  FILES_TO_COPY material_optimal_linear.dat test_optimal_damage.msh
+  PACKAGE phase_field
+  )
+
 register_test(test_phase_solid_explicit
   SOURCES test_phase_solid_explicit.cc
   FILES_TO_COPY material_coupling.dat test_one_element.msh

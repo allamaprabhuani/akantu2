@@ -26,6 +26,8 @@ public:
   computeDissipatedEnergyByElement(const Element & element,
                                    Vector<Real> & edis_on_quad_points) override;
 
+  void afterSolveStep() override;
+
 protected:
   void
   computeDissipatedEnergyByElement(ElementType type, Idx index,
@@ -50,6 +52,7 @@ protected:
 
   inline void
   computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
+                                const Real & /*dam_prev_quad*/,
                                 const Vector<Real> & /*grad_d_quad */,
                                 Real & /*energy*/, Real & /*g_c_quad*/);
 
@@ -64,6 +67,9 @@ private:
 
   // penalization parameter
   Real gamma;
+
+  // dimension to consider in deviatoric split
+  Int dim;
 };
 
 } // namespace akantu

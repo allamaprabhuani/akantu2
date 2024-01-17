@@ -35,6 +35,7 @@
 #include "dumper_elemental_field.hh"
 #include "dumper_internal_material_field.hh"
 #include "dumper_iohelper_paraview.hh"
+#include <algorithm>
 #include <utility>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -404,6 +405,20 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     auto & prev_dam = std::get<1>(values);
 
     prev_dam = dam;
+  }
+
+  for (auto && values : zip(*damage, *blocked_dofs)) {
+    auto & dam = std::get<0>(values);
+    auto & blocked = std::get<1>(values);
+
+    dam = std::min(1.,dam);
+    if (!blocked) {
+      blocked = Math::are_float_equal(dam, 1.);
+    }
+  }
+
+  for (auto & phasefield : phasefields) {
+    phasefield->afterSolveStep();
   }
 }
 

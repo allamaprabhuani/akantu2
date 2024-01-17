@@ -54,10 +54,13 @@ MaterialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
   Real sigma_th_plus = std::max(Real(0.), args["sigma_th"_n]);
   Real sigma_th_minus = std::min(Real(0.), args["sigma_th"_n]);
 
-  Matrix<Real> strain_dev(dim, dim);
-  strain_dev = strain - trace / Real(dim) * Matrix<Real>::Identity(dim, dim);
+  Matrix<Real> strain_dev(dev_dim, dev_dim);
+  Matrix<Real> strain_tmp = Matrix<Real>::Zero(dev_dim, dev_dim);
+  strain_tmp.topLeftCorner(dim, dim) = strain;
 
-  Real kappa = this->lambda + 2. / Real(dim) * this->mu;
+  strain_dev = strain_tmp - trace / Real(dev_dim) * Matrix<Real>::Identity(dev_dim, dev_dim);
+
+  Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
 
   Real g_d = (1 - dam) * (1 - dam) + eta;
 
@@ -99,8 +102,8 @@ void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
 
   Real kappa = this->lambda + 2. / Real(dim) * this->mu;
 
-  auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dim));
-  [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dim);
+  auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dev_dim));
+  [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dev_dim);
   [[maybe_unused]] auto Mijij = g_d * this->mu;
 
   tangent(0, 0) = Miiii;

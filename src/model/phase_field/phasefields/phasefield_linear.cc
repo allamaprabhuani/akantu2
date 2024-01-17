@@ -17,6 +17,11 @@ void PhaseFieldLinear::initPhaseField() {
   PhaseField::initPhaseField();
 
   this->gamma = Real(this->g_c) / this->l0 * 27. / (64. * tol_ir * tol_ir);
+
+  this->dim = spatial_dimension;
+  if (spatial_dimension == 2 && !this->plane_stress) {
+    this->dim = 3;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -119,11 +124,13 @@ void PhaseFieldLinear::computeDissipatedEnergy(ElementType el_type) {
   for (auto && tuple :
        zip(this->dissipated_energy(el_type, _not_ghost),
            this->damage_on_qpoints(el_type, _not_ghost),
+           this->damage_on_qpoints.previous(el_type, _not_ghost),
            make_view(this->gradd(el_type, _not_ghost), spatial_dimension),
            this->g_c(el_type, _not_ghost))) {
 
     this->computeDissipatedEnergyOnQuad(std::get<1>(tuple), std::get<2>(tuple),
-                                        std::get<0>(tuple), std::get<3>(tuple));
+                                        std::get<3>(tuple), std::get<0>(tuple),
+                                        std::get<4>(tuple));
   }
 
   AKANTU_DEBUG_OUT();
@@ -135,6 +142,7 @@ void PhaseFieldLinear::computeDissipatedEnergyByElement(
   auto gradd_it = this->gradd(type).begin(spatial_dimension);
   auto gradd_end = this->gradd(type).begin(spatial_dimension);
   auto damage_it = this->damage_on_qpoints(type).begin();
+  auto damage_prev_it = this->damage_on_qpoints.previous(type).begin();
   auto g_c_it = this->g_c(type).begin();
 
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type);
@@ -142,13 +150,14 @@ void PhaseFieldLinear::computeDissipatedEnergyByElement(
   gradd_it += index * nb_quadrature_points;
   gradd_end += (index + 1) * nb_quadrature_points;
   damage_it += index * nb_quadrature_points;
+  damage_prev_it += index * nb_quadrature_points;
   g_c_it += index * nb_quadrature_points;
 
   Real * edis_quad = edis_on_quad_points.data();
 
   for (; gradd_it != gradd_end; ++gradd_it, ++damage_it, ++edis_quad) {
-    this->computeDissipatedEnergyOnQuad(*damage_it, *gradd_it, *edis_quad,
-                                        *g_c_it);
+    this->computeDissipatedEnergyOnQuad(*damage_it, *damage_prev_it, *gradd_it,
+                                        *edis_quad, *g_c_it);
   }
 }
 
@@ -157,6 +166,14 @@ void PhaseFieldLinear::computeDissipatedEnergyByElement(
     const Element & element, Vector<Real> & edis_on_quad_points) {
   computeDissipatedEnergyByElement(element.type, element.element,
                                    edis_on_quad_points);
+}
+
+/* -------------------------------------------------------------------------- */
+void PhaseFieldLinear::afterSolveStep() {
+  // clamp negative damage to 0
+  for (auto & dam : this->model.getDamage()) {
+    dam = std::max(Real(0.), dam);
+  }
 }
 
 INSTANTIATE_PHASEFIELD(linear, PhaseFieldLinear);

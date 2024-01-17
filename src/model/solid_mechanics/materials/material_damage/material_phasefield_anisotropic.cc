@@ -67,11 +67,27 @@ void MaterialPhaseFieldAnisotropic<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
+template <Int dim> void MaterialPhaseFieldAnisotropic<dim>::initMaterial() {
+  MaterialDamage<dim>::initMaterial();
+}
+
+/* -------------------------------------------------------------------------- */
+template <> void MaterialPhaseFieldAnisotropic<2>::initMaterial() {
+  MaterialDamage<2>::initMaterial();
+
+  this->dev_dim = 2;
+  if (!this->plane_stress) {
+    this->dev_dim = 3;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
 
-  auto && arguments = Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
+  auto && arguments =
+      Parent::getArgumentsTangent(tangent_matrix, el_type, ghost_type);
 
   if (not this->finite_deformation) {
     for (auto && args : arguments) {
