@@ -159,9 +159,6 @@
       - VERSION
       - build-${output}-err.log
       - compile_commands.json
-      - build
-    exclude:
-      - build/**/*.o
     expire_in: 10h
 
 # Run the tests
