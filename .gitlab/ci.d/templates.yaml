@@ -208,6 +208,7 @@
   stage: configure
   extends:
     - .build_release
+    - .code_only
   cache:
     - key: ${output}-${BUILD_TYPE}-ccache
       paths:
