@@ -208,6 +208,7 @@
   stage: configure
   extends:
     - .build_release
+    - .code_only
   cache:
     - key: ${output}-${BUILD_TYPE}-ccache
       paths:
@@ -298,6 +299,8 @@
 
 .test_python_package:
   stage: test
+  extends:
+    - .code_only 
   needs:
     - job: build_pip:python_package_macos
   script:
