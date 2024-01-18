@@ -294,12 +294,17 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTraction(
         _friction_force.zero();
       }
       /// update residual_sliding
-      if (friction_penalty == 0.) {
-        _res_sliding = tangential_opening_norm;
+      if (tau_trial > tau_max) {
+        if (friction_penalty == 0.) {
+          _res_sliding = tangential_opening_norm;
+        } else {
+          auto lambda = (tau_trial - tau_max) / friction_penalty;
+          _res_sliding = _res_sliding_prev + lambda;
+        }
       } else {
-        auto lambda = (tau_trial - tau_max) / friction_penalty;
-        _res_sliding = _res_sliding_prev + lambda;
+        _res_sliding = _res_sliding_prev;
       }
+
     } else {
       _friction_force.zero();
     }
