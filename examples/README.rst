@@ -15,6 +15,11 @@ them from the build directory. In order to set the different environment
 variables needed a script ``akantu_environment.sh`` can be found in the build
 directory.
 
+If you installed ``Akantu`` from a binary packages (*e.g.* via ``pip``) you can
+download a tarball with all the necessary files to run the python examples from
+here `akantu-python-examples.tgz
+<https://gitlab.com/akantu/akantu/-/tree/master/examples>`.
+
 Examples in both 2D and 3D are presented with the dimension is specified in the 
 respective example titles. The only distinctions between a 2D and a 3D simulation lie in 
 the mesh declaration. 
