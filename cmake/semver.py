@@ -230,8 +230,8 @@ def get_version():
 
     semver = "{major}.{minor}.{patch}{prerelease}{build_part}".format(**pieces)
 
-    if "CI_MERGE_REQUEST_ID" in os.environ:
-        semver = "{}.mr{}".format(semver, os.environ["CI_MERGE_REQUEST_ID"])
+    if "CI_MERGE_REQUEST_IID" in os.environ:
+        semver = "{}.mr{}".format(semver, os.environ["CI_MERGE_REQUEST_IID"])
 
     return semver
 

@@ -321,16 +321,9 @@ package:release:
       paths:
         - build/
   rules:
-    - !reference [.code_only, rules]
     - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /v[0-9]+.*/
   script:
     - >
-      export CI_COMMIT_TAG="v5.0.4-rc.1"
-
-      export EXAMPLES_PACKAGE="akantu-python-examples-${CI_COMMIT_TAG}.tgz"
-
-      export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/akantu-examples/${CI_COMMIT_TAG}"
-      
       export VERSION=$(cat VERSION)
 
       tar -czf akantu-python-examples-${CI_COMMIT_TAG}.tgz \
@@ -340,11 +333,9 @@ package:release:
          --transform "s:^build/examples/python:akantu-python-examples:" \
          build/examples/python
 
-      echo curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${EXAMPLES_PACKAGE}"        "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
-
-      #curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-      #     --upload-file "${EXAMPLES_PACKAGE}" \
-      #     "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "${EXAMPLES_PACKAGE}" \
+           "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
 
       export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
 
@@ -358,7 +349,7 @@ package:release:
   needs:
     - job: build_tests:debian_bullseye_clang
     - job: version_determination
-#    - job: package:python_pypi
+    - job: package:python_pypi
 
 # ------------------------------------------------------------------------------
 # Code Quality
