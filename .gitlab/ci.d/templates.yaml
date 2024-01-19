@@ -112,12 +112,12 @@
         - build/
   script:
     - echo BUILD_TYPE=${BUILD_TYPE}
-    - cmake --build build/src
-              > >(tee -a build-${output}-out.log)
-              2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/python
-              > >(tee -a build-${output}-out.log)
-              2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build -t akantu
+              > >(tee -a build-${output}-lib-out.log)
+              2> >(tee -a build-${output}-lib-err.log >&2)
+    - cmake --build build -t py11_akantu
+              > >(tee -a build-${output}-python-out.log)
+              2> >(tee -a build-${output}-python-err.log >&2)
     - ls build/test
   artifacts:
     when: on_success
@@ -151,10 +151,7 @@
   script:
     - ls
     - ls build
-    - cmake --build build/test
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/examples
+    - cmake --build build
       > >(tee -a build-${output}-out.log)
       2> >(tee -a build-${output}-err.log >&2)
   artifacts:
