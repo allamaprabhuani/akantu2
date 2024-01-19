@@ -342,9 +342,9 @@ package:release:
 
       echo curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${EXAMPLES_PACKAGE}"        "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
 
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-           --upload-file "${EXAMPLES_PACKAGE}" \
-           "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
+      #curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+      #     --upload-file "${EXAMPLES_PACKAGE}" \
+      #     "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
 
       export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
 
@@ -352,9 +352,9 @@ package:release:
         --name "Version ${VERSION}" \
         --description "${DESCRIPTION}" \
         --tag-name "${CI_COMMIT_TAG}" \
-        --assets-link "{\"name\": \"Python Examples\", \"url\": \"${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}\", \"link_type\":  \"Package\"}" \
-        --assets-link "{\"name\": \"PyPi package\", \"url\": \"https://pypi.org/project/akantu/${VERSION}/\", \"link_type\":  \"Package\"}" \
-        --assets-link "{\"name\": \"Documentation\", \"url\": \"https://akantu.readthedocs.io/en/${CI_COMMIT_TAG}/\", \"link_type\": \"Other\"}"
+        --assets-link "{\"name\": \"Python Examples\", \"url\": \"${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}\", \"link_type\":  \"package\"}" \
+        --assets-link "{\"name\": \"PyPi package\", \"url\": \"https://pypi.org/project/akantu/${VERSION}/\", \"link_type\":  \"package\"}" \
+        --assets-link "{\"name\": \"Documentation\", \"url\": \"https://akantu.readthedocs.io/en/${CI_COMMIT_TAG}/\", \"link_type\": \"other\"}"
   needs:
     - job: build_tests:debian_bullseye_clang
     - job: version_determination
