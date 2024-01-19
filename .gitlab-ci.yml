@@ -327,6 +327,8 @@ package:release:
     - >
       export VERSION=$(cat VERSION)
 
+      ls -R build/examples/python
+
       tar -cvzf akantu-python-examples-${CI_COMMIT_TAG}.tgz
          --exclude "CMakeFiles"
          --exclude "*\.cmake"
