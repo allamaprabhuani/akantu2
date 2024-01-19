@@ -37,8 +37,8 @@
     - .code_only
   variables:
     BLA_VENDOR: "Generic"
-    CMAKE_GENERATOR: "Unix Makefiles"
-  #    CMAKE_GENERATOR: 'Ninja'
+    #CMAKE_GENERATOR: "Unix Makefiles"
+    CMAKE_GENERATOR: 'Ninja'
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: push
