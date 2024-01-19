@@ -324,22 +324,26 @@ package:release:
     - !reference [.code_only, rules]
     - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /v[0-9]+.*/
   script:
-    - export CI_COMMIT_TAG="v5.0.4-rc.1"
-    - export VERSION=$(cat VERSION)
-    - tar -czf akantu-python-examples-${CI_COMMIT_TAG}.tgz
-         --exclude "CMakeFiles"
-         --exclude "*\.cmake"
-         --exclude "Makefile"
-         --transform "s:^build/examples/python:akantu-python-examples:"
+    - >
+      export CI_COMMIT_TAG="v5.0.4-rc.1"
+
+      export VERSION=$(cat VERSION)
+
+      tar -czf akantu-python-examples-${CI_COMMIT_TAG}.tgz \
+         --exclude "CMakeFiles" \
+         --exclude "*\.cmake" \
+         --exclude "Makefile" \
+         --transform "s:^build/examples/python:akantu-python-examples:" \
          build/examples/python
-    - echo curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${EXAMPLES_PACKAGE}"        "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
-    - |
+
+      echo curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${EXAMPLES_PACKAGE}"        "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
+
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
            --upload-file "${EXAMPLES_PACKAGE}" \
            "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
 
-    - export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
-    - |
+      export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
+
       release-cli create \
         --name "Version ${VERSION}" \
         --description "${DESCRIPTION}" \
