@@ -333,8 +333,9 @@ package:release:
          --transform "s:^build/examples/python:akantu-python-examples:"
          build/examples/python
     - echo curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${EXAMPLES_PACKAGE}"        "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
-    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
-           --upload-file "${EXAMPLES_PACKAGE}"
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "${EXAMPLES_PACKAGE}" \
            "${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}"
 
     - export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
