@@ -81,7 +81,7 @@
 
     # Copy the compile commands for the code quality
     - if [ -e compile_commands.json ]; then
-    - cp compile_commands.json ..
+    -   cp compile_commands.json ..
     - fi
   artifacts:
     when: on_success
@@ -123,7 +123,7 @@
     when: on_success
     paths:
       - VERSION
-      - build-${output}-err.log
+      - build-${output}-*-err.log
       - compile_commands.json
     expire_in: 10h
   timeout: 5h
@@ -152,8 +152,8 @@
     - ls
     - ls build
     - cmake --build build -j1
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
+              > >(tee -a build-${output}-out.log)
+              2> >(tee -a build-${output}-err.log >&2)
   artifacts:
     when: on_success
     paths:
