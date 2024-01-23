@@ -367,12 +367,16 @@ trigger:documentation:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
         READTHEDOCS_VERSION: $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
   script:
-    - BUILD_ID=(curl -X POST -H "Authorization: Token $READTHEDOCS_TOKEN" \
-           https://readthedocs.org/api/v3/projects/akantu/versions/${READTHEDOCS_VERSION}/builds/ | jq .build.id)
-    - |
-      if [[ $CI_PIPELINE_SOURCE == "merge_request_event" ]]; then
-        glab mr note --unique -m "Documentation URL: https://akantu--${READTHEDOCS_VERSION}.org.readthedocs.build/en/${READTHEDOCS_VERSION}/"
+    - >
+      BUILD_ID=$(curl -X POST -H "Authorization: Token $READTHEDOCS_TOKEN" \
+        https://readthedocs.org/api/v3/projects/akantu/versions/${READTHEDOCS_VERSION}/builds/ \
+        | jq .build.id)
+
+      if [[ ${CI_PIPELINE_SOURCE} == "merge_request_event" ]]; then
+        glab mr note --unique -m "Documentation URL: https://akantu--${READTHEDOCS_VERSION}.org.readthedocs.build/en/${READTHEDOCS_VERSION}/";
       fi
 
 # ------------------------------------------------------------------------------
