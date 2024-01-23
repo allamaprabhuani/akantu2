@@ -2,7 +2,7 @@ FROM debian:testing-slim
 
 # for release generations
 RUN apt -qq update && apt -qq -y install \
-    cargo curl git glab \
+    cargo curl git glab jq \
     && rm -rf /var/lib/apt/lists/*
 
 RUN cargo install markdown-extract \

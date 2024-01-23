@@ -40,6 +40,12 @@ docker build:manylinux:
     IMAGE_NAME: 'manylinux:2014_x86_64'
   extends: .docker_build
 
+docker build:debian-testing
+  variables:
+    IMAGE_NAME: 'debian:testing'
+  extends: .docker_build
+
+
 version_determination:
   stage: version
   image: python:latest
@@ -377,6 +383,8 @@ trigger:documentation:
       if [[ ${CI_PIPELINE_SOURCE} == "merge_request_event" ]]; then
         glab mr note --unique -m "Documentation URL: https://akantu--${READTHEDOCS_VERSION}.org.readthedocs.build/en/${READTHEDOCS_VERSION}/";
       fi
+  needs:
+    - job: version_determination
 
 # ------------------------------------------------------------------------------
 # Code Quality
@@ -397,14 +405,14 @@ cq:clang_tidy:
     - .code_only
   script:
     - test/ci/scripts/cq
-      -x third-party
-      -x extra-packages
-      -x pybind11
-      -x test
-      -x build
-      ${FILE_LIST_ARG}
-      clang-tidy
-      -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
+        -x third-party
+        -x extra-packages
+        -x pybind11
+        -x test
+        -x build
+        ${FILE_LIST_ARG}
+        clang-tidy
+        -p ${CI_PROJECT_DIR} > gl-clang-tidy-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -417,11 +425,11 @@ cq:clang_format:
     - .code_only
   script:
     - test/ci/scripts/cq
-      -x third-party
-      -x extra-packages
-      -x build
-      clang-format
-      -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
+        -x third-party
+        -x extra-packages
+        -x build
+        clang-format
+        -p ${CI_PROJECT_DIR} > gl-clang-format-report.json
   needs:
     - job: configure:debian_bullseye_clang
   artifacts:
@@ -437,11 +445,11 @@ cq:compilation_warnings:
     - pip install warning-parser termcolor Click tqdm
     - ls build-*-err.log
     - test/ci/scripts/cq
-      -x third-party
-      -x extra-packages
-      -x build
-      warnings
-      build-*-err.log > gl-warnings-report.json
+        -x third-party
+        -x extra-packages
+        -x build
+        warnings
+        build-*-err.log > gl-warnings-report.json
   needs:
     - job: build_libs:debian_bullseye_clang
     - job: build_libs:debian_bullseye_gcc
