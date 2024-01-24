@@ -1,8 +1,29 @@
-In order to use the Akantu examples using the python mode, one has to source
-the file ``akantu_environement.sh``:
+Python examples
+---------------
 
-| > source <AKANTU_BUILD_DIR>/akantu_environement.sh
+To run simulations in Python using Akantu, you first need to import the module:
 
-or for an installed akantu version:
+.. code-block:: python
 
-| > source <AKANTU_INSTALL_DIR>/share/akantu<VERSION>/akantu_environement.sh
+   import akantu as aka
+
+The functions in Python are mostly the same as in C++.
+
+The initiation differs. While in C++ a function is initialized using ``initialize("material.dat", argc, argv);``, in Python you should do:
+
+.. code-block:: python
+
+   aka.parseInput('material.dat')
+
+The creation and loading of the mesh is done with:
+
+.. code-block:: python
+
+    mesh = aka.Mesh(spatial_dimension)
+    mesh.read('mesh.msh')
+
+
+.. include:: examples/python/solid_mechanics_model/README.rst
+.. include:: examples/python/solid_mechanics_cohesive_model/README.rst
+.. include:: examples/python/contact_mechanics_model/README.rst
+.. include:: examples/python/phase_field_model/README.rst

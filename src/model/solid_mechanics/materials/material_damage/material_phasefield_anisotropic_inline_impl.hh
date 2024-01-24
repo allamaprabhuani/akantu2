@@ -65,12 +65,12 @@ MaterialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
   Real g_d = (1 - dam) * (1 - dam) + eta;
 
   auto sigma_plus = (kappa * trace_plus + sigma_th_plus) *
-                        Matrix<Real>::Identity(dim, dim) +
+                        Matrix<Real>::Identity(dev_dim, dev_dim) +
                     2. * this->mu * strain_dev;
   auto sigma_minus = (kappa * trace_minus + sigma_th_minus) *
-                     Matrix<Real>::Identity(dim, dim);
+                     Matrix<Real>::Identity(dev_dim , dev_dim);
 
-  sigma = g_d * sigma_plus + sigma_minus;
+  sigma = g_d * sigma_plus.topLeftCorner(dim, dim) + sigma_minus.topLeftCorner(dim, dim);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -22,7 +22,7 @@
 #include "communicator.hh"
 #include "model.hh"
 #include "non_local_manager.hh"
-//#include "non_local_neighborhood.hh"
+#include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
@@ -38,12 +38,13 @@ template <class Func>
 inline void
 NonLocalNeighborhood<WeightFunction>::foreach_weight(GhostType ghost_type,
                                                      Func && func) {
-  auto weight_it =
-      pair_weight[ghost_type]->begin(pair_weight[ghost_type]->getNbComponent());
+  auto && weight_vect = *pair_weight[ghost_type];
 
-  for (auto & pair : pair_list[ghost_type]) {
-    std::forward<decltype(func)>(func)(pair.first, pair.second, *weight_it);
-    ++weight_it;
+  for (auto && [pair, weight] :
+       zip(pair_list[ghost_type],
+           make_view(weight_vect, weight_vect.getNbComponent()))) {
+    auto && [q1, q2] = pair;
+    std::forward<decltype(func)>(func)(q1, q2, weight);
   }
 }
 
@@ -53,12 +54,13 @@ template <class Func>
 inline void
 NonLocalNeighborhood<WeightFunction>::foreach_weight(GhostType ghost_type,
                                                      Func && func) const {
-  auto weight_it =
-      pair_weight[ghost_type]->begin(pair_weight[ghost_type]->getNbComponent());
+  auto && weight_vect = *pair_weight.at(ghost_type);
 
-  for (auto & pair : pair_list[ghost_type]) {
-    std::forward<decltype(func)>(func)(pair.first, pair.second, *weight_it);
-    ++weight_it;
+  for (auto && [pair, weight] :
+       zip(pair_list.at(ghost_type),
+           make_view(weight_vect, weight_vect.getNbComponent()))) {
+    auto && [q1, q2] = pair;
+    std::forward<decltype(func)>(func)(q1, q2, weight);
   }
 }
 
@@ -76,12 +78,15 @@ NonLocalNeighborhood<WeightFunction>::NonLocalNeighborhood(
   this->registerSubSection(ParserType::_weight_function, "weight_parameter",
                            *weight_function);
 
+  for (auto ghost_type : ghost_types) {
+    if (pair_weight.find(ghost_type) == pair_weight.end()) {
+      pair_weight[ghost_type] = std::make_unique<Array<Real>>(0, 2);
+      pair_list[ghost_type].resize(0);
+    }
+  }
+
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-template <class WeightFunction>
-NonLocalNeighborhood<WeightFunction>::~NonLocalNeighborhood() = default;
 
 /* -------------------------------------------------------------------------- */
 template <class WeightFunction>
@@ -114,6 +119,7 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
     pair_weights.resize(pair_lists.size());
     pair_weights.zero();
 
+    auto && jacobians = this->non_local_manager.getJacobians();
     /// loop over all pairs in the current pair list array and their
     /// corresponding weights
     // Compute the weights
@@ -126,7 +132,7 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
       auto && q2_coord = this->quad_coordinates.get(q2);
 
       auto && quad_volumes_1 = quadrature_points_volumes(q1);
-      const auto & q2_wJ = this->non_local_manager.getJacobians()(q2);
+      const auto & q2_wJ = jacobians(q2);
 
       /// compute distance between the two quadrature points
       auto r = q1_coord.distance(q2_coord);
@@ -136,8 +142,8 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
 
       quad_volumes_1 += weight(0);
 
-      if (q2.ghost_type != _ghost && q1.global_num != q2.global_num) {
-        const auto & q1_wJ = this->non_local_manager.getJacobians()(q1);
+      if (q2.ghost_type != _ghost and q1.global_num != q2.global_num) {
+        const auto & q1_wJ = jacobians(q1);
         auto && quad_volumes_2 = quadrature_points_volumes(q2);
 
         /// compute the weight for averaging on q2
@@ -151,19 +157,16 @@ void NonLocalNeighborhood<WeightFunction>::computeWeights() {
 
   ///  normalize the weights
   for (auto ghost_type : ghost_types) {
-    foreach_weight(ghost_type, [&](const auto & q1, const auto & q2,
-                                   auto & weight) {
-      auto & quad_volumes_1 = quadrature_points_volumes(q1.type, q1.ghost_type);
-      auto & quad_volumes_2 = quadrature_points_volumes(q2.type, q2.ghost_type);
-
-      auto q1_volume = quad_volumes_1(q1.global_num);
-      auto ghost_type2 = q2.ghost_type;
-      weight(0) *= 1. / q1_volume;
-      if (ghost_type2 != _ghost) {
-        auto q2_volume = quad_volumes_2(q2.global_num);
-        weight(1) *= 1. / q2_volume;
-      }
-    });
+    foreach_weight(ghost_type,
+                   [&](const auto & q1, const auto & q2, auto & weight) {
+                     auto q1_volume = quadrature_points_volumes(q1);
+                     auto ghost_type2 = q2.ghost_type;
+                     weight(0) *= 1. / q1_volume;
+                     if (ghost_type2 != _ghost) {
+                       auto q2_volume = quadrature_points_volumes(q2);
+                       weight(1) *= 1. / q2_volume;
+                     }
+                   });
   }
 
   AKANTU_DEBUG_OUT();
@@ -185,14 +188,12 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
   pout.open(sstr.str().c_str());
 
   for (auto ghost_type : ghost_types) {
-    AKANTU_DEBUG_ASSERT((pair_weight[ghost_type]),
+    AKANTU_DEBUG_ASSERT((pair_weight.at(ghost_type)),
                         "the weights have not been computed yet");
 
-    auto & weights = *(pair_weight[ghost_type]);
-    auto weights_it = weights.begin(2);
-    for (Int i = 0; i < weights.size(); ++i, ++weights_it) {
-      pout << "w1: " << (*weights_it)(0) << " w2: " << (*weights_it)(1)
-           << std::endl;
+    const auto & weights = *pair_weight.at(ghost_type);
+    for (auto && weight : make_view(weights, 2)) {
+      pout << "w1: " << weight(0) << " w2: " << weight(1) << "\n";
     }
   }
 }
@@ -201,7 +202,7 @@ void NonLocalNeighborhood<WeightFunction>::saveWeights(
 template <class WeightFunction>
 void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
     const ElementTypeMapReal & to_accumulate, ElementTypeMapReal & accumulated,
-    Int nb_degree_of_freedom, GhostType ghost_type2) const {
+    Int /*nb_degree_of_freedom*/, GhostType ghost_type2) const {
 
   auto it = non_local_variables.find(accumulated.getName());
   // do averaging only for variables registered in the neighborhood
@@ -211,20 +212,17 @@ void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
 
   foreach_weight(
       ghost_type2,
-      [ghost_type2, nb_degree_of_freedom, &to_accumulate,
+      [ghost_type2, &to_accumulate,
        &accumulated](const auto & q1, const auto & q2, auto & weight) {
-        auto && to_acc_1 = to_accumulate(q1.type, q1.ghost_type)
-                               .begin(nb_degree_of_freedom)[q1.global_num];
-        auto && to_acc_2 = to_accumulate(q2.type, q2.ghost_type)
-                               .begin(nb_degree_of_freedom)[q2.global_num];
-        auto && acc_1 = accumulated(q1.type, q1.ghost_type)
-                            .begin(nb_degree_of_freedom)[q1.global_num];
-        auto && acc_2 = accumulated(q2.type, q2.ghost_type)
-                            .begin(nb_degree_of_freedom)[q2.global_num];
+        auto && to_acc_2 = to_accumulate.get(q2);
+        auto && acc_1 = accumulated.get(q1);
 
         acc_1 += weight(0) * to_acc_2;
 
         if (ghost_type2 != _ghost) {
+          auto && to_acc_1 = to_accumulate.get(q1);
+          auto && acc_2 = accumulated.get(q2);
+
           acc_2 += weight(1) * to_acc_1;
         }
       });
@@ -234,7 +232,7 @@ void NonLocalNeighborhood<WeightFunction>::weightedAverageOnNeighbours(
 template <class WeightFunction>
 void NonLocalNeighborhood<WeightFunction>::updateWeights() {
   // Update the weights for the non local variable averaging
-  if (this->weight_function->getUpdateRate() &&
+  if (this->weight_function->getUpdateRate() and
       (this->non_local_manager.getNbStressCalls() %
            this->weight_function->getUpdateRate() ==
        0)) {

@@ -191,9 +191,9 @@ namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
         std::forward_iterator_tag,
         typename std::decay_t<container_iterator_t>::iterator_category>;
 
-    FilterIfIterator(const container_iterator_t & container_begin,
-                     const container_iterator_t & container_end,
-                     Predicate & predicate)
+    FilterIfIterator(container_iterator_t && container_begin,
+                     container_iterator_t && container_end,
+                     Predicate && predicate)
         : container_it(container_begin), container_end(container_end),
           predicate(predicate) {}
 
@@ -238,7 +238,7 @@ namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
         std::forward<container_iterator_t>(container_end),
         std::forward<Predicate>(predicate));
   }
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE
 
 namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class filter_t, class Container> class FilterAdaptor {
@@ -280,8 +280,7 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
     using size_type = typename std::decay_t<Container>::size_type;
 
     FilterIfAdaptor(Container && container, Predicate && predicate)
-        : container(std::forward<Container>(container)),
-          predicate(std::forward<Predicate>(predicate)) {}
+        : container(container), predicate(predicate) {}
 
     auto begin() const -> decltype(auto) {
       return iterators::make_filter_if_iterator(container.begin(),
@@ -308,7 +307,7 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
     Predicate predicate;
   };
 
-} // namespace AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace containers AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class filter_t, class Container>
 auto filter(filter_t && filter, Container && container) -> decltype(auto) {

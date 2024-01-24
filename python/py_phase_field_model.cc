@@ -90,7 +90,12 @@ void register_phase_field_model(py::module & mod) {
            })
       .def("setTimeStep", &PhaseFieldModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
-      .def("getEnergy", [](PhaseFieldModel & self) { return self.getEnergy(); })
+      .def(
+          "getEnergy",
+          [](PhaseFieldModel & self, const ID & energy_id) {
+            return self.getEnergy(energy_id);
+          },
+          py::arg("energy_id") = "dissipated")
       .def(
           "getEnergy",
           [](PhaseFieldModel & self, const std::string & group_id) {
@@ -102,24 +107,15 @@ void register_phase_field_model(py::module & mod) {
       .def_function_nocopy(getDamage)
       .def_function_nocopy(getInternalForce)
       .def_function_nocopy(getBlockedDOFs)
-      .def_function_nocopy(getMesh)
-      .def_function(savePreviousDamage)
-      .def_function(savePreviousState)
       .def(
           "getPhaseField",
           [](PhaseFieldModel & self, Idx phase_field_id) -> decltype(auto) {
-            return self.getPhaseField(phase_field_id);
+            return self.getConstitutiveLaw(phase_field_id);
           },
           py::arg("phase_field_id"), py::return_value_policy::reference)
-      .def(
-          "getPhaseField",
-          [](PhaseFieldModel & self,
-             const ID & phase_field_name) -> decltype(auto) {
-            return self.getPhaseField(phase_field_name);
-          },
-          py::arg("phase_field_name"), py::return_value_policy::reference)
-      .def("getPhaseFieldIndex", &PhaseFieldModel::getPhaseFieldIndex)
-      .def("setPhaseFieldSelector", &PhaseFieldModel::setPhaseFieldSelector);
+      .def("getPhaseFieldIndex", &PhaseFieldModel::getConstitutiveLawIndex)
+      .def("setPhaseFieldSelector",
+           &PhaseFieldModel::setConstitutiveLawSelector);
 }
 
 void register_phase_field_coupler(py::module & mod) {
@@ -139,5 +135,4 @@ void register_phase_field_coupler(py::module & mod) {
       .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
            py::return_value_policy::reference);
 }
-
 } // namespace akantu

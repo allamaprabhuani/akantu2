@@ -54,7 +54,7 @@ public:
   virtual Int localSize() const = 0;
 
   virtual SolverVector & operator+(const SolverVector & y) = 0;
-  virtual SolverVector & operator=(const SolverVector & y) = 0;
+  virtual SolverVector & copy(const SolverVector & y) = 0;
 
   Int & release() { return release_; }
   Int release() const { return release_; }

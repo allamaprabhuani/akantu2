@@ -6,34 +6,34 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-PhaseFieldLinear::PhaseFieldLinear(PhaseFieldModel & model, const ID & id)
+template <Int dim>
+PhaseFieldLinear<dim>::PhaseFieldLinear(PhaseFieldModel & model, const ID & id)
     : PhaseField(model, id) {
   registerParam("irreversibility_tol", tol_ir, Real(1e-2),
                 _pat_parsable | _pat_readable, "Irreversibility tolerance");
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::initPhaseField() {
+template <Int dim> void PhaseFieldLinear<dim>::initPhaseField() {
   PhaseField::initPhaseField();
 
   this->gamma = Real(this->g_c) / this->l0 * 27. / (64. * tol_ir * tol_ir);
 
-  this->dim = spatial_dimension;
-  if (spatial_dimension == 2 && !this->plane_stress) {
-    this->dim = 3;
+  this->dev_dim = dim;
+  if (dim == 2 && !this->plane_stress) {
+    this->dev_dim = 3;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::updateInternalParameters() {
+template <Int dim> void PhaseFieldLinear<dim>::updateInternalParameters() {
   PhaseField::updateInternalParameters();
 
-  for (const auto & type :
-       element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    for (auto && tuple : zip(make_view(this->damage_energy(type, _not_ghost),
-                                       spatial_dimension, spatial_dimension),
-                             this->g_c(type, _not_ghost))) {
-      Matrix<Real> d(spatial_dimension, spatial_dimension);
+  for (const auto & type : getElementFilter().elementTypes(dim, _not_ghost)) {
+    for (auto && tuple :
+         zip(make_view(this->damage_energy(type, _not_ghost), dim, dim),
+             this->g_c(type, _not_ghost))) {
+      Matrix<Real> d(dim, dim);
       // eye g_c * l0
       d.eye(3. / 4. * std::get<1>(tuple) * this->l0);
       std::get<0>(tuple) = d;
@@ -42,40 +42,22 @@ void PhaseFieldLinear::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-// void PhaseFieldLinear::computeDrivingForce(const ElementType & el_type,
-//                                            GhostType ghost_type) {
-//   for (auto && tuple : zip(this->phi(el_type, ghost_type),
-//                            this->phi.previous(el_type, ghost_type),
-//                            this->driving_force(el_type, ghost_type),
-//                            this->damage_energy_density(el_type, ghost_type),
-//                            make_view(this->strain(el_type, ghost_type),
-//                                      spatial_dimension, spatial_dimension),
-//                            this->g_c(el_type, ghost_type))) {
-//     computePhiOnQuad(std::get<4>(tuple), std::get<0>(tuple),
-//                      std::get<1>(tuple));
-//     computeDamageEnergyDensityOnQuad(std::get<0>(tuple), std::get<3>(tuple),
-//                                      std::get<5>(tuple));
-//     computeDrivingForceOnQuad(std::get<0>(tuple), std::get<2>(tuple),
-//                               std::get<5>(tuple));
-//   }
-// }
-
-/* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::computeDrivingForce(ElementType el_type,
-                                           GhostType ghost_type) {
+template <Int dim>
+void PhaseFieldLinear<dim>::computeDrivingForce(ElementType el_type,
+                                                GhostType ghost_type) {
 
   if (this->isotropic) {
-    for (auto && tuple : zip(this->phi(el_type, ghost_type),
-                             make_view(this->strain(el_type, ghost_type),
-                                       spatial_dimension, spatial_dimension))) {
+    for (auto && tuple :
+         zip(this->phi(el_type, ghost_type),
+             make_view(this->strain(el_type, ghost_type), dim, dim))) {
       auto & phi_quad = std::get<0>(tuple);
       auto & strain = std::get<1>(tuple);
       computePhiIsotropicOnQuad(strain, phi_quad);
     }
   } else {
-    for (auto && tuple : zip(this->phi(el_type, ghost_type),
-                             make_view(this->strain(el_type, ghost_type),
-                                       spatial_dimension, spatial_dimension))) {
+    for (auto && tuple :
+         zip(this->phi(el_type, ghost_type),
+             make_view(this->strain(el_type, ghost_type), dim, dim))) {
       auto & phi_quad = std::get<0>(tuple);
       auto & strain = std::get<1>(tuple);
       computePhiOnQuad(strain, phi_quad);
@@ -87,11 +69,9 @@ void PhaseFieldLinear::computeDrivingForce(ElementType el_type,
            this->driving_force(el_type, ghost_type),
            this->damage_energy_density(el_type, ghost_type),
            this->damage_on_qpoints(el_type, _not_ghost),
-           make_view(this->driving_energy(el_type, ghost_type),
-                     spatial_dimension),
-           make_view(this->damage_energy(el_type, ghost_type),
-                     spatial_dimension, spatial_dimension),
-           make_view(this->gradd(el_type, ghost_type), spatial_dimension),
+           make_view(this->driving_energy(el_type, ghost_type), dim),
+           make_view(this->damage_energy(el_type, ghost_type), dim, dim),
+           make_view(this->gradd(el_type, ghost_type), dim),
            this->g_c(el_type, ghost_type),
            this->damage_on_qpoints.previous(el_type, ghost_type))) {
     auto & phi_quad = std::get<0>(tuple);
@@ -104,8 +84,7 @@ void PhaseFieldLinear::computeDrivingForce(ElementType el_type,
     auto & g_c_quad = std::get<7>(tuple);
     auto & dam_prev_quad = std::get<8>(tuple);
 
-    computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad,
-                                     g_c_quad);
+    computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad);
     Real penalization =
         this->gamma * std::min(Real(0.), dam_on_quad - dam_prev_quad);
 
@@ -118,14 +97,15 @@ void PhaseFieldLinear::computeDrivingForce(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::computeDissipatedEnergy(ElementType el_type) {
+template <Int dim>
+void PhaseFieldLinear<dim>::computeDissipatedEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
   for (auto && tuple :
        zip(this->dissipated_energy(el_type, _not_ghost),
            this->damage_on_qpoints(el_type, _not_ghost),
            this->damage_on_qpoints.previous(el_type, _not_ghost),
-           make_view(this->gradd(el_type, _not_ghost), spatial_dimension),
+           make_view(this->gradd(el_type, _not_ghost), dim),
            this->g_c(el_type, _not_ghost))) {
 
     this->computeDissipatedEnergyOnQuad(std::get<1>(tuple), std::get<2>(tuple),
@@ -137,14 +117,16 @@ void PhaseFieldLinear::computeDissipatedEnergy(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::computeDissipatedEnergyByElement(
+template <Int dim>
+void PhaseFieldLinear<dim>::computeDissipatedEnergyByElement(
     ElementType type, Idx index, Vector<Real> & edis_on_quad_points) {
-  auto gradd_it = this->gradd(type).begin(spatial_dimension);
-  auto gradd_end = this->gradd(type).begin(spatial_dimension);
+  auto gradd_it = this->gradd(type).begin(dim);
+  auto gradd_end = this->gradd(type).begin(dim);
   auto damage_it = this->damage_on_qpoints(type).begin();
   auto damage_prev_it = this->damage_on_qpoints.previous(type).begin();
   auto g_c_it = this->g_c(type).begin();
 
+  auto & fem = this->getFEEngine();
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type);
 
   gradd_it += index * nb_quadrature_points;
@@ -162,20 +144,27 @@ void PhaseFieldLinear::computeDissipatedEnergyByElement(
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::computeDissipatedEnergyByElement(
+template <Int dim>
+void PhaseFieldLinear<dim>::computeDissipatedEnergyByElement(
     const Element & element, Vector<Real> & edis_on_quad_points) {
   computeDissipatedEnergyByElement(element.type, element.element,
                                    edis_on_quad_points);
 }
 
 /* -------------------------------------------------------------------------- */
-void PhaseFieldLinear::afterSolveStep() {
+template <Int dim> void PhaseFieldLinear<dim>::afterSolveStep() {
   // clamp negative damage to 0
-  for (auto & dam : this->model.getDamage()) {
+  for (auto & dam : this->getHandler().getDamage()) {
     dam = std::max(Real(0.), dam);
   }
 }
 
-INSTANTIATE_PHASEFIELD(linear, PhaseFieldLinear);
+/* -------------------------------------------------------------------------- */
+template class PhaseFieldLinear<1>;
+template class PhaseFieldLinear<2>;
+template class PhaseFieldLinear<3>;
+
+const bool phase_field_linear_is_allocated [[maybe_unused]] =
+    instantiatePhaseField<PhaseFieldLinear>("linear");
 
 } // namespace akantu

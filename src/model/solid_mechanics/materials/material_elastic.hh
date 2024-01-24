@@ -19,7 +19,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material_thermal.hh"
 #include "plane_stress_toolbox.hh"
 /* -------------------------------------------------------------------------- */
@@ -46,14 +45,8 @@ private:
   using Parent = PlaneStressToolbox<dim, MaterialThermal<dim>>;
 
 public:
-  MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialElastic(SolidMechanicsModel & model, Int spatial_dimension,
-                  const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
-
-  ~MaterialElastic() override = default;
-
-protected:
-  void initialize();
+  MaterialElastic(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -84,10 +77,12 @@ public:
                                   Vector<Real> & epot_on_quad_points) override;
 
   /// compute the p-wave speed in the material
-  auto getPushWaveSpeed(const Element & element) const -> Real override;
+  [[nodiscard]] auto getPushWaveSpeed(const Element & element) const
+      -> Real override;
 
   /// compute the s-wave speed in the material
-  auto getShearWaveSpeed(const Element & element) const -> Real override;
+  [[nodiscard]] auto getShearWaveSpeed(const Element & element) const
+      -> Real override;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -127,16 +122,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// First Lamé coefficient
-  Real lambda;
+  Real lambda{0.};
 
   /// Second Lamé coefficient (shear modulus)
-  Real mu;
+  Real mu{0.};
 
   /// Bulk modulus
-  Real kpa;
+  Real kpa{0.};
 
   /// defines if the stiffness was computed
-  bool was_stiffness_assembled;
+  bool was_stiffness_assembled{false};
 };
 
 } // namespace akantu

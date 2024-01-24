@@ -24,8 +24,8 @@
 #include "material_mazars.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VONMISES_MAZARS_HH__
-#define __AKANTU_MATERIAL_VONMISES_MAZARS_HH__
+#ifndef AKANTU_MATERIAL_VONMISES_MAZARS_HH_
+#define AKANTU_MATERIAL_VONMISES_MAZARS_HH_
 
 namespace akantu {
 

@@ -110,7 +110,6 @@ int main(int argc, char * argv[]) {
 
     coupler.solve("static", "static");
     phase.savePreviousState();
-    phase.savePreviousDamage();
 
     new_damage = 2. * (l0 / gc) * max_strain_energy /
                         (2. * (l0 / gc) * max_strain_energy + 1.);

@@ -40,7 +40,6 @@ public:
   NonLocalNeighborhoodBase(Model & model,
                            const ElementTypeMapReal & quad_coordinates,
                            const ID & id = "non_local_neighborhood");
-  ~NonLocalNeighborhoodBase() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -53,7 +52,7 @@ public:
                    const SynchronizationTag & tag) override;
 
   /// compute weights, for instance needed for non-local damage computation
-  virtual void computeWeights(){};
+  virtual void computeWeights() {}
 
   // compute the non-local counter part for a given element type map
   virtual void
@@ -89,8 +88,8 @@ protected:
   /* --------------------------------------------------------------------------
    */
 public:
-  inline Int getNbData(const Array<Element> &,
-                        const SynchronizationTag &) const override {
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> &, const SynchronizationTag &) const override {
     return 0;
   }
 

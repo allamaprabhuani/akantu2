@@ -33,8 +33,8 @@
 #include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_DETECTOR_HH__
-#define __AKANTU_CONTACT_DETECTOR_HH__
+#ifndef AKANTU_CONTACT_DETECTOR_HH_
+#define AKANTU_CONTACT_DETECTOR_HH_
 
 namespace akantu {
 
@@ -216,6 +216,6 @@ private:
 
 } // namespace akantu
 
-#include "contact_detector_inline_impl.cc"
+#include "contact_detector_inline_impl.hh"
 
-#endif /* __AKANTU_CONTACT_DETECTOR_HH__ */
+#endif /* AKANTU_CONTACT_DETECTOR_HH_ */

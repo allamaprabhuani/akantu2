@@ -42,8 +42,6 @@ public:
   IntegratorGauss(const Mesh & mesh, Int spatial_dimension,
                   const ID & id = "integrator_gauss");
 
-  ~IntegratorGauss() override = default;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -57,7 +55,7 @@ public:
   /// integrate f on the element "elem" of type "type"
   template <ElementType type>
   inline void integrateOnElement(const Array<Real> & f, Real * intf,
-                                 Int nb_degree_of_freedom, const Idx elem,
+                                 Int nb_degree_of_freedom, Idx elem,
                                  GhostType ghost_type) const;
 
   /// integrate f for all elements of type "type"
@@ -68,19 +66,19 @@ public:
 
   /// integrate scalar field in_f
   template <ElementType type, Int polynomial_degree>
-  Real integrate(const Array<Real> & in_f,
-                 GhostType ghost_type = _not_ghost) const;
+  [[nodiscard]] Real integrate(const Array<Real> & in_f,
+                               GhostType ghost_type = _not_ghost) const;
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
   /// w_q @f$)
   template <ElementType type>
-  Real integrate(const Vector<Real> & in_f, Idx index,
-                 GhostType ghost_type) const;
+  [[nodiscard]] Real integrate(const Vector<Real> & in_f, Idx index,
+                               GhostType ghost_type) const;
 
   /// integrate scalar field in_f
   template <ElementType type>
-  Real integrate(const Array<Real> & in_f, GhostType ghost_type,
-                 const Array<Idx> & filter_elements) const;
+  [[nodiscard]] Real integrate(const Array<Real> & in_f, GhostType ghost_type,
+                               const Array<Idx> & filter_elements) const;
 
   /// integrate a field without using the pre-computed values
   template <ElementType type, Int polynomial_degree>
@@ -97,14 +95,19 @@ public:
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
-  const Matrix<Real> & getIntegrationPoints(GhostType ghost_type) const;
+  [[nodiscard]] const Matrix<Real> &
+  getIntegrationPoints(GhostType ghost_type) const;
 
   /// return number of quadrature points
   template <ElementType type>
-  Int getNbIntegrationPoints(GhostType ghost_type) const;
+  [[nodiscard]] Int getNbIntegrationPoints(GhostType ghost_type) const;
+  template <ElementType type>
+  [[nodiscard]] Int getNbIntegrationPoints(GhostType ghost_type);
 
-  template <ElementType type, Int n> Matrix<Real> getIntegrationPoints() const;
-  template <ElementType type, Int n> Vector<Real> getIntegrationWeights() const;
+  template <ElementType type, Int n>
+  [[nodiscard]] Matrix<Real> getIntegrationPoints() const;
+  template <ElementType type, Int n>
+  [[nodiscard]] Vector<Real> getIntegrationWeights() const;
 
 protected:
   friend struct integrator::details::GaussIntegratorComputeJacobiansHelper<

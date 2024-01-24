@@ -18,30 +18,25 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "aka_common.hh"
-#include "coupler_solid_phasefield.hh"
-#include "material.hh"
-#include "material_phasefield.hh"
-#include "non_linear_solver.hh"
-#include "phase_field_model.hh"
-#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-#include <cmath>
+#include "non_linear_solver.hh"
+#include "coupler_solid_phasefield.hh"
+/* -------------------------------------------------------------------------- */
 #include <fstream>
-#include <iostream>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 const UInt spatial_dimension = 2;
 
 /* -------------------------------------------------------------------------- */
-void applyDisplacement(SolidMechanicsModel &, Real &);
+void applyDisplacement(SolidMechanicsModel & /*model*/, Real & /*disp*/);
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char * argv[]) {
 
   std::ofstream os("data.csv");
-  os << "#strain stress damage analytical_sigma analytical_damage" << std::endl;
+  os << "#strain stress damage analytical_sigma analytical_damage"
+     << "\n";
 
   initialize("material_penalization.dat", argc, argv);
 
@@ -49,11 +44,11 @@ int main(int argc, char * argv[]) {
   mesh.read("test_one_element.msh");
 
   CouplerSolidPhaseField coupler(mesh);
-  auto & model = coupler.getSolidMechanicsModel();
-  auto & phase = coupler.getPhaseFieldModel();
+  SolidMechanicsModel & model = coupler.getSolidMechanicsModel();
+  PhaseFieldModel & phase = coupler.getPhaseFieldModel();
 
   model.initFull(_analysis_method = _static);
-  auto & solver = model.getNonLinearSolver("static");
+  auto & solver = model.getNonLinearSolver();
   solver.set("max_iterations", 1000);
   solver.set("threshold", 1e-6);
   solver.set("convergence_type", SolveConvergenceCriteria::_residual);
@@ -62,7 +57,7 @@ int main(int argc, char * argv[]) {
       "physical_names", phase);
   phase.setPhaseFieldSelector(selector);
   phase.initFull(_analysis_method = _static);
-  auto & solver_phase = phase.getNonLinearSolver("static");
+  auto & solver_phase = phase.getNonLinearSolver();
   solver_phase.set("max_iterations", 1000);
   solver_phase.set("threshold", 1e-6);
   solver_phase.set("convergence_type", SolveConvergenceCriteria::_residual);
@@ -103,9 +98,9 @@ int main(int argc, char * argv[]) {
     if (s < 500) {
       axial_strain = increment * s;
     } else if (s < 1000) {
-      axial_strain = (1500 - 2 * double(s)) * increment;
+      axial_strain = (1500. - 2. * s) * increment;
     } else {
-      axial_strain = (3 * double(s) - 3500) * increment;
+      axial_strain = (3. * s - 3500.) * increment;
     }
     applyDisplacement(model, axial_strain);
 
@@ -114,7 +109,6 @@ int main(int argc, char * argv[]) {
     }
 
     coupler.solve("static", "static");
-    phase.savePreviousDamage();
     phase.savePreviousState();
 
     analytical_damage = max_strain * max_strain * c22 /
@@ -131,25 +125,18 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    // if ((error_damage > 1e-8 or error_stress > 1e-8) and
-    //     std::abs(axial_strain) > 1e-13) {
-    //   std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Axial strain: " << axial_strain << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "An. damage: " << analytical_damage << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Damage: " << damage(0) << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Error damage: " << error_damage << std::endl;
-    //   std::cerr << std::left << std::setw(15)
-    //             << "Error stress: " << error_stress << std::endl;
-    //   return EXIT_FAILURE;
-    // }
+    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+        std::abs(axial_strain) > 1e-13) {
+      std::cerr << std::left << std::setw(15)
+                << "Error damage: " << error_damage << "\n";
+      std::cerr << std::left << std::setw(15)
+                << "Error stress: " << error_stress << "\n";
+      return EXIT_FAILURE;
+    }
 
     os << axial_strain << " " << stress(0, 3) << " " << damage(0) << " "
        << analytical_sigma << " " << analytical_damage << " " << error_stress
-       << " " << error_damage << std::endl;
+       << " " << error_damage << "\n";
 
     model.dump();
   }

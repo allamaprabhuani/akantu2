@@ -19,13 +19,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "element_type_map.hh"
-/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_DUMPABLE_HH_
 #define AKANTU_DUMPABLE_HH_
 
 #include "dumpable_iohelper.hh"
+
+#include "dumpable_inline_impl.hh"
 
 #endif /* AKANTU_DUMPABLE_HH_ */

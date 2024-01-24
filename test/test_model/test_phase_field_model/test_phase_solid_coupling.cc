@@ -180,18 +180,18 @@ void computeStrainOnQuadPoints(SolidMechanicsModel & solid,
 
   auto & mesh = solid.getMesh();
 
-  auto nb_materials = solid.getNbMaterials();
-  auto nb_phasefields = phase.getNbPhaseFields();
+  auto nb_materials = solid.getNbConstitutiveLaws();
+  auto nb_phasefields = phase.getNbConstitutiveLaws();
 
   AKANTU_DEBUG_ASSERT(
       nb_phasefields == nb_materials,
       "The number of phasefields and materials should be equal");
 
   for (auto index : arange(nb_materials)) {
-    auto & material = solid.getMaterial(index);
+    auto & material = solid.getConstitutiveLaw(index);
 
     for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase.getPhaseField(index2);
+      auto & phasefield = phase.getConstitutiveLaw(index2);
 
       if (phasefield.getName() == material.getName()) {
 
@@ -226,18 +226,18 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
   auto & fem = phase.getFEEngine();
   auto & mesh = phase.getMesh();
 
-  auto nb_materials = solid.getNbMaterials();
-  auto nb_phasefields = phase.getNbPhaseFields();
+  auto nb_materials = solid.getNbConstitutiveLaws();
+  auto nb_phasefields = phase.getNbConstitutiveLaws();
 
   AKANTU_DEBUG_ASSERT(
       nb_phasefields == nb_materials,
       "The number of phasefields and materials should be equal");
 
   for (auto index : arange(nb_materials)) {
-    auto & material = solid.getMaterial(index);
+    auto & material = solid.getConstitutiveLaw(index);
 
     for (auto index2 : arange(nb_phasefields)) {
-      auto & phasefield = phase.getPhaseField(index2);
+      auto & phasefield = phase.getConstitutiveLaw(index2);
 
       if (phasefield.getName() == material.getName()) {
 

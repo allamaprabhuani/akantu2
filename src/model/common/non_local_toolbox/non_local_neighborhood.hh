@@ -42,7 +42,6 @@ public:
   NonLocalNeighborhood(NonLocalManager & manager,
                        const ElementTypeMapReal & quad_coordinates,
                        const ID & id = "neighborhood");
-  ~NonLocalNeighborhood() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -73,8 +72,9 @@ protected:
   template <class Func>
   inline void foreach_weight(GhostType ghost_type, Func && func) const;
 
-  inline Int getNbData(const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -99,7 +99,7 @@ private:
   NonLocalManager & non_local_manager;
 
   /// the weights associated to the pairs
-  std::array<std::unique_ptr<Array<Real>>, 2> pair_weight;
+  std::map<GhostType, std::unique_ptr<Array<Real>>> pair_weight;
 
   /// weight function
   std::shared_ptr<WeightFunction> weight_function;

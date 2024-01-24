@@ -23,6 +23,10 @@
 #include <cstring>
 /* -------------------------------------------------------------------------- */
 namespace akantu {
+
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,
+//             cppcoreguidelines-pro-type-reinterpret-cast,
+//             cppcoreguidelines-narrowing-conversions)
 /* -------------------------------------------------------------------------- */
 template <bool is_static>
 template <typename T, std::enable_if_t<std::is_standard_layout_v<T> and
@@ -99,7 +103,7 @@ CommunicationBufferTemplated<is_static>::operator>>(T & to_unpack) {
   std::size_t size = sizeInBuffer(to_unpack);
 
   alignas(alignof(T)) std::array<char, sizeof(T)> aligned_ptr;
-  memcpy(aligned_ptr.data(), ptr_unpack, size);
+  std::memcpy(aligned_ptr.data(), ptr_unpack, size);
 
   auto * tmp = reinterpret_cast<T *>(aligned_ptr.data());
   AKANTU_DEBUG_ASSERT(
@@ -121,7 +125,7 @@ CommunicationBufferTemplated<is_static>::operator<<(const Tensor & to_pack) {
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_pack + size),
       "Packing too much data in the CommunicationBufferTemplated");
-  memcpy(ptr_pack, to_pack.data(), size);
+  std::memcpy(ptr_pack, to_pack.data(), size);
   ptr_pack += size;
   return *this;
 }
@@ -136,7 +140,7 @@ CommunicationBufferTemplated<is_static>::operator>>(Tensor & to_unpack) {
   AKANTU_DEBUG_ASSERT(
       (buffer.data() + buffer.size()) >= (ptr_unpack + size),
       "Unpacking too much data in the CommunicationBufferTemplated");
-  memcpy(to_unpack.data(), ptr_unpack, size);
+  std::memcpy(to_unpack.data(), ptr_unpack, size);
   ptr_unpack += size;
   return *this;
 }
@@ -160,7 +164,7 @@ template <bool is_static>
 template <typename T>
 inline void
 CommunicationBufferTemplated<is_static>::unpackIterable(T & to_unpack) {
-  std::size_t size;
+  std::size_t size{};
   operator>>(size);
 
   to_unpack.resize(size);
@@ -234,7 +238,7 @@ CommunicationBufferTemplated<is_static>::extractStream(std::size_t block_size) {
   std::size_t n_block = 0;
   for (std::size_t i = 0; i < sz; ++i) {
     if (i % sz_block == 0) {
-      str << std::endl << n_block << " ";
+      str << "\n" << n_block << " ";
       ++n_block;
     }
     str << *ptr << " ";
@@ -285,4 +289,7 @@ inline void CommunicationBufferTemplated<is_static>::reset() {
   ptr_unpack = buffer.data();
 }
 
+// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,
+//           cppcoreguidelines-pro-type-reinterpret-cast,
+//           cppcoreguidelines-narrowing-conversions)
 } // namespace akantu

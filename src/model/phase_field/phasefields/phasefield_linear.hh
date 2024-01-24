@@ -6,7 +6,8 @@
 #define __AKANTU_PHASEFIELD_LINEAR_HH__
 
 namespace akantu {
-class PhaseFieldLinear : public PhaseField {
+
+template <Int dim> class PhaseFieldLinear : public PhaseField {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -47,8 +48,7 @@ protected:
                                         const Real & /*g_c_quad*/);
 
   inline void computeDamageEnergyDensityOnQuad(const Real & /*phi_quad*/,
-                                               Real & /*dam_energy_quad*/,
-                                               const Real & /*g_c_quad*/);
+                                               Real & /*dam_energy_quad*/);
 
   inline void
   computeDissipatedEnergyOnQuad(const Real & /*dam_quad*/,
@@ -69,7 +69,7 @@ private:
   Real gamma;
 
   // dimension to consider in deviatoric split
-  Int dim;
+  Int dev_dim;
 };
 
 } // namespace akantu

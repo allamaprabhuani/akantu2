@@ -7,6 +7,11 @@ Checks: "
         cppcoreguidelines-*,
         -cppcoreguidelines-macro-usage,
         -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-avoid-const-or-ref-data-members,
+        -cppcoreguidelines-avoid-do-while,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -cppcoreguidelines-missing-std-forward,
 
         performance-*,
 

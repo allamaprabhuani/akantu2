@@ -38,12 +38,8 @@ template <Int dim> class MaterialPlastic : public MaterialElastic<dim> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialPlastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialPlastic(SolidMechanicsModel & model, UInt a_dim, const Mesh & mesh,
-                  FEEngine & fe_engine, const ID & id = "");
-
-protected:
-  void initialize();
+  MaterialPlastic(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -107,10 +103,6 @@ protected:
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
@@ -121,20 +113,20 @@ protected:
   Real h;
 
   /// isotropic hardening, r
-  InternalField<Real> iso_hardening;
+  InternalField<Real> & iso_hardening;
 
   /// inelastic strain arrays ordered by element types (inelastic deformation)
-  InternalField<Real> inelastic_strain;
+  InternalField<Real> & inelastic_strain;
 
   /// Plastic energy
-  InternalField<Real> plastic_energy;
+  InternalField<Real> & plastic_energy;
 
   /// @todo : add a coefficient beta that will multiply the plastic energy
   /// increment
   /// to compute the energy converted to heat
 
   /// Plastic energy increment
-  InternalField<Real> d_plastic_energy;
+  InternalField<Real> & d_plastic_energy;
 };
 
 /* -------------------------------------------------------------------------- */

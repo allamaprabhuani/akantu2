@@ -28,29 +28,10 @@ namespace akantu {
 template <Int dim, template <Int> class Parent>
 MaterialDamage<dim, Parent>::MaterialDamage(SolidMechanicsModel & model,
                                             const ID & id)
-    : Parent<dim>(model, id), damage("damage", *this),
-      dissipated_energy("damage dissipated energy", *this),
-      int_sigma("integral of sigma", *this) {
-  AKANTU_DEBUG_IN();
-
-  this->is_non_local = false;
-  this->use_previous_stress = true;
-  this->use_previous_gradu = true;
-
-  this->damage.initialize(1);
-  this->dissipated_energy.initialize(1);
-  this->int_sigma.initialize(1);
-  this->damage.initializeHistory();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <Int dim, template <Int> class Parent>
-void MaterialDamage<dim, Parent>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  Parent<dim>::initMaterial();
-  AKANTU_DEBUG_OUT();
+    : Parent<dim>(model, id), damage(this->registerInternal("damage", 1)),
+      dissipated_energy(this->registerInternal("damage dissipated energy", 1)),
+      int_sigma(this->registerInternal("integral of sigma", 1)) {
+  damage.initializeHistory();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,40 +47,25 @@ void MaterialDamage<dim, Parent>::updateEnergies(ElementType el_type) {
 
   this->computePotentialEnergy(el_type);
 
-  auto epsilon_p = this->gradu.previous(el_type).begin(dim, dim);
-  auto sigma_p = this->stress.previous(el_type).begin(dim, dim);
+  for (auto && [args, epot, edis, ints] :
+       zip(getArguments(el_type), this->potential_energy(el_type),
+           this->dissipated_energy(el_type), this->int_sigma(el_type))) {
 
-  auto epot = this->potential_energy(el_type).begin();
-  auto ints = this->int_sigma(el_type).begin();
-  auto ed = this->dissipated_energy(el_type).begin();
+    Matrix<Real, dim, dim> delta_gradu =
+        args["grad_u"_n] - args["previous_grad_u"_n];
+    Matrix<Real, dim, dim> sigma_h = args["sigma"_n] + args["previous_sigma"_n];
+    auto dint = sigma_h.doubleDot(delta_gradu) / 2;
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-  Matrix<Real> delta_gradu(grad_u);
-  delta_gradu -= *epsilon_p;
-
-  Matrix<Real> sigma_h(sigma);
-  sigma_h += *sigma_p;
-
-  Real dint = .5 * sigma_h.doubleDot(delta_gradu);
-
-  *ints += dint;
-  *ed = *ints - *epot;
-
-  ++epsilon_p;
-  ++sigma_p;
-  ++epot;
-  ++ints;
-  ++ed;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    ints += dint;
+    edis = ints - epot;
+  }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <Int dim, template <Int> class Parent>
 void MaterialDamage<dim, Parent>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
   constexpr auto tangent_size = Material::getTangentStiffnessVoigtSize(dim);
 
   for (auto && data :
@@ -109,11 +75,10 @@ void MaterialDamage<dim, Parent>::computeTangentModuli(
     Parent<dim>::computeTangentModuliOnQuad(data);
     computeTangentModuliOnQuad(data);
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <Int dim, template <Int> class Parent>
 template <class Args>
 void MaterialDamage<dim, Parent>::computeTangentModuliOnQuad(
@@ -124,18 +89,14 @@ void MaterialDamage<dim, Parent>::computeTangentModuliOnQuad(
 /* -------------------------------------------------------------------------- */
 template <Int dim, template <Int> class Parent>
 auto MaterialDamage<dim, Parent>::getDissipatedEnergy() const -> Real {
-  AKANTU_DEBUG_IN();
-
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
-  for (auto && type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de +=
-        this->fem.integrate(dissipated_energy(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+  for (auto && type : this->getElementFilter().elementTypes(dim, _not_ghost)) {
+    de += this->getFEEngine().integrate(
+        this->dissipated_energy(type, _not_ghost), type, _not_ghost,
+        this->getElementFilter(type, _not_ghost));
   }
-
-  AKANTU_DEBUG_OUT();
   return de;
 }
 

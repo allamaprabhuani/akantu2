@@ -75,7 +75,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  InternalField<Real> Ynl;
+  InternalField<Real> & Ynl;
 };
 
 } // namespace akantu

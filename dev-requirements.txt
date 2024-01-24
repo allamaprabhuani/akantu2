@@ -3,3 +3,4 @@ pybind11
 numpy
 ninja
 cmake
+delocate; sys_platform == 'darwin'

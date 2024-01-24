@@ -32,7 +32,8 @@ namespace {
   DECLARE_NAMED_ARGUMENT(analysis_method);
 }
 
-struct ModelOptions {
+class ModelOptions {
+public:
   explicit ModelOptions(AnalysisMethod analysis_method = _static)
       : analysis_method(analysis_method) {}
 
@@ -83,7 +84,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
 #endif
 
-#ifdef AKANTU_HEAT_TRANSFER
+#ifdef AKANTU_DIFFUSION
 /* -------------------------------------------------------------------------- */
 struct HeatTransferModelOptions : public ModelOptions {
   explicit HeatTransferModelOptions(

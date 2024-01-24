@@ -1,5 +1,5 @@
 Structural Mechanics Model
-==========================
+--------------------------
 
 Static structural mechanics problems can be handled using the class
 :cpp:class:`StructuralMechanicsModel <akantu::StructuralMechanicsModel>`. So
@@ -57,10 +57,10 @@ next section.
 .. _sec:structMechMod:setup:
 
 Model Setup
------------
+```````````
 
 Initialization
-``````````````
+''''''''''''''
 
 The easiest way to initialize the structural mechanics model is:
 
@@ -119,7 +119,7 @@ They are successively numbered and then assigned to specific elements.
 .. _sect:structMechMod:boundary:
 
 Setting Boundary Conditions
-```````````````````````````
+'''''''''''''''''''''''''''
 As explained before, the Dirichlet boundary conditions are applied through the
 array **blocked_dofs**. Two options exist to define Neumann conditions.
 If a nodal force is applied, it has to be directly set in the array
@@ -147,7 +147,7 @@ global system of coordinates (``_bft_traction``).
 .. _sect:structMechMod:static:
 
 Static Analysis
----------------
+```````````````
 
 The :cpp:class:`StructuralMechanicsModel <akantu::StructuralMechanicsModel>` class can perform static analyses of structures.  In this case, the equation to solve is the same as for the :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>` used for static analyses
 

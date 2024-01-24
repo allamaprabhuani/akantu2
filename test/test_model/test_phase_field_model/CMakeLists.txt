@@ -71,7 +71,7 @@ register_test(test_multi_material
 
 register_test(test_penalization
   SOURCES test_penalization.cc
-  FILES_TO_COPY material_penalization.dat test_one_element.msh
+  FILES_TO_COPY material_penalization.dat test_four_elements.msh
   PACKAGE phase_field
   )
 

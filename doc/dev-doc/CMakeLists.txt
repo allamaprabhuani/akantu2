@@ -34,9 +34,9 @@ set(SPHINX_INPUT "${CMAKE_CURRENT_BINARY_DIR}/conf.py")
 # ---------------------------------------------------------------------------- #
 find_package(Sphinx REQUIRED)
 
-set(SPHINX_VERBOSE_FLAG "-q")
+set(SPHINX_VERBOSE_FLAG)
 if(CMAKE_VERBOSE_MAKEFILE)
-  set(SPHINX_VERBOSE_FLAG)
+  set(SPHINX_VERBOSE_FLAG "-v")
 endif(CMAKE_VERBOSE_MAKEFILE)
 
 configure_file(
@@ -51,7 +51,7 @@ configure_file(
 
 set(SPHINX_PARALLEL_FLAG)
 if (SPHINX_VERSION VERSION_GREATER_EQUAL 1.7.0)
-  set(SPHINX_PARALLEL_FLAG -j auto)
+  set(SPHINX_PARALLEL_FLAG -j 1)
 endif()
 
 set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
@@ -63,13 +63,15 @@ set(_sphinx_command ${SPHINX_BUILD_EXECUTABLE}
   "${SPHINX_HTML_DIR}"
   )
 
-file(GLOB_RECURSE _SPHINX_SRCS
+file(GLOB_RECURSE _SPHINX_RST_SRCS
   "*.rst")
+file(GLOB_RECURSE _SPHINX_MD_SRCS
+  "*.md")
 
 add_custom_command(
   OUTPUT ${SPHINX_OUTPUT}
-  COMMAND ${_sphinx_command}
-  DEPENDS ${SPHINX_INPUT} ${_SPHINX_SRCS}
+  COMMAND ${CMAKE_COMMAND} -E env RUNNING_IN_CMAKE=True ${_sphinx_command}
+  DEPENDS ${SPHINX_INPUT} ${AKANTU_EXAMPLES_DOC_SRCS} ${_SPHINX_RST_SRCS} ${_SPHINX_MD_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.j2"
   COMMENT "Building HTML documentation with Sphinx in ${SPHINX_HTML_DIR}"
   )
 

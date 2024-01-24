@@ -22,7 +22,6 @@
 #include "element_group.hh"
 #include "aka_csr.hh"
 #include "dumpable.hh"
-#include "dumpable_inline_impl.hh"
 #include "group_manager.hh"
 #include "group_manager_inline_impl.hh"
 #include "mesh.hh"
@@ -56,9 +55,6 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-ElementGroup::ElementGroup(const ElementGroup & /*other*/) = default;
-
-/* -------------------------------------------------------------------------- */
 void ElementGroup::clear() { elements.free(); }
 
 /* -------------------------------------------------------------------------- */
@@ -84,8 +80,10 @@ void ElementGroup::append(const ElementGroup & other_group) {
       const auto & other_elem_list = other_group.elements(type, ghost_type);
       auto nb_other_elem = other_elem_list.size();
 
-      auto & elem_list = elements.alloc(0, 1, type, ghost_type);
-
+      if (not elements.exists(type, ghost_type)) {
+        elements.alloc(0, 1, type, ghost_type);
+      }
+      auto & elem_list = elements(type, ghost_type);
       auto nb_elem = elem_list.size();
       /// append new elements to current list
       elem_list.resize(nb_elem + nb_other_elem);
@@ -106,12 +104,14 @@ void ElementGroup::printself(std::ostream & stream, int indent) const {
     ;
   }
 
-  stream << space << "ElementGroup [" << std::endl;
-  stream << space << " + name: " << name << std::endl;
-  stream << space << " + dimension: " << dimension << std::endl;
+  stream << space << "ElementGroup ["
+         << "\n";
+  stream << space << " + name: " << name << "\n";
+  stream << space << " + dimension: " << dimension << "\n";
   elements.printself(stream, indent + 1);
   node_group.printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
+  stream << space << "]"
+         << "\n";
 }
 
 /* -------------------------------------------------------------------------- */

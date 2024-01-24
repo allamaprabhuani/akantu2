@@ -122,7 +122,6 @@ else()
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
-
 include(AkantuExtraCompilationProfiles)
 #===============================================================================
 # Dependencies
@@ -150,6 +149,11 @@ endif()
 # Documentation
 #===============================================================================
 if(AKANTU_DOCUMENTATION OR AKANTU_DOCUMENTATION_MANUAL)
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+    file(GLOB_RECURSE AKANTU_EXAMPLES_DOC_SRCS CONFIGURE_DEPENDS "examples/*.rst")
+  else()
+    file(GLOB_RECURSE AKANTU_EXAMPLES_DOC_SRCS "examples/*.rst")
+  endif()
   add_subdirectory(doc)
 else()
   set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")

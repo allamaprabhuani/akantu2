@@ -19,6 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "element_synchronizer.hh" // NOLINT(unused-includes)
 #include "material_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>

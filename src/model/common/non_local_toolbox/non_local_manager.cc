@@ -102,9 +102,6 @@ void NonLocalManager::setJacobians(const FEEngine & fe_engine,
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::createNeighborhood(const ID & weight_func,
                                          const ID & neighborhood_id) {
-
-  AKANTU_DEBUG_IN();
-
   auto weight_func_it = this->weight_function_types.find(weight_func);
   AKANTU_DEBUG_ASSERT(weight_func_it != weight_function_types.end(),
                       "No info found in the input file for the weight_function "
@@ -123,8 +120,6 @@ void NonLocalManager::createNeighborhood(const ID & weight_func,
 
   neighborhoods[neighborhood_id]->parseSection(section);
   neighborhoods[neighborhood_id]->initNeighborhood();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,13 +128,8 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// neighborhoods exist globally
   /// First: Compute locally the maximum ID size
   Int max_id_size = 0;
-  Int current_size = 0;
-  NeighborhoodMap::const_iterator it;
   for (const auto & id : make_keys_adaptor(neighborhoods)) {
-    current_size = id.size();
-    if (current_size > max_id_size) {
-      max_id_size = current_size;
-    }
+    max_id_size = std::max(max_id_size, Int(id.size()));
   }
 
   /// get the global maximum ID size on each proc
@@ -152,7 +142,7 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
 
   /// exchange the number of neighborhoods on each proc
   Array<Int> nb_neighborhoods_per_proc(psize);
-  nb_neighborhoods_per_proc(prank) = neighborhoods.size();
+  nb_neighborhoods_per_proc(prank) = Int(neighborhoods.size());
   static_communicator.allGather(nb_neighborhoods_per_proc);
 
   /// compute the total number of neighborhoods
@@ -170,7 +160,7 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// store the names of local neighborhoods in the buffer
   for (auto && data : enumerate(make_keys_adaptor(neighborhoods))) {
     Int c = 0;
-    auto i = std::get<0>(data);
+    Idx i = Idx(std::get<0>(data));
     const auto & id = std::get<1>(data);
     for (; c < Int(id.size()); ++c) {
       buffer(i + starting_index, c) = id[c];
@@ -210,7 +200,7 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
       this->spatial_dimension, spacing, grid_center);
 
   for (const auto & neighborhood_id : global_neighborhoods) {
-    it = neighborhoods.find(neighborhood_id);
+    auto it = neighborhoods.find(neighborhood_id);
     if (it != neighborhoods.end()) {
       it->second->createGridSynchronizer();
     } else {
@@ -319,16 +309,11 @@ void NonLocalManager::registerNonLocalVariable(const ID & variable_name,
 /* -------------------------------------------------------------------------- */
 ElementTypeMapReal &
 NonLocalManager::registerWeightFunctionInternal(const ID & field_name) {
-
-  AKANTU_DEBUG_IN();
-
   auto it = this->weight_function_internals.find(field_name);
   if (it == weight_function_internals.end()) {
     weight_function_internals[field_name] =
         std::make_unique<ElementTypeMapReal>(field_name, this->id);
   }
-
-  AKANTU_DEBUG_OUT();
 
   return *(weight_function_internals[field_name]);
 }
@@ -356,7 +341,7 @@ void NonLocalManager::initNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLocalManager::computeAllNonLocalStresses() {
+void NonLocalManager::computeAllNonLocalContribution() {
 
   /// update the flattened version of the internals
   for (auto & pair : non_local_variables) {
@@ -396,7 +381,7 @@ void NonLocalManager::computeAllNonLocalStresses() {
     }
   }
 
-  this->callback->computeNonLocalStresses(_not_ghost);
+  this->callback->computeNonLocalContribution(_not_ghost);
 
   ++this->compute_stress_calls;
 }
@@ -500,13 +485,13 @@ void NonLocalManager::removeIntegrationPointsFromMap(
                 << ") "
                    "!!");
 
+        auto it = make_view(vect, nb_component * nb_quad_per_elem).begin();
+        auto tmp_it = make_view(tmp, nb_component * nb_quad_per_elem).begin();
         Int new_size = 0;
         for (Int i = 0; i < renumbering.size(); ++i) {
           auto new_i = renumbering(i);
           if (new_i != Int(-1)) {
-            memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
-                   vect.data() + i * nb_component * nb_quad_per_elem,
-                   nb_component * nb_quad_per_elem * sizeof(Real));
+            tmp_it[new_i] = it[i];
             ++new_size;
           }
         }
@@ -527,7 +512,7 @@ Int NonLocalManager::getNbData(const Array<Element> & elements,
   AKANTU_DEBUG_ASSERT(it != non_local_variables.end(),
                       "The non-local variable " << id << " is not registered");
 
-  size += it->second->nb_component * sizeof(Real) * nb_quadrature_points;
+  size += it->second->nb_component * Int(sizeof(Real)) * nb_quadrature_points;
   return size;
 }
 
@@ -541,7 +526,7 @@ void NonLocalManager::packData(CommunicationBuffer & buffer,
                       "The non-local variable " << id << " is not registered");
 
   DataAccessor<Element>::packElementalDataHelper<Real>(
-      it->second->local, buffer, elements, true, this->model.getFEEngine());
+      it->second->local, buffer, elements, this->model.getFEEngine());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -554,7 +539,7 @@ void NonLocalManager::unpackData(CommunicationBuffer & buffer,
                       "The non-local variable " << id << " is not registered");
 
   DataAccessor<Element>::unpackElementalDataHelper<Real>(
-      it->second->local, buffer, elements, true, this->model.getFEEngine());
+      it->second->local, buffer, elements, this->model.getFEEngine());
 }
 
 } // namespace akantu

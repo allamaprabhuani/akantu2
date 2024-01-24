@@ -25,7 +25,6 @@
 using namespace akantu;
 
 int main(int argc, char * argv[]) {
-
   initialize("phasefield_selector.dat", argc, argv);
 
   Math::setTolerance(1e-8);
@@ -40,13 +39,13 @@ int main(int argc, char * argv[]) {
 
   model.initFull();
 
-  PhaseField & chocolate = model.getPhaseField("chocolate");
-  PhaseField & chewing_gum = model.getPhaseField("chewing-gum");
-  PhaseField & candy = model.getPhaseField("candy");
+  const auto & chocolate = model.getPhaseField("chocolate");
+  const auto & chewing_gum = model.getPhaseField("chewing-gum");
+  const auto & candy = model.getPhaseField("candy");
 
-  UInt chocolate_element = chocolate.getElementFilter(_segment_2)(0, 0);
-  UInt chewing_gum_element = chewing_gum.getElementFilter(_segment_2)(0, 0);
-  UInt candy_element = candy.getElementFilter(_segment_2)(0, 0);
+  auto chocolate_element = chocolate.getElementFilter(_segment_2)(0, 0);
+  auto chewing_gum_element = chewing_gum.getElementFilter(_segment_2)(0, 0);
+  auto candy_element = candy.getElementFilter(_segment_2)(0, 0);
 
   if (chocolate_element != 0 || chewing_gum_element != 1 ||
       candy_element != 2) {

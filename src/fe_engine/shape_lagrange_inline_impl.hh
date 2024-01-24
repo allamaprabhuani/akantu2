@@ -22,7 +22,7 @@
 #include "aka_iterators.hh"
 #include "aka_voigthelper.hh"
 #include "fe_engine.hh"
-//#include "shape_lagrange.hh"
+// #include "shape_lagrange.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SHAPE_LAGRANGE_INLINE_IMPL_HH_
@@ -373,6 +373,8 @@ template <ElementType type>
 void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
                                      GhostType ghost_type,
                                      const Array<Idx> & filter_elements) const {
+  BtDs.resize(Ds.size());
+
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
@@ -415,6 +417,8 @@ template <
 void ShapeLagrange<kind>::computeBtDB(
     const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
+  BtDBs.resize(Ds.size());
+
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
@@ -467,6 +471,7 @@ template <ElementType type>
 void ShapeLagrange<kind>::computeNtbN(
     const Array<Real> & bs, Array<Real> & NtbNs, GhostType ghost_type,
     const Array<Idx> & filter_elements) const {
+  NtbNs.resize(bs.size());
 
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   auto size_of_shapes = ElementClass<type>::getShapeSize();
@@ -485,7 +490,6 @@ void ShapeLagrange<kind>::computeNtbN(
     view = make_const_view(shapes_filtered, 1, size_of_shapes);
   }
 
-  Matrix<Real> Nt_b(nb_nodes_per_element, nb_degree_of_freedom);
   for (auto && values :
        zip(view, make_view(bs, nb_degree_of_freedom, 1),
            make_view(NtbNs, nb_nodes_per_element, nb_nodes_per_element))) {

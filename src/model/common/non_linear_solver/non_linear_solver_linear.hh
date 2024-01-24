@@ -20,7 +20,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "non_linear_solver.hh"
-#include "sparse_solver_mumps.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_NON_LINEAR_SOLVER_LINEAR_HH_
@@ -28,7 +27,8 @@
 
 namespace akantu {
 class DOFManagerDefault;
-}
+class SparseSolver;
+} // namespace akantu
 
 namespace akantu {
 
@@ -50,8 +50,8 @@ public:
   /// the solver callback functions
   void solve(SolverCallback & solver_callback) override;
 
-  AKANTU_GET_MACRO_NOT_CONST(Solver, solver, SparseSolverMumps &);
-  AKANTU_GET_MACRO(Solver, solver, const SparseSolverMumps &);
+  AKANTU_GET_MACRO_NOT_CONST(Solver, *solver, SparseSolver &);
+  AKANTU_GET_MACRO(Solver, *solver, const SparseSolver &);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -59,7 +59,7 @@ protected:
   DOFManagerDefault & dof_manager;
 
   /// Sparse solver used for the linear solves
-  SparseSolverMumps solver;
+  std::unique_ptr<SparseSolver> solver;
 };
 
 } // namespace akantu

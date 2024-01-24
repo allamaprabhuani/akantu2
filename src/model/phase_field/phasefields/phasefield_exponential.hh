@@ -22,18 +22,17 @@
 #include "phasefield.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
-#define __AKANTU_PHASEFIELD_EXPONENTIAL_HH__
+#ifndef AKANTU_PHASEFIELD_EXPONENTIAL_HH_
+#define AKANTU_PHASEFIELD_EXPONENTIAL_HH_
 
 namespace akantu {
-class PhaseFieldExponential : public PhaseField {
+
+template <Int dim> class PhaseFieldExponential : public PhaseField {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   PhaseFieldExponential(PhaseFieldModel & model, const ID & id = "");
-
-  ~PhaseFieldExponential() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -75,12 +74,15 @@ protected:
 
 public:
   void updateInternalParameters() override;
+
+  void initPhaseField() override;
+
+private:
+  // dimension to consider in deviatoric split
+  Int dev_dim;
 };
 
 } // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 
 #include "phasefield_exponential_inline_impl.hh"
 

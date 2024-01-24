@@ -78,7 +78,7 @@ public:
   virtual operator Array<Real> &() { return getVector(); };
 
   SolverVector & operator+(const SolverVector & y) override;
-  SolverVector & operator=(const SolverVector & y) override;
+  SolverVector & copy(const SolverVector & y) override;
 
   void resize() override {
     static_assert(not std::is_const<std::remove_reference_t<Array_>>::value,

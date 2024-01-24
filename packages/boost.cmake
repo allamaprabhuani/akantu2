@@ -25,7 +25,7 @@ set(Boost_NO_BOOST_CMAKE ON CACHE BOOL "" FORCE)
 package_declare(Boost EXTERNAL
   NOT_OPTIONAL
   DESCRIPTION "Package handling boost components"
-  EXTRA_PACKAGE_OPTIONS PREFIX Boost
+  EXTRA_PACKAGE_OPTIONS TARGET Boost::headers
   )
 
 mask_package_options(Boost)

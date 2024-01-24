@@ -19,12 +19,13 @@ __license__ = "LGPLv3"
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import re
+import glob
 import shutil
+import subprocess
+import sys
 import jinja2
 
-# import git
-# import re
-import subprocess
 
 # -- General configuration ---------------------------------------------------
 
@@ -40,13 +41,18 @@ numfig = True
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",
-    "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinx_rtd_theme",
     "sphinxcontrib.bibtex",
     "breathe",
+    "myst_parser",
+    #    "sphinx_gallery.gen_gallery",
+    "sphinx_copybutton",
+    "sphinx_toolbox.collapse",
 ]
 
 read_the_docs_build = os.environ.get("READTHEDOCS", None) == "True"
@@ -65,14 +71,22 @@ else:  # most probably running by hand
     except FileExistsError:
         pass
 
+
+if (
+    akantu_path == "@" + "CMAKE_CURRENT_BINARY_DIR" + "@"
+):  # Concatenation is to avoid cmake to replace it
+    raise Exception("Something went really wrong")
+
+sys.path.insert(0, akantu_source_path)
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = [".rst", ".md"]
+# source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
@@ -82,7 +96,25 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
+
+
+def callback(dir, files):
+    keep_re = re.compile(r".*\.(svg|gif|png|md|rst|cc|dat|py)")
+    ignores = []
+    for file in files:
+        if (not keep_re.match(file) and
+            not os.path.isdir(os.path.join(dir, file))):
+            ignores.append(file)
+    return ignores
+
+
+shutil.copytree(
+    os.path.join(akantu_source_path, "examples"),
+    os.path.join(akantu_source_path, "doc", "dev-doc", "examples"),
+    ignore=callback,
+    dirs_exist_ok=True,
+)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -95,6 +127,14 @@ exclude_patterns = [
     "manual/new-constitutive-laws.rst",
 ]
 
+exclude_patterns.extend(
+    glob.glob(
+        "examples/**/*.rst",
+        root_dir=os.path.join(akantu_source_path, "doc", "dev-doc"),
+        recursive=True,
+    )
+)
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
@@ -106,65 +146,18 @@ bibtex_bibfiles = ["manual/manual-bibliography.bib"]
 # -- Project information -----------------------------------------------------
 
 project = "Akantu"
-copyright = (
-    "2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)"
-    + " Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)"
-)
+copyright = __copyright__
 author = "Nicolas Richart"
-
-# try:
-#     tag_prefix = 'v'
-#     git_repo = git.Repo(akantu_source_path)
-
-#     git_describe = git_repo.git.describe('--tags', '--dirty', '--always',
-#                                          '--long',
-#                                          '--match', '{}*'.format(tag_prefix))
-
-#     print("GIT Describe: {}".format(git_describe))
-
-#     # git describe to PEP404 version
-#     describe_matches = re.search(
-#         (r'^{}(?P<version>.+?)' +
-#          r'(?:-(?P<distance>\d+)-g(?P<sha>[0-9a-f]+)' +
-#          r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
-#         git_describe)
-
-#     if describe_matches:
-#         describe_matches = describe_matches.groupdict()
-
-#         release = describe_matches['version']
-#         if describe_matches['distance']:
-#             release += '.' if '+' in release else '+'
-#             release += '{distance}.{sha}'.format(**describe_matches)
-#             if describe_matches['dirty']:
-#                 release += '.dirty'
-#     else:
-#         count = git_repo.git.rev_list('HEAD', '--count')
-#         describe_matches = re.search(
-#             (r'^(?P<sha>[0-9a-f]+)' +
-#              r'(?:-(?P<dirty>dirty))?$').format(tag_prefix),
-#             git_describe).groupdict()
-#         release = '{}.{}+{}'.format(file_release, count,
-#                                     describe_matches['sha'])
-
-# except git.InvalidGitRepositoryError:
-#     with open(os.path.join(akantu_source_path, 'VERSION'), 'r') as fh:
-#         version_file = fh.readlines()
-#         file_release = version_file[0].strip()
-#     release = file_release
-
-
-# print("Release: {} - Version: {}".format(release, version))
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-if read_the_docs_build:
-    html_theme = "default"
-else:
-    html_theme = "sphinx_rtd_theme"
+# if read_the_docs_build:
+#     html_theme = "default"
+# else:
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -196,43 +189,26 @@ html_sidebars = {
 math_eqref_format = "Eq. {number}"
 
 # MathJax configuration
-# if not read_the_docs_build:
-mathjax2_config = {
-    "extensions": ["tex2jax.js", "siunitx.js"],
-    "TeX": {
-        "Macros": {
-            "st": [r"\mathrm{#1}", 1],
-            "mat": [r"\mathbf{#1}", 1],
-            "half": [r"\frac{1}{2}", 0],
-        },
-        "extensions": ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
-    },
-}
-
-# for old versions
-mathjax_config = mathjax2_config
-
 mathjax3_config = {
     "tex": {
         "macros": {
-            "st": [r"\mathrm{#1}", 1],
-            "mat": [r"\mathbf{#1}", 1],
-            "half": [r"\frac{1}{2}", 0],
+            "st": ["\\mathrm{#1}", 1],
+            "mat": ["\\mathbf{#1}", 1],
+            "half": "\\frac{1}{2}",
         },
-        "packages": ["base", "ams"],
+        "packages": {"[+]": ["ams"]},
     },
-    "loader": {"load": ["[tex]/ams"]},
+    "loader": {
+        "load": ["[tex]/ams"],
+    },
 }
 
-
 # -- Options for HTMLHelp output ---------------------------------------------
-
 # Output file base name for HTML help builder.
 htmlhelp_basename = "Akantudoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
-
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
@@ -261,7 +237,8 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "akantu", "Akantu Documentation", [author], 1)]
+man_pages = [(master_doc, "akantu",
+              "Akantu Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -305,6 +282,7 @@ epub_exclude_files = ["search.html"]
 
 # -- Extension configuration -------------------------------------------------
 j2_args = {}
+j2_template_path = "."
 
 if read_the_docs_build or not cmake_configure:
     j2_template_path = "."
@@ -337,12 +315,24 @@ subprocess.run(["doxygen", "akantu.dox"], cwd=akantu_path)
 breathe_projects = {"Akantu": os.path.join(akantu_path, "xml")}
 breathe_default_project = "Akantu"
 breathe_default_members = ("members", "undoc-members")
-breathe_implementation_filename_extensions = [".c", ".cc", ".cpp"]
+breathe_implementation_filename_extensions = [".c", ".cc", ".cpp", ".hh"]
 breathe_show_enumvalue_initializer = True
-breathe_debug_trace_directives = True
+breathe_debug_trace_directives = False
+breathe_short_warning = True
 
-# -- Options for intersphinx extension ---------------------------------------
+# -- Gallery ------------------------------------------------------------------
+# sphinx_gallery_conf = {
+#     'examples_dirs': os.path.join(akantu_source_path, 'examples'),
+#     'gallery_dirs': os.path.join(akantu_source_path, 'doc',
+#                                  'dev-doc', 'auto_examples'),
+#     'download_all_examples': False,
+#     'plot_gallery': 'False',
+#     'only_warn_on_example_error': True,
+#     'log_level': {'backreference_missing': 'debug'},
+# }
 
+
+# -- Options for intersphinx extension ----------------------------------------
 intersphinx_mapping = {
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),

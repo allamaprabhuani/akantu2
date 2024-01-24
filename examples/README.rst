@@ -1,59 +1,41 @@
-========
 Examples
 ========
 
-This examples demonstrate some of the principal features of **Akantu**.  Each
-sub-folder contain concentrate on one particular features.
+This part of the documentation describes the examples that are found in the
+`examples <https://gitlab.com/akantu/akantu/-/tree/master/examples>`_ in the
+repository. Akantu's example are separated in 2 types, the C++ and the python
+ones, respectively in the 2 sub-folders ``c++/`` and ``python/``. The structure of
+this documentation follows the folder structure of the ``examples`` folder.
 
-Common features
----------------
+The examples can be compiled by setting the option ``AKANTU_EXAMPLES`` in the
+cmake configuration. They can be executed from after compilation from the
+``examples`` folder in the build directory. Even though the python examples do not
+need to be compiled, some file may still be generated it is then easier to run
+them from the build directory. In order to set the different environment
+variables needed a script ``akantu_environment.sh`` can be found in the build
+directory.
 
-*boundary_conditions*
-  This shows how to impose boundary conditions by using the group of elements
-  defining the boundaries. Boundaries are applied mainly by using functors, some
-  are predefined in akantu asshown in the sub-example 'predefined_bc'. If this
-  is not sufficient the user can define it's one functor, example
-  'user_defined_bc'
+Examples in both 2D and 3D are presented with the dimension is specified in the 
+respective example titles. The only distinctions between a 2D and a 3D simulation lie in 
+the mesh declaration. 
+In C++:
 
-*io*
-  This examples show some advanced features of the dumpers, to dump extra
-  fields than the default ones
+.. code-block:: c++
 
-*parallel*
-  This example shows how to initialize a parallel computation
+    const Int spatial_dimension = 2;  // or 3 for 3D
+    Mesh mesh(spatial_dimension);
+    mesh.read("example_mesh.msh");
 
-*python*
-  This examples show some basic usage of the python interface
+In Python:
 
-Solid Mechanics
----------------
+.. code-block:: python
 
-*explicit*
-  This examples shows a dynamic wave propagation in a beam. It uses a central
-  difference explicit time integration scheme.
+    spatial_dimension = 2  # or 3 for 3D
+    mesh = aka.Mesh(spatial_dimension)
+    mesh.read("example_mesh.msh")
 
-*implicit*
-  This example shows how to use the implicit dynamic solver.
+where ``example_mesh.msh`` is either a 2D or a 3D mesh.
 
-*static*
-  This example shows how to do a static computation
+.. include:: examples/c++/README.rst
 
-*cohesive_element*
-  This examples show some usage of the cohesive element in explicit or implicit
-  and with extrinsic or intrinsic elements
-
-*new_material*
-  This example shows how to write a custom material outside of **Akantu** and
-  how to use it
-
-Heat transfer
--------------
-
-*heat_transfer*
-  This example shows how to use the HeatTransferModel
-
-Structural mechanics
---------------------
-
-*structural_mechanics*
-  This example shows how to use the StructuralMechanicsModel
+.. include:: examples/python/README.rst

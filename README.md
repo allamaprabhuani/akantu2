@@ -18,7 +18,6 @@ In addition some libraries are required:
 
  - CMake (>= 3.5.1)
  - Boost (pre-processor and Spirit)
- - zlib
  - Eigen3 (if not present the build system will try to download it)
 
 For the python interface:
@@ -44,7 +43,7 @@ To compile the tests and examples:
 ### On `.deb` based systems
 
 ``` sh
- > sudo apt install cmake libboost-dev zlib1g-dev gmsh libeigen3-dev
+ > sudo apt install cmake libboost-dev gmsh libeigen3-dev
  # For parallel
  > sudo apt install mpi-default-dev libmumps-dev libscotch-dev
  # For sequential

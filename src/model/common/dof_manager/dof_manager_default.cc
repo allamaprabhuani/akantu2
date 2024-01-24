@@ -198,7 +198,6 @@ NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
                                          const NonLinearSolverType & type) {
   switch (type) {
-#if defined(AKANTU_USE_MUMPS)
   case NonLinearSolverType::_newton_raphson:
     /* FALLTHRU */
     /* [[fallthrough]]; un-comment when compiler will get it */
@@ -211,7 +210,6 @@ DOFManagerDefault::getNewNonLinearSolver(const ID & id,
     return this->registerNonLinearSolver<NonLinearSolverLinear>(*this, id,
                                                                 type);
   }
-#endif
   case NonLinearSolverType::_lumped: {
     return this->registerNonLinearSolver<NonLinearSolverLumped>(*this, id,
                                                                 type);

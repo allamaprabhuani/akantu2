@@ -37,7 +37,8 @@
 #define __AKANTU_PHASEFIELD_QUADRATIC_HH__
 
 namespace akantu {
-class PhaseFieldQuadratic : public PhaseField {
+
+template<Int dim> class PhaseFieldQuadratic : public PhaseField {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -94,6 +95,9 @@ private:
 
   // penalization parameter
   Real gamma;
+
+  // dimension to consider in deviatoric split
+  Int dev_dim;
 };
 
 } // namespace akantu

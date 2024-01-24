@@ -34,11 +34,11 @@
 #define IOHELPER_COMMON_H_
 /* -------------------------------------------------------------------------- */
 
-#define USING_ZLIB
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <sstream>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
 
 /* -------------------------------------------------------------------------- */

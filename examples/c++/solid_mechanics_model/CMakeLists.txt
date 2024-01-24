@@ -1,0 +1,7 @@
+add_example(new_material         "Example on how to add a new material in Akantu"      PACKAGE core)
+add_example(boundary_conditions  "Example on hoy to set boundary conditions"           PACKAGE core)
+add_example(explicit             "Example on how to run an explicit simulation"        PACKAGE core)
+add_example(io                   "Example on how to perform Input/Output operations"   PACKAGE core)
+add_example(implicit             "Example on how to run an implicit simulation"        PACKAGE implicit)
+add_example(static               "Example on how to run a static simulation"           PACKAGE implicit)
+add_example(parallel             "Example of how to write a parallel code with Akantu" PACKAGE parallel)

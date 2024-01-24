@@ -35,7 +35,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_
   package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-attributes")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.9) OR
+    (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14.0))
   package_set_compile_flags(core CXX "-Wall -Wextra -pedantic -Wno-undefined-var-template -Wno-unknown-attributes")
 endif()
 
@@ -78,7 +79,6 @@ package_declare_sources(core
   common/aka_view_iterators.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh
-  common/aka_voigthelper.cc
   common/aka_warning.hh
   common/aka_warning_restore.hh
   
@@ -140,8 +140,6 @@ package_declare_sources(core
   io/mesh_io/mesh_io_diana.hh
   io/mesh_io/mesh_io_msh.cc
   io/mesh_io/mesh_io_msh.hh
-  #io/model_io.cc
-  #io/model_io.hh
 
   io/parser/algebraic_parser.hh
   io/parser/input_file_parser.hh
@@ -149,8 +147,6 @@ package_declare_sources(core
   io/parser/parsable.hh
   io/parser/parser.cc
   io/parser/parser_real.cc
-  io/parser/parser_random.cc
-  io/parser/parser_types.cc
   io/parser/parser_input_files.cc
   io/parser/parser.hh
   io/parser/parser_tmpl.hh
@@ -210,6 +206,19 @@ package_declare_sources(core
   model/common/boundary_condition/boundary_condition_functor_inline_impl.hh
   model/common/boundary_condition/boundary_condition_tmpl.hh
 
+  model/common/constitutive_laws/constitutive_law_non_local_interface.hh
+  model/common/constitutive_laws/constitutive_law_non_local_interface_tmpl.hh
+  model/common/constitutive_laws/constitutive_law.hh
+  model/common/constitutive_laws/constitutive_law_selector.hh
+  model/common/constitutive_laws/constitutive_law_selector_tmpl.hh
+  model/common/constitutive_laws/constitutive_law_tmpl.hh
+  model/common/constitutive_laws/constitutive_laws_handler.hh
+  model/common/constitutive_laws/constitutive_laws_handler_tmpl.hh
+  model/common/constitutive_laws/internal_field.hh
+  model/common/constitutive_laws/internal_field_tmpl.hh
+  model/common/constitutive_laws/random_internal_field.hh
+  model/common/constitutive_laws/random_internal_field_tmpl.hh
+
   model/common/non_local_toolbox/neighborhood_base.hh
   model/common/non_local_toolbox/neighborhood_base.cc
   model/common/non_local_toolbox/neighborhood_base_inline_impl.hh
@@ -244,8 +253,12 @@ package_declare_sources(core
   model/common/non_linear_solver/non_linear_solver.cc
   model/common/non_linear_solver/non_linear_solver.hh
   model/common/non_linear_solver/non_linear_solver_default.hh
+  model/common/non_linear_solver/non_linear_solver_linear.cc
+  model/common/non_linear_solver/non_linear_solver_linear.hh
   model/common/non_linear_solver/non_linear_solver_lumped.cc
   model/common/non_linear_solver/non_linear_solver_lumped.hh
+  model/common/non_linear_solver/non_linear_solver_newton_raphson.cc
+  model/common/non_linear_solver/non_linear_solver_newton_raphson.hh
 
   model/common/time_step_solvers/time_step_solver.hh
   model/common/time_step_solvers/time_step_solver.cc
@@ -284,6 +297,8 @@ package_declare_sources(core
   solver/sparse_matrix_inline_impl.hh
   solver/sparse_solver.cc
   solver/sparse_solver.hh
+  solver/sparse_solver_eigen.cc
+  solver/sparse_solver_eigen.hh
   solver/sparse_solver_inline_impl.hh
   solver/terms_to_assemble.hh
 
@@ -299,8 +314,8 @@ package_declare_sources(core
   synchronizer/communicator_dummy_inline_impl.hh
   synchronizer/communicator_event_handler.hh
   synchronizer/communicator_inline_impl.hh
-  synchronizer/data_accessor.cc
   synchronizer/data_accessor.hh
+  synchronizer/data_accessor_tmpl.hh
   synchronizer/dof_synchronizer.cc
   synchronizer/dof_synchronizer.hh
   synchronizer/dof_synchronizer_inline_impl.hh
@@ -351,6 +366,5 @@ mark_as_advanced(ADDR2LINE_COMMAND)
 
 package_declare_extra_files_to_package(core
   SOURCES
-    common/aka_element_classes_info.hh.in
     common/aka_config.hh.in
   )

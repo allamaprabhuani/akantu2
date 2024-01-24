@@ -1,0 +1,34 @@
+spack:
+  view: true
+  concretizer:
+    unify: true
+  compilers:
+    - compiler:
+        spec: apple-clang@=15.0.0
+        paths:
+          cc: /usr/bin/clang
+          cxx: /usr/bin/clang++
+          f77: null
+          fc: null
+        flags: {}
+        operating_system: macos
+        target: aarch64
+        modules: []
+        environment: {}
+        extra_rpaths: []
+  specs:
+    - cmake ~ncurses
+    - boost ~atomic ~chrono ~clanglibcpp ~container ~context ~coroutine ~date_time ~debug
+      ~exception ~fiber ~filesystem ~graph ~icu~iostreams ~locale ~log ~math ~mpi ~multithreaded
+      ~numpy ~pic ~program_options ~python ~random ~regex ~serialization ~shared ~signals
+      ~singlethreaded ~system ~taggedlayout ~test ~thread ~timer ~wave
+    - eigen
+  packages:
+    openssl:
+      externals:
+      - spec: openssl@3.1.3
+        prefix: /opt/homebrew
+    gmake:
+      externals:
+      - spec: gmake@3.81
+        prefix: /usr

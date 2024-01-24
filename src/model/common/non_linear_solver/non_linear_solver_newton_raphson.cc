@@ -24,8 +24,19 @@
 #include "dof_manager_default.hh"
 #include "solver_callback.hh"
 #include "solver_vector.hh"
-#include "sparse_solver_mumps.hh"
 /* -------------------------------------------------------------------------- */
+
+#if !defined(AKANTU_USE_MUMPS) && !defined(AKANTU_USE_PETSC)
+#include "sparse_solver_eigen.hh"
+namespace akantu {
+using SparseSolverType = SparseSolverEigen;
+}
+#else
+#include "sparse_solver_mumps.hh"
+namespace akantu {
+using SparseSolverType = SparseSolverMumps;
+}
+#endif
 
 namespace akantu {
 
@@ -34,7 +45,7 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
     const NonLinearSolverType & non_linear_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      dof_manager(dof_manager), solver(std::make_unique<SparseSolverMumps>(
+      dof_manager(dof_manager), solver(std::make_unique<SparseSolverType>(
                                     dof_manager, "J", id + ":sparse_solver")) {
 
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
@@ -135,7 +146,8 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
         "[" << this->convergence_criteria_type << "] Convergence iteration "
             << std::setw(std::log10(this->max_iterations)) << this->n_iter
             << ": error " << this->error << (this->converged ? " < " : " > ")
-            << this->convergence_criteria);
+            << this->convergence_criteria_normalized);
+
   } while (not this->converged and this->n_iter <= this->max_iterations);
 
   // this makes sure that you have correct strains and stresses after the

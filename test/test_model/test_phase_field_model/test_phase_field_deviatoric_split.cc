@@ -99,30 +99,31 @@ int main(int argc, char * argv[]) {
       strain_energy_plus = axial_strain * axial_strain * (0.5 * lambda + mu);
       strain_energy_minus = 0.;
     } else {
-      strain_energy_plus = 0.5 * axial_strain * axial_strain * mu;
-      strain_energy_minus = axial_strain * axial_strain * 0.5 * (lambda + mu);
+      strain_energy_plus = 2. * axial_strain * axial_strain * mu / 3.;
+      strain_energy_minus =
+          axial_strain * axial_strain * (0.5 * lambda + mu / 3.);
     }
 
-    // if (strain_energy_plus > max_strain_energy) {
-    //   max_strain_energy = strain_energy_plus;
-    // }
-    max_strain_energy = strain_energy_plus;
+    if (strain_energy_plus > max_strain_energy) {
+      max_strain_energy = strain_energy_plus;
+    }
+    // max_strain_energy = strain_energy_plus;
 
     coupler.solve("static", "static");
     phase.savePreviousState();
-    phase.savePreviousDamage();
 
     new_damage = 2. * (l0 / gc) * max_strain_energy /
                  (2. * (l0 / gc) * max_strain_energy + 1.);
     if (new_damage > analytical_damage) {
       analytical_damage = new_damage;
     }
+
     if (axial_strain < 0.) {
       analytical_sigma = (1. - analytical_damage) * (1. - analytical_damage) *
-                             axial_strain * mu +
-                         axial_strain * (lambda + mu);
+                             axial_strain * 4. * mu / 3. +
+                         axial_strain * (lambda + 2. * mu / 3.);
     } else {
-      analytical_sigma = (lambda + 2. * mu) * axial_strain *
+      analytical_sigma = (lambda + 6. * mu / 3.) * axial_strain *
                          (1. - analytical_damage) * (1. - analytical_damage);
     }
 

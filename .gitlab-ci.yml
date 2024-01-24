@@ -10,25 +10,33 @@ stages:
   - code_quality
   - deploy
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v[0-9].*$/
+
 include:
-  local: ".gitlab-ci.d/*.yaml"
+  local: ".gitlab/ci.d/*.yaml"
 
 #-------------------------------------------------------------------------------
 # Rebuilding the docker images if needed
 #-------------------------------------------------------------------------------
 docker build:debian-bullseye:
   variables:
-    IMAGE_NAME: debian:bullseye
+    IMAGE_NAME: 'debian:bullseye'
   extends: .docker_build
 
 docker build:ubuntu-lts:
   variables:
-    IMAGE_NAME: ubuntu:lts
+    IMAGE_NAME: 'ubuntu:lts'
   extends: .docker_build
 
 docker build:manylinux:
   variables:
-    IMAGE_NAME: manylinux:2014_x86_64
+    IMAGE_NAME: 'manylinux:2014_x86_64'
   extends: .docker_build
 
 version_determination:
@@ -191,141 +199,146 @@ test:ubuntu_lts_gcc_valgrind:
 # Manylinux to build python packages
 # ------------------------------------------------------------------------------
 configure:python_package:
-  stage: configure
   extends:
-    - .manylinux_2014_x64_gcc
-    - .build_release
-  cache:
-    - key: ${CI_COMMIT_REF_SLUG}-third-party
-      paths:
-        - third-party/eigen3
-        - third-party/pybind11
-        - third-party/google-test
-    - key: ${output}-${BUILD_TYPE}-ccache
-      paths:
-        - .ccache/
-    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      paths:
-        - build/
-  script:
-    # create the build folder
-    - cmake -E make_directory build
-    - cd build
-
-    # Variables for cmake
-    - export CMAKE_PREFIX_PATH=/softs/view
-    - export BOOST_ROOT=/softs/view
-
-    # Configure in sequential and without tests or examples
-    - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
-      -DAKANTU_IMPLICIT:BOOL=TRUE
-      -DAKANTU_PARALLEL:BOOL=FALSE
-      -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
-      -DAKANTU_HEAT_TRANSFER:BOOL=TRUE
-      -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
-      -DAKANTU_PHASE_FIELD:BOOL=TRUE
-      -DAKANTU_PYTHON_INTERFACE:BOOL=FALSE
-      -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
-      -DAKANTU_EXAMPLES:BOOL=FALSE
-      -DAKANTU_TESTS:BOOL=FALSE
-      -DMUMPS_DETECT_DEBUG:BOOL=TRUE
-      -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
-      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+    - .manylinux_2014_x86_64_gcc
+    - .configure_python
   needs:
     - version_determination
-  artifacts:
-    when: on_success
-    paths:
-      - VERSION
-    expire_in: 10h
 
 build_akantu:python_package:
   extends:
-    - .build_libs
-    - .build_release
-    - .manylinux_2014_x64_gcc
-  script:
-    - cmake --build build --target akantu -j1
-    - cmake --install build
-  artifacts:
-    when: on_success
-    paths:
-      - install/
-      - VERSION
-    expire_in: 10h
+    - .build_python_akantu
+    - .manylinux_2014_x86_64_gcc
   needs:
     - job: configure:python_package
 
 build_pip:python_package:
-  stage: build_tests
   extends:
+    - .code_only
     - .build_release
-    - .manylinux_2014_x64_gcc
-  cache:
-    - key: ${CI_COMMIT_REF_SLUG}-third-party
-      paths:
-        - third-party/eigen3
-        - third-party/pybind11
-        - third-party/google-test
-    - key: ${output}-${BUILD_TYPE}-ccache
-      paths:
-        - .ccache/
-    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      paths:
-        - build/
-  script:
-    - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
-    - export CMAKE_PREFIX_PATH=/softs/view:${CI_AKANTU_INSTALL_PREFIX}
-    - test/ci/make-wheels.sh
+    - .manylinux_2014_x86_64_gcc
+    - .build_python_package
   needs:
     - job: build_akantu:python_package
-  artifacts:
-    when: on_success
-    paths:
-      - wheelhouse
-    expire_in: 10h
 
 test:python_package:
-  stage: test
+  extends:
+    - .test_python_package
+    - .code_only
   image: python:3.10
   needs:
     - job: build_pip:python_package
-  script:
-    - pip install numpy scipy
-    - pip install akantu --no-index --find-links=${PWD}/wheelhouse
-    - python -c "import akantu"
-    - cd examples/python/dynamics/
+  before_script:
     - apt update && apt install -y gmsh
-    - gmsh -2 bar.geo
-    - python ./dynamics.py
 
+# ------------------------------------------------------------------------------
+# MacOS X to build python packages
+# ------------------------------------------------------------------------------
+configure:python_package_macos:
+  extends:
+    - .configure_python
+    - .macos_clang
+  needs:
+    - version_determination
+
+build_akantu:python_package_macos:
+  extends:
+    - .build_python_akantu
+    - .macos_clang
+  needs:
+    - job: configure:python_package_macos
+
+build_pip:python_package_macos:
+  extends:
+    - .build_python_package
+    - .macos_clang
+  needs:
+    - job: build_akantu:python_package_macos
+
+test:python_package_macos:
+  extends:
+    - .test_python_package
+    - .macos_clang
+  needs:
+    - job: build_pip:python_package_macos
+
+# ------------------------------------------------------------------------------
+# PYPI Upload
+# ------------------------------------------------------------------------------
 package:python_gitlab:
   stage: deploy
   image: python:latest
+  variables:
+    TWINE_PASSWORD: ${CI_JOB_TOKEN}
+    TWINE_USERNAME: gitlab-ci-token
   script:
     - pip install twine
-    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token
-      python3 -m twine upload
-      --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
-      wheelhouse/*
+    - python3 -m twine upload --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi
+              wheelhouse/*
+              wheelhouse_macos/*
   needs:
     - job: build_pip:python_package
     - job: test:python_package
-  only:
-    - master
+    - job: build_pip:python_package_macos
+    - job: test:python_package_macos
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 package:python_pypi:
   stage: deploy
   image: python:latest
+  variables:
+    TWINE_PASSWORD: ${PYPI_TOKEN}
+    TWINE_USERNAME: __token__
   script:
     - pip install twine
-    - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__
-      python3 -m twine upload --verbose wheelhouse/*
+    - python3 -m twine upload --verbose
+              wheelhouse/*
+              wheelhouse_macos/*
   needs:
     - job: build_pip:python_package
     - job: test:python_package
-  only:
-    - tags
+    - job: build_pip:python_package_macos
+    - job: test:python_package_macos
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /v[0-9]+.*/
+
+
+# ------------------------------------------------------------------------------
+# Release
+# ------------------------------------------------------------------------------
+package:release:
+  stage: deploy
+  image: debian:testing
+  variables:
+    EXAMPLES_PACKAGE: "akantu-python-examples-${CI_COMMIT_TAG}.tgz"
+    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/akantu-examples/${CI_COMMIT_TAG}"
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /v[0-9]+.*/
+  script:
+    - export VERSION=$(cat VERSION)
+    - |
+      tar -cvzf akantu-python-examples-${CI_COMMIT_TAG}.tgz \
+        --exclude "CMakeFiles" \
+        --exclude "*\.cmake" \
+        --exclude "Makefile" \
+        --transform 's:^build/examples/python:akantu-python-examples:' \
+        build/examples/python
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        --upload-file ${EXAMPLES_PACKAGE} ${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}
+    - export DESCRIPTION=$(markdown-extract "Version ${VERSION}" CHANGELOG.md)
+    - |
+      release-cli create \
+        --name "Version ${VERSION}" \
+        --description "${DESCRIPTION}" \
+        --tag-name "${CI_COMMIT_TAG}" \
+        --assets-link "{\"name\": \"Python Examples\", \"url\": \"${PACKAGE_REGISTRY_URL}/${EXAMPLES_PACKAGE}\", \"link_type\": \"Package\"}" \
+        --assets-link "{\"name\": \"PyPi package\", \"url\": \"https://pypi.org/project/akantu/${VERSION}/\", \"link_type\": \"Package\"}" \
+        --assets-link "{\"name\": \"Documentation\", \"url\": \"https://akantu.readthedocs.io/en/${CI_COMMIT_TAG}/\", \"link_type\": \"Other\"}"
+  needs:
+    - job: build_tests:debian_bullseye_clang
+    - job: version_determination
 
 # ------------------------------------------------------------------------------
 # Code Quality
@@ -333,6 +346,7 @@ package:python_pypi:
 cq:code_quality:
   extends:
     - .code_quality_gitlab_template
+    - .code_only
   needs:
     - job: build_libs:debian_bullseye_clang
   artifacts:
@@ -342,6 +356,7 @@ cq:code_quality:
 cq:clang_tidy:
   extends:
     - .clang_tools
+    - .code_only
   script:
     - test/ci/scripts/cq
       -x third-party
@@ -361,6 +376,7 @@ cq:clang_tidy:
 cq:clang_format:
   extends:
     - .clang_tools
+    - .code_only
   script:
     - test/ci/scripts/cq
       -x third-party
@@ -377,6 +393,8 @@ cq:clang_format:
 cq:compilation_warnings:
   stage: code_quality
   image: python:latest
+  extends:
+    - .code_only
   script:
     - pip install warning-parser termcolor Click tqdm
     - ls build-*-err.log
@@ -398,6 +416,7 @@ cq:merge_code_quality:
   stage: deploy
   extends:
     - .debian_bullseye_clang
+    - .code_only
   script:
     - jq -Ms '[.[][]]' gl-*-report.json | tee gl-codequality.json | jq -C
   needs:

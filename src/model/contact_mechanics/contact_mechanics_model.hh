@@ -26,8 +26,8 @@
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#ifndef AKANTU_CONTACT_MECHANICS_MODEL_HH_
+#define AKANTU_CONTACT_MECHANICS_MODEL_HH_
 
 namespace akantu {
 class Resolution;
@@ -93,7 +93,7 @@ protected:
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
 
-  ModelSolverOptions
+  [[nodiscard]] ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /// callback for the solver, this is called at beginning of solve
@@ -358,4 +358,4 @@ private:
 #include "resolution.hh"
 /* ------------------------------------------------------------------------ */
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__ */
+#endif /* AKANTU_CONTACT_MECHANICS_MODEL_HH_ */

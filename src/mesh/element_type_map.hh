@@ -59,6 +59,11 @@ class ElementTypeMap;
 /// Common non templated base class for the ElementTypeMap class
 class ElementTypeMapBase {
 public:
+  ElementTypeMapBase() = default;
+  ElementTypeMapBase(const ElementTypeMapBase &) = default;
+  ElementTypeMapBase(ElementTypeMapBase &&) = default;
+  ElementTypeMapBase & operator=(const ElementTypeMapBase &) = default;
+  ElementTypeMapBase & operator=(ElementTypeMapBase &&) = default;
   virtual ~ElementTypeMapBase() = default;
 };
 
@@ -71,8 +76,7 @@ class ElementTypeMap : public ElementTypeMapBase {
 public:
   using value_type = Stored;
 
-  ElementTypeMap();
-  ~ElementTypeMap() override;
+  ElementTypeMap() = default;
 
   inline static auto printType(SupportType type, GhostType ghost_type)
       -> std::string;
@@ -82,7 +86,8 @@ public:
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return true if the type is present. */
-  inline auto exists(SupportType type, GhostType ghost_type = _not_ghost) const
+  [[nodiscard]] inline auto exists(SupportType type,
+                                   GhostType ghost_type = _not_ghost) const
       -> bool;
 
   /*! get the stored data corresponding to a type
@@ -104,7 +109,7 @@ public:
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
    *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
-   *  @param data to insert
+   *  @param insertee data to insert
    *  @param type type of data (if this type is already present in the map,
    *         an exception is thrown).
    *  @param ghost_type optional: by default, the data map for non-ghost
@@ -141,8 +146,6 @@ public:
   public:
     type_iterator(DataMapIterator & list_begin, DataMapIterator & list_end,
                   Int dim, ElementKind ek);
-
-    type_iterator(const type_iterator & it);
     type_iterator() = default;
 
     inline auto operator*() -> reference;
@@ -151,59 +154,37 @@ public:
     auto operator++(int) -> type_iterator;
     inline auto operator==(const type_iterator & other) const -> bool;
     inline auto operator!=(const type_iterator & other) const -> bool;
-    auto operator=(const type_iterator & other) -> type_iterator &;
 
   private:
     DataMapIterator list_begin;
     DataMapIterator list_end;
-    Int dim;
-    ElementKind kind;
+    Int dim{_all_dimensions};
+    ElementKind kind{_ek_not_defined};
   };
 
   /// helper class to use in range for constructions
   class ElementTypesIteratorHelper {
   public:
-    using Container = ElementTypeMap<Stored, SupportType>;
-    using iterator = typename Container::type_iterator;
-
-    ElementTypesIteratorHelper(const Container & container, Int dim,
+    ElementTypesIteratorHelper(const ElementTypeMap & container, Int dim,
                                GhostType ghost_type, ElementKind kind)
         : container(std::cref(container)), dim(dim), ghost_type(ghost_type),
           kind(kind) {}
 
-    template <typename... pack>
-    ElementTypesIteratorHelper(const Container & container,
-                               use_named_args_t /*unused*/, pack &&... _pack)
-        : ElementTypesIteratorHelper(
-              container, OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
-              OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
-              OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined)) {}
-
-    ElementTypesIteratorHelper(const ElementTypesIteratorHelper &) = default;
-    auto operator=(const ElementTypesIteratorHelper &)
-        -> ElementTypesIteratorHelper & = default;
-    auto operator=(ElementTypesIteratorHelper &&) noexcept
-        -> ElementTypesIteratorHelper & = default;
-
-    auto begin() -> iterator;
-    auto end() -> iterator;
+    auto begin() -> type_iterator;
+    auto end() -> type_iterator;
 
   private:
-    std::reference_wrapper<const Container> container;
-    Int dim;
-    GhostType ghost_type;
-    ElementKind kind;
+    std::reference_wrapper<const ElementTypeMap> container;
+    Int dim{_all_dimensions};
+    GhostType ghost_type{_not_ghost};
+    ElementKind kind{_ek_not_defined};
   };
 
-private:
-  auto elementTypesImpl(Int dim = _all_dimensions,
-                        GhostType ghost_type = _not_ghost,
-                        ElementKind kind = _ek_not_defined) const
+protected:
+  [[nodiscard]] virtual auto
+  elementTypesImpl(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+                   ElementKind kind = _ek_not_defined) const
       -> ElementTypesIteratorHelper;
-
-  template <typename... pack>
-  auto elementTypesImpl(const use_named_args_t & /*unused*/,
-                        pack &&... _pack) const -> ElementTypesIteratorHelper;
 
 public:
   /*!
@@ -217,30 +198,35 @@ public:
    * \endparblock
    */
   template <typename... pack>
-  auto elementTypes(pack &&... _pack) const
+  [[nodiscard]] auto elementTypes(pack &&... _pack) const
       -> std::enable_if_t<are_named_argument<pack...>::value,
                           ElementTypesIteratorHelper> {
-    return elementTypesImpl(use_named_args,
-                            std::forward<decltype(_pack)>(_pack)...);
+    return elementTypesImpl(
+        OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
+        OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
+        OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined));
   }
 
-  template <typename... pack>
-  auto elementTypes(pack &&... _pack) const
-      -> std::enable_if_t<not are_named_argument<pack...>::value,
-                          ElementTypesIteratorHelper> {
-    return elementTypesImpl(std::forward<decltype(_pack)>(_pack)...);
+  [[nodiscard]] auto elementTypes(Int dim, GhostType ghost_type = _not_ghost,
+                                  ElementKind kind = _ek_not_defined) const {
+    return elementTypesImpl(dim, ghost_type, kind);
+  }
+
+  [[nodiscard]] auto elementTypes(GhostType ghost_type) const {
+    return elementTypesImpl(_all_dimensions, ghost_type, _ek_not_defined);
   }
 
   /*! Direct access to the underlying data map. for internal use by daughter
    *  classes only
    *  @param ghost_type whether to return the data map or the ghost_data map
    *  @return the raw map */
-  inline auto getData(GhostType ghost_type) -> DataMap &;
+  [[nodiscard]] inline auto getData(GhostType ghost_type) -> DataMap &;
   /*! Direct access to the underlying data map. for internal use by daughter
    *  classes only
    *  @param ghost_type whether to return the data map or the ghost_data map
    *  @return the raw map */
-  inline auto getData(GhostType ghost_type) const -> const DataMap &;
+  [[nodiscard]] inline auto getData(GhostType ghost_type) const
+      -> const DataMap &;
 
   /* ------------------------------------------------------------------------ */
 protected:
@@ -355,8 +341,7 @@ public:
    *         elements is searched
    *  @param vect the vector to include into the map
    *  @return stored data corresponding to type. */
-  inline void setArray(SupportType type, GhostType ghost_type,
-                       const Array<T> & vect);
+  inline void setArray(SupportType type, GhostType ghost_type, Array<T> & vect);
   /*! frees all memory related to the data*/
   inline void free();
 
@@ -385,12 +370,13 @@ public:
   inline void setID(const ID & id) { this->id = id; }
 
   /// return the id
-  inline auto getID() const -> ID { return this->id; }
+  [[nodiscard]] [[nodiscard]] inline auto getID() const -> ID {
+    return this->id;
+  }
 
-  auto getNbComponents(Int dim = _all_dimensions,
-                       GhostType requested_ghost_type = _not_ghost,
-                       ElementKind kind = _ek_not_defined) const
-      -> ElementTypeMap<Int> {
+  [[nodiscard]] auto getNbComponents(
+      Int dim = _all_dimensions, GhostType requested_ghost_type = _not_ghost,
+      ElementKind kind = _ek_not_defined) const -> ElementTypeMap<Int> {
     ElementTypeMap<Int> nb_components;
     auto all_ghost_types = requested_ghost_type == _casper;
     for (auto ghost_type : ghost_types) {
@@ -445,12 +431,12 @@ public:
    **/
   template <typename... pack> auto size(pack &&... _pack) const -> Int;
 
-  auto isNodal() const -> bool { return is_nodal; }
+  [[nodiscard]] auto isNodal() const -> bool { return is_nodal; }
   void isNodal(bool is_nodal) { this->is_nodal = is_nodal; }
 
 private:
-  auto sizeImpl(Int spatial_dimension, GhostType ghost_type,
-                ElementKind kind) const -> Int;
+  [[nodiscard]] auto sizeImpl(Int spatial_dimension, GhostType ghost_type,
+                              ElementKind kind) const -> Int;
 
 private:
   ID id;

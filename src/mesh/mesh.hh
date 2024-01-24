@@ -416,6 +416,12 @@ public:
   template <typename T> inline decltype(auto) getData(const ID & data_name);
 
   template <typename T>
+  inline decltype(auto) getData(const ID & data_name, Element element) const;
+
+  template <typename T>
+  inline decltype(auto) getData(const ID & data_name, Element element);
+
+  template <typename T>
   auto getNbDataPerElem(ElementTypeMapArray<T> & array) -> ElementTypeMap<Int>;
 
   template <typename T>
@@ -705,5 +711,10 @@ inline auto Mesh::getNbElement(const Int spatial_dimension,
 /* -------------------------------------------------------------------------- */
 #include "element_type_map_tmpl.hh"
 #include "mesh_inline_impl.hh"
+
+/* -------------------------------------------------------------------------- */
+#include "element_group.hh"
+#include "node_group.hh"
+/* -------------------------------------------------------------------------- */
 
 #endif /* AKANTU_MESH_HH_ */

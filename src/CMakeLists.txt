@@ -56,16 +56,10 @@ set(AKANTU_INCLUDE_DIRS
 #===========================================================================
 # configurations
 #===========================================================================
-package_get_all_material_includes(AKANTU_MATERIAL_INCLUDES)
-package_get_all_material_lists(AKANTU_MATERIAL_LISTS)
-configure_file(model/solid_mechanics/material_list.hh.in
-  "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh" @ONLY)
-
 configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
-  "${CMAKE_CURRENT_BINARY_DIR}/material_list.hh"
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
 
 configure_file(common/aka_config.cc.in
@@ -80,7 +74,7 @@ list(APPEND AKANTU_LIBRARY_SRCS
 set(AKANTU_GDB_DIR ${PROJECT_SOURCE_DIR}/cmake)
 if(UNIX AND NOT APPLE)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" _u_build_type)
-  if(_u_build_type STREQUAL "DEBUG" OR _u_build_type STREQUAL "RELWITHDEBINFO")
+  if(_u_build_type MATCHES "DEBUG" OR _u_build_type MATCHES "RELWITHDEBINFO")
     configure_file(${PROJECT_SOURCE_DIR}/cmake/libakantu-gdb.py.in
       "${PROJECT_BINARY_DIR}/libakantu-gdb.py"
       @ONLY)
@@ -165,6 +159,12 @@ if(AKANTU_LIBRARY_PRIVATE_HDRS)
   set_property(TARGET akantu PROPERTY PRIVATE_HEADER ${AKANTU_LIBRARY_PRIVATE_HDRS})
 endif()
 
+if(AKANTU_COMPILER_LAUNCHER)
+  set_property(TARGET akantu PROPERTY CXX_COMPILER_LAUNCHER "${AKANTU_COMPILER_LAUNCHER}")
+endif()
+
+set_property(TARGET akantu PROPERTY CXX_EXTENSIONS OFF)
+
 target_compile_features(akantu PUBLIC cxx_std_${AKANTU_CXX_STANDARD})
 set_target_properties(akantu
   PROPERTIES CXX_STANDARD ${AKANTU_CXX_STANDARD})
@@ -178,6 +178,15 @@ package_get_all_extra_dependencies(_extra_target_dependencies)
 if(_extra_target_dependencies)
   # This only adding todo: find a solution for when a dependency was add the is removed...
   add_dependencies(akantu ${_extra_target_dependencies})
+endif()
+
+if(AKANTU_SPLIT_DWARF)
+  target_compile_options(akantu
+    PRIVATE $<$<CONFIG:DEBUG>:-gsplit-dwarf -gdwarf-5> $<$<CONFIG:SANITIZEDEBUG>:-gsplit-dwarf -gdwarf-5>
+  )
+  target_link_options(akantu
+    PRIVATE -fuse-ld=gold $<$<CONFIG:DEBUG>:-Wl,--gdb-index> $<$<CONFIG:SANITIZEDEBUG>:-Wl,--gdb-index>
+  )
 endif()
 
 package_get_all_export_list(AKANTU_EXPORT_LIST)
@@ -223,9 +232,6 @@ foreach(_pkg ${_pkg_list})
     APPEND PROPERTY COMPILE_DEFINITIONS AKANTU_MODULE=${_l_package_name})
 endforeach()
 
-# print out the list of materials
-generate_material_list()
-
 register_target_to_tidy(akantu)
 register_tidy_all(${AKANTU_LIBRARY_SRCS})
 register_code_to_format(
@@ -239,8 +245,14 @@ cmake_policy(SET CMP0069 NEW)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error LANGUAGES CXX)
 if(ipo_supported)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" _u_build_type)
+  if(NOT _u_build_type MATCHES "DEBUG")
     message(STATUS "IPO/LTO enabled")
     set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "IPO/LTO supported but deactivated in debug")
+    set_property(TARGET akantu PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
+  endif()
 else()
     message(STATUS "IPO/LTO not supported: <${ipo_error}>")
 endif()

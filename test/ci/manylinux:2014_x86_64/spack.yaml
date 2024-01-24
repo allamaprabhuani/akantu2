@@ -23,12 +23,28 @@ spack:
     install_tree: /softs/software
 
   specs:
-    - cmake@3.18.2 ~ncurses
-    - zlib
     - boost ~atomic ~chrono ~clanglibcpp ~container ~context ~coroutine ~date_time ~debug ~exception ~fiber ~filesystem ~graph ~icu~iostreams ~locale ~log ~math ~mpi ~multithreaded ~numpy ~pic ~program_options ~python ~random ~regex ~serialization ~shared ~signals ~singlethreaded ~system ~taggedlayout ~test ~thread ~timer ~wave
-    - openblas +pic
+    - openblas +pic threads=none
     - eigen
     - mumps ~mpi ~complex ~float
   view: /softs/view
   concretizer:
     unify: true
+
+  packages:
+    cmake:
+      externals:
+      - spec: cmake@3.27.7
+        prefix: /usr/local
+    gmake:
+      externals:
+      - spec: gmake@3.82
+        prefix: /usr
+    openssl:
+      externals:
+      - spec: openssl@1.0.2k-fips
+        prefix: /usr
+    perl:
+      externals:
+      - spec: perl@5.16.3
+        prefix: /usr

@@ -31,7 +31,7 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.9)
 
 project(IOHelper)
 enable_language(CXX)
@@ -40,13 +40,6 @@ enable_language(CXX)
 # Misc.
 #===============================================================================
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
-
-find_package (ZLIB)
-
-if(ZLIB_FOUND)
-  set (IOHELPER_EXTERNAL_LIBS ${IOHELPER_EXTERNAL_LIBS} ${ZLIB_LIBRARIES})
-  include_directories(${ZLIB_INCLUDE_DIR})
-endif()
 
 #===============================================================================
 # Version Number

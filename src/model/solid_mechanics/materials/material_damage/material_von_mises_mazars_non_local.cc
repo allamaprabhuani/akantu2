@@ -27,7 +27,7 @@ template class MaterialMazarsNonLocal<1, MaterialLinearIsotropicHardening>;
 template class MaterialMazarsNonLocal<2, MaterialLinearIsotropicHardening>;
 template class MaterialMazarsNonLocal<3, MaterialLinearIsotropicHardening>;
 
-static bool material_is_allocated_plastic_mazars_non_local =
+const bool material_is_allocated_plastic_mazars_non_local [[maybe_unused]] =
     instantiateMaterial<MaterialVonMisesMazarsNonLocal>(
         "plastic_mazars_non_local");
 
