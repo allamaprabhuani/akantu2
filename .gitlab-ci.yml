@@ -381,6 +381,7 @@ trigger:documentation:
         | jq .build.id)
 
       if [[ ${CI_PIPELINE_SOURCE} == "merge_request_event" ]]; then
+        glab auth --token $CI_JOB_TOKEN
         glab mr note ${CI_MERGE_REQUEST_IID} --unique -m "Documentation URL: https://akantu--${READTHEDOCS_VERSION}.org.readthedocs.build/en/${READTHEDOCS_VERSION}/";
       fi
   needs:
