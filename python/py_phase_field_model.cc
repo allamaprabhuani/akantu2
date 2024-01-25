@@ -104,6 +104,7 @@ void register_phase_field_model(py::module & mod) {
           py::arg("group_id"))
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
+      .def_function(savePreviousState)
       .def_function_nocopy(getDamage)
       .def_function_nocopy(getInternalForce)
       .def_function_nocopy(getBlockedDOFs)
