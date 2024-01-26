@@ -217,6 +217,12 @@ void register_material(py::module & mod) {
           [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
               -> decltype(auto) { return self.getTraction(type, ghost_type); },
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::return_value_policy::reference)
+      .def(
+          "getDamage",
+          [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
+              -> decltype(auto) { return self.getDamage(type, ghost_type); },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
           py::return_value_policy::reference);
 
   register_material_cohesive_classes<MaterialCohesiveLinear<2>>(

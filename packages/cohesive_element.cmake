@@ -64,8 +64,13 @@ package_declare_sources(cohesive_element
 
   model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage.cc
   model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage.hh
-  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_inline_impl.hh
-  
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_intrinsic.cc
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_intrinsic.hh  
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_intrinsic_inline_impl.hh
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_extrinsic.cc
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_extrinsic.hh 
+  model/solid_mechanics/solid_mechanics_model_cohesive/materials/material_cohesive_damage_extrinsic_inline_impl.hh
+    
   model/solid_mechanics/solid_mechanics_model_cohesive/solid_mechanics_model_cohesive.cc
   model/solid_mechanics/solid_mechanics_model_cohesive/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_cohesive/solid_mechanics_model_cohesive_inline_impl.hh

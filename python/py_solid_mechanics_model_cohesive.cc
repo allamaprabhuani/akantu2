@@ -35,13 +35,13 @@ namespace akantu {
 #define def_function_nocopy(func_name)                                         \
   def(                                                                         \
       #func_name,                                                              \
-      [](SolidMechanicsModel & self) -> decltype(auto) {                       \
+      [](SolidMechanicsModelCohesive & self) -> decltype(auto) {                       \
         return self.func_name();                                               \
       },                                                                       \
       py::return_value_policy::reference)
 
 #define def_function(func_name)                                                \
-  def(#func_name, [](SolidMechanicsModel & self) -> decltype(auto) {           \
+  def(#func_name, [](SolidMechanicsModelCohesive & self) -> decltype(auto) {           \
     return self.func_name();                                                   \
   })
 
@@ -112,6 +112,7 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
       .def("getTangents", &SolidMechanicsModelCohesive::getTangents,
            py::arg("type"), py::arg("ghost_type") = _not_ghost,
            py::return_value_policy::reference)
+      .def_function_nocopy(getLambda)
       .def("updateAutomaticInsertion",
            &SolidMechanicsModelCohesive::updateAutomaticInsertion);
 }

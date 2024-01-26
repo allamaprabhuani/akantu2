@@ -532,6 +532,8 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::updateLambdaMesh() {
+//    std::cout << " SolidMechanicsModelCohesive::updateLambdaMesh " << std::endl;
+
   const auto & connectivities = mesh.getConnectivities();
   const auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
   auto & nodes_to_lambda = mesh.getNodalData<Idx>("nodes_to_lambda");
@@ -545,9 +547,13 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
 
   NewNodesEvent node_event(*lambda_mesh, AKANTU_CURRENT_FUNCTION);
   auto & node_list = node_event.getList();
+//  std::cout << "node_list before = " << std::endl ;
+//  ArrayPrintHelper<true>::print_content(node_list,std::cout,0);
 
   NewElementsEvent element_event(*lambda_mesh, AKANTU_CURRENT_FUNCTION);
   auto & element_list = element_event.getList();
+//  std::cout << "element_list before = " << std::endl ;
+//  ArrayPrintHelper<true>::print_content(element_list,std::cout,0);
 
   for (auto ghost_type : ghost_types) {
     for (auto type : connectivities.elementTypes(_element_kind = _ek_cohesive,
@@ -557,6 +563,13 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
       auto & connectivity = connectivities(type, ghost_type);
       auto & lambda_connectivity =
           lambda_connectivities(underlying_type, ghost_type);
+
+//      std::cout << "connectivity = " << std::endl ;
+//      ArrayPrintHelper<true>::print_content(connectivity,std::cout,0);
+
+//      std::cout << "lambda_connectivity = " << std::endl ;
+//      ArrayPrintHelper<true>::print_content(lambda_connectivity,std::cout,0);
+
 
       auto nb_new_elements = connectivity.size() - lambda_connectivity.size();
       auto nb_old_elements = lambda_connectivity.size();
@@ -568,29 +581,78 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
       auto && view_conn =
           make_view(lambda_connectivity, lambda_connectivity.getNbComponent());
 
+//      std::cout << " connectivity.getNbComponent() " << connectivity.getNbComponent() << std::endl  ;
+//      std::cout << " lambda_connectivity.getNbComponent() " << lambda_connectivity.getNbComponent() << std::endl  ;
+
+//      for (auto && [conn, lambda_conn] :
+//           zip(range(view_iconn.begin() + nb_old_elements, view_iconn.end()),
+//               range(view_conn.begin() + nb_old_elements, view_conn.end()))) {
+//          std::cout << "conn = " << conn << std::endl ;
+//          std::cout << "lambda_conn = " << lambda_conn << std::endl ;
+
+//        for (auto && [n, lambda_node] : enumerate(lambda_conn)) {
+//            std::cout << "n = " << n << std::endl ;
+//          auto node = conn[n];
+//          std::cout << "node conn= " << node << std::endl ;
+
+//          node = initial_nodes(node);
+//          std::cout << "node initial_nodes = " << node << std::endl ;
+
+//          auto & ntl = nodes_to_lambda(node);
+//          std::cout << "ntl = " << ntl << std::endl ;
+
+//          if (ntl == -1) {
+//            ntl = lambda_id;
+//            new_nodes.push_back(node);
+//            node_list.push_back(lambda_id);
+//            ++lambda_id;
+//          }
+
+//          lambda_node = ntl;
+//        }
+//      }
+
       for (auto && [conn, lambda_conn] :
            zip(range(view_iconn.begin() + nb_old_elements, view_iconn.end()),
                range(view_conn.begin() + nb_old_elements, view_conn.end()))) {
+//          std::cout << "conn = " << conn << std::endl ;
+//          std::cout << "lambda_conn = " << lambda_conn << std::endl ;
+
         for (auto && [n, lambda_node] : enumerate(lambda_conn)) {
+//            std::cout << "n = " << n << std::endl ;
           auto node = conn[n];
+//          std::cout << "node conn= " << node << std::endl ;
+
           node = initial_nodes(node);
+//          std::cout << "node initial_nodes = " << node << std::endl ;
+
           auto & ntl = nodes_to_lambda(node);
-          if (ntl == -1) {
+//          std::cout << "ntl = " << ntl << std::endl ;
+
+//          if (ntl == -1) {
             ntl = lambda_id;
             new_nodes.push_back(node);
             node_list.push_back(lambda_id);
             ++lambda_id;
-          }
+//          }
 
           lambda_node = ntl;
         }
       }
 
       for (auto && el : arange(nb_old_elements, nb_new_elements)) {
+//          std::cout << "el = " << el << std::endl ;
         element_list.push_back({underlying_type, el, ghost_type});
       }
     }
   }
+
+//  std::cout << "node_list after = " << std::endl ;
+//  ArrayPrintHelper<true>::print_content(node_list,std::cout,0);
+
+//  std::cout << "element_list after = " << std::endl ;
+//  ArrayPrintHelper<true>::print_content(element_list,std::cout,0);
+
   lambda_mesh->copyNodes(mesh, new_nodes);
 
   lambda->resize(lambda_id, 0.);
@@ -605,6 +667,8 @@ void SolidMechanicsModelCohesive::updateLambdaMesh() {
 void SolidMechanicsModelCohesive::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
+
+//  std::cout << " SolidMechanicsModelCohesive::onElementsAdded " << std::endl;
 
   SolidMechanicsModel::onElementsAdded(element_list, event);
 
@@ -639,6 +703,7 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
   SolidMechanicsModel::onNodesAdded(new_nodes, event);
 
   auto & initial_nodes = mesh.getNodalData<Idx>("initial_nodes_match");
+
   auto old_max_nodes = initial_nodes.size();
   initial_nodes.resize(mesh.getNbNodes(), -1);
 
@@ -714,8 +779,8 @@ ModelSolverOptions SolidMechanicsModelCohesive::getDefaultSolverOptions(
   ModelSolverOptions options =
       SolidMechanicsModel::getDefaultSolverOptions(type);
 
-  //    if (lambda) {
-  if (true) {
+    if (lambda) {
+//  if (true) {
     switch (type) {
     case TimeStepSolverType::_dynamic_lumped: {
       options.non_linear_solver_type = NonLinearSolverType::_lumped;

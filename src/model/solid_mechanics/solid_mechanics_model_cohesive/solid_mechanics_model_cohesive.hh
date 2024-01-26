@@ -44,14 +44,36 @@ struct FacetsCohesiveIntegrationOrderFunctor {
                                   CohesiveFacetProperty<type>::cohesive_type>
   struct _helper {
     static constexpr int get() {
-      return ElementClassProperty<cohesive_type>::polynomial_degree;
+//      return 1;
+        return ElementClassProperty<cohesive_type>::polynomial_degree;
     }
   };
 
   template <ElementType type> struct _helper<type, _not_defined> {
     static constexpr int get() {
-      return ElementClassProperty<type>::polynomial_degree;
-    }
+        //      return 1;
+        return ElementClassProperty<type>::polynomial_degree;    }
+  };
+
+  template <ElementType type> static inline constexpr int getOrder() {
+    return _helper<type>::get();
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+struct CohesiveIntegrationOrderFunctor {
+  template <ElementType type, ElementType cohesive_type =
+                                  CohesiveFacetProperty<type>::cohesive_type>
+  struct _helper {
+    static constexpr int get() {
+        //      return 1;
+        return ElementClassProperty<cohesive_type>::polynomial_degree;    }
+  };
+
+  template <ElementType type> struct _helper<type, _not_defined> {
+    static constexpr int get() {
+        //      return 1;
+        return ElementClassProperty<type>::polynomial_degree;    }
   };
 
   template <ElementType type> static inline constexpr int getOrder() {
@@ -263,7 +285,7 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(CohesiveSynchronizer, *cohesive_synchronizer,
                              ElementSynchronizer &);
 
-  /// get the SolidMechanicsModel::displacement array
+  /// get the SolidMechanicsModel::lambda array
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Lambda, lambda);
   /// get the SolidMechanicsModel::displacement array
   AKANTU_GET_MACRO_DEREF_PTR(Lambda, lambda);

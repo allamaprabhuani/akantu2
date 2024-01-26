@@ -40,8 +40,8 @@ class MaterialCohesive : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using MyFEEngineCohesiveType =
-      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>;
+    using MyFEEngineCohesiveType =
+        FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>;
 
 public:
   MaterialCohesive(SolidMechanicsModel & model, const ID & id = "");

@@ -19,14 +19,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// #include "material_cohesive_damage.hh"
-#include "aka_static_if.hh"
-#include "solid_mechanics_model_cohesive.hh"
-/* -------------------------------------------------------------------------- */
+#include "material_cohesive_damage_intrinsic.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef AKANTU_MATERIAL_COHESIVE_DAMAGE_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_COHESIVE_DAMAGE_INLINE_IMPL_HH_
+#ifndef AKANTU_MATERIAL_COHESIVE_DAMAGE_INTRINSIC_INLINE_IMPL_HH_
+#define AKANTU_MATERIAL_COHESIVE_DAMAGE_INTRINSIC_INLINE_IMPL_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -35,44 +32,32 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <typename Args>
-inline void MaterialCohesiveDamage<dim>::computeTractionOnQuad(Args && args) {
+inline void MaterialCohesiveDamageIntrinsic<dim>::computeTractionOnQuad(Args && args) {
   auto && lambda = args["lambda"_n];
+  auto && d = args["czm_damage"_n];
   auto && err_opening = args["err_opening"_n];
   auto && opening = args["opening"_n];
   auto && traction = args["traction"_n];
 
-//  traction = lambda - (opening * k);
-  traction = lambda;
-  /// TODO : COMPUTE augmented_compliance
-//  Real d(0.0);
-//  Real augmented_compliance = d / k;
-//  err_opening = opening - lambda * augmented_compliance;
-  err_opening = opening;
-//  std::cout << "--- " << std::endl;
-//  std::cout << "k = " << k << std::endl;
-//  std::cout << "opening = " << opening << std::endl;
-//  std::cout << "lambda = " << lambda << std::endl;
-//  std::cout << "traction = " << traction << std::endl;
-//  std::cout << "err_opening = " << err_opening << std::endl;
+  traction = lambda - (opening * this->k);
+  Real A = this->augmented_compliance(d);
+  err_opening = opening - lambda * A;
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 template <class Derived, class Args>
-inline void MaterialCohesiveDamage<dim>::computeTangentTractionOnQuad(
+inline void MaterialCohesiveDamageIntrinsic<dim>::computeTangentTractionOnQuad(
     Eigen::MatrixBase<Derived> & tangent_uu,
-    Eigen::MatrixBase<Derived> & tangent_ll, Args && /*args*/) {
-  /// TODO : COMPUTE augmented_compliance
+    Eigen::MatrixBase<Derived> & tangent_ll, Args && args) {
   /// TODO : check basis
-  Real d(0.0);
-//  Real augmented_compliance = d / k;
-  for (Int i = 0; i < dim; ++i) {
-//    tangent_uu(i, i) = -k;
-//    tangent_ll(i, i) = -augmented_compliance;
-  }
+  auto && d = args["czm_damage"_n];
+  Real A = this->augmented_compliance(d);
+  tangent_uu = Eigen::Matrix<Real, dim, dim>::Identity()*(-this->k);
+  tangent_ll = Eigen::Matrix<Real, dim, dim>::Identity()*(-A);
 }
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#endif // AKANTU_MATERIAL_COHESIVE_DAMAGE_INLINE_IMPL_HH_
+#endif // AKANTU_MATERIAL_COHESIVE_DAMAGE_INTRINSIC_INLINE_IMPL_HH_

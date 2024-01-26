@@ -1,5 +1,5 @@
-﻿/**
- * Copyright (©) 2012-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+/**
+ * Copyright (©) 2015-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * This file is part of Akantu
@@ -19,52 +19,29 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_cohesive_damage.hh"
-//#include "solid_mechanics_model_cohesive.hh"
+#include "material_cohesive_damage_extrinsic.hh"
+
 /* -------------------------------------------------------------------------- */
-#include <algorithm>
-#include <numeric>
+#ifndef AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_INLINE_IMPL_HH_
+#define AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_INLINE_IMPL_HH_
+
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveDamage::MaterialCohesiveDamage(SolidMechanicsModel & model,
-                                                    const ID & id)
-    : MaterialCohesive(model, id)
-{
-  AKANTU_DEBUG_IN();
+template <Int dim>
+template <typename Args>
+inline void MaterialCohesiveDamageExtrinsic<dim>::computeTractionOnQuad(Args && args) {
+  auto && d = args["czm_damage"_n];
+  auto && opening = args["opening"_n];
+  auto && traction = args["traction"_n];
 
-  this->registerParam("k", k, Real(0.), _pat_parsable | _pat_readable,
-                      "Cohesive stiffness parameter");
-
-  this->registerParam("G_c", G_c, Real(0.), _pat_parsable | _pat_readable,
-                      "Mode I fracture energy");
-  a = 2.*k*G_c/(sigma_c*sigma_c);
-
-  AKANTU_DEBUG_OUT();
+  Real A = this->augmented_stiffness(d);
+  traction = k*A*opening;
 }
+
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveDamage::initMaterial() {
-  AKANTU_DEBUG_IN();
-
-  MaterialCohesive::initMaterial();
-
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
-Real MaterialCohesiveDamage::stiffness(Real d)
-{
-    return k*(1./d-1.);
-}
-Real MaterialCohesiveDamage::augmented_stiffness(Real d)
-{
-    return k*1./d;
-}
-Real MaterialCohesiveDamage::augmented_compliance(Real d)
-{
-    return d/k;
-}
-
-}
+#endif // AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_INLINE_IMPL_HH_

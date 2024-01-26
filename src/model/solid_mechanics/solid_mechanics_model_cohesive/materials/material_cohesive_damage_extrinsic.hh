@@ -19,53 +19,72 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_cohesive.hh"
+#include "material_cohesive_damage.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MATERIAL_COHESIVE_DAMAGE_HH_
-#define AKANTU_MATERIAL_COHESIVE_DAMAGE_HH_
+#ifndef AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_HH_
+#define AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_HH_
 
 namespace akantu {
 
 /**
- * Cohesive material linear damage
+ * Cohesive material linear damage for extrinsinc case
  *
  * parameters in the material files :
  *   - sigma_c   : critical stress sigma_c  (default: 0)
  *   - G_c       : fracture energy for mode I (default: 0)
  *   - k         : cohesive stiffness
  */
-class MaterialCohesiveDamage : public MaterialCohesive {
+template <Int dim> class MaterialCohesiveDamageExtrinsic : public MaterialCohesiveDamage {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialCohesiveDamage(SolidMechanicsModel & model, const ID & id = "");
+  MaterialCohesiveDamageExtrinsic(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// initialize the material parameters
-  void initMaterial() override;
 
-  /// these functions should be put in a separate class
-  Real stiffness(Real d);
-  Real augmented_stiffness(Real d);
-  Real augmented_compliance(Real d);
+  //  /// check stress for cohesive elements' insertion
+  void checkInsertion(bool check_only = false) override;
+
+protected:
+  void computeLambdaOnQuad(ElementType type, GhostType ghost_type);
+
+  inline decltype(auto) getArguments(ElementType element_type,
+                                     GhostType ghost_type) {
+    using namespace tuple;
+    return zip_append(
+        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
+        "czm_damage"_n = this->czm_damage(element_type, ghost_type));
+  }
+
+  /// constitutive law
+  void computeTraction(ElementType el_type,
+                       GhostType ghost_type = _not_ghost) override;
+
+  /// compute the traction for a given quadrature point
+  template <typename Args> inline void computeTractionOnQuad(Args && args);
+
+  [[nodiscard]] bool needLambda() const override { return false; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// cohesive stiffness
-  Real k;
 
-  /// mode I fracture energy
-  Real G_c;
+  /// augmented lagrange multiplier
+  CohesiveInternalField<Real> & lambda;
 
-  /// parameter for softening function
-  Real a;
+  /// target opening
+  CohesiveInternalField<Real> & err_openings;
+
+  /// cohesive damage
+  CohesiveInternalField<Real> & czm_damage;
+
+  Vector<Real, dim> normal_opening;
+  Real normal_opening_norm{0.};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -74,4 +93,6 @@ protected:
 
 } // namespace akantu
 
-#endif /* AKANTU_MATERIAL_COHESIVE_DAMAGE_HH_ */
+#include "material_cohesive_damage_extrinsic_inline_impl.hh"
+
+#endif /* AKANTU_MATERIAL_COHESIVE_DAMAGE_EXTRINSIC_HH_ */

@@ -1,13 +1,13 @@
 material elastic [
 	 name = steel
 	 rho = 1   # density
-	 E   = 1   # young's modulus
-	 nu  = 0.1 # poisson's ratio
+	 E   = 3e10   # young's modulus
+         nu  = 0. # poisson's ratio
 ]
 
-material cohesive_damage [
+material cohesive_damage_intrinsic [
 	 name = cohesive
-         sigma_c = 1.0
-         k = 1.0
-         G_c = 1.0
+         sigma_c = 3e6
+         k = 75e9
+         G_c = 120
 ]
