@@ -10,7 +10,6 @@ else
   cd spack
   git fetch
   git checkout ${SPACK_RELEASE}
-  git pull
   cd -
 fi
 source spack/share/spack/setup-env.sh
