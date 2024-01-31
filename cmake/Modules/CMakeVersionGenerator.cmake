@@ -85,7 +85,6 @@ function(_get_version_from_git)
       --tags
       --dirty
       --always
-      --long
       --match ${CMAKE_VERSION_GENERATOR_TAG_PREFIX}*
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       RESULT_VARIABLE _res
