@@ -161,18 +161,11 @@ function(_package_load_third_party_script pkg_name)
       message(FATAL_ERROR "The package ${_name} does not define any of the variables ${_u_name}_INCLUDE_DIR nor ${_u_name}_LIBRARIES")
     endif()
 
-    if(CMAKE_VERSION VERSION_GREATER 2.8.12)
-      find_package_handle_standard_args(${_name}
-        REQUIRED_VARS ${_required_vars}
-        VERSION_VAR _version
-        FAIL_MESSAGE "Something was not configured by a the third-party script for ${_name}"
-        )
-    else()
-      find_package_handle_standard_args(${_name}
-        "Something was not configured by a the third-party script for ${_name}"
-        ${_required_vars}
-        )
-    endif()
+    find_package_handle_standard_args(${_name}
+      REQUIRED_VARS ${_required_vars}
+      VERSION_VAR _version
+      FAIL_MESSAGE "Something was not configured by a the third-party script for ${_name}"
+    )
   endif()
   set(${pkg_name}_USE_SYSTEM_PREVIOUS FALSE CACHE INTERNAL "" FORCE)
 endfunction()

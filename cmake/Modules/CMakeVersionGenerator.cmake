@@ -27,9 +27,9 @@ set(__DEFINE_PROJECT_VERSION__ TRUE)
 
 function(_match_semver _input_semver prefix)
   set(_semver_regexp
-    "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(-([a-zA-Z0-9\-]*))?(\\+(.*))?")
+    "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(-([a-zA-Z0-9\-\\.]*))?(\\+(.*))?")
 
-  if(_input_semver MATCHES "^([0-9]+(\\.[0-9]+)?(\\.[0-9]+)?)(-([a-zA-Z0-9-]*))?(\\+(.*))?")
+  if(_input_semver MATCHES "${_semver_regexp}")
     set(${prefix}_version ${CMAKE_MATCH_1} PARENT_SCOPE)
     if(CMAKE_MATCH_4)
       set(${prefix}_version_prerelease "${CMAKE_MATCH_5}" PARENT_SCOPE)

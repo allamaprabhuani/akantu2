@@ -149,10 +149,16 @@ In both cases the modifications have to be submitted in the form of a [Merge Req
 If you want to ask for help concerning Akantu's compilation, usage or problem with the code do not hesitate to open an [Issue](https://gitlab.com/akantu/akantu/-/issues/new) on gitlab. If you want to contribute and don't know where to start, you are also invited to open an issue.
 
 
-# Tutorials with the python interface
+# Examples and Tutorials with the python interface
 
-To help getting started, multiple tutorials using the python interface are
-available as notebooks with pre-installed version of `Akantu` on Renku. The tutorials can be tested here: 
+To help getting started, you can find examples with the source code in the
+`examples` sub-folder. If you just want to test the python examples without
+having to compile the whole project you can use the following tarball
+[akantu-python-examples.tgz](https://gitlab.com/akantu/akantu/-/packages/22034181).
+
+In addition to the examples, multiple tutorials using the python interface are
+available as notebooks with pre-installed version of `Akantu` on Renku. The
+tutorials can be tested here:
 
 [![renku](https://user-content.gitlab-static.net/52a4794df1236b248c8fc870bd74e9d787c0e2cb/68747470733a2f2f72656e6b756c61622e696f2f72656e6b752d62616467652e737667)](https://renkulab.io/projects/guillaume.anciaux/akantu-tutorials/sessions/new?autostart=1)
 
