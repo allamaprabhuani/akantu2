@@ -162,7 +162,7 @@ def get_ci_version():
     return pieces
 
 def get_mr_info():
-    pieces = None
+    pieces = {}
     if "CI_MERGE_REQUEST_IID" in os.environ:
         pieces = {
             "build": "mr" + os.environ["CI_MERGE_REQUEST_IID"]
