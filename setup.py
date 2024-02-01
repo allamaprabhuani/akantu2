@@ -62,7 +62,7 @@ if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
 
 setup_kw = {}
 try:
-    import semver
+    import cmake.semver as semver
 
     _version = semver.get_version()
     setup_kw = {
@@ -116,6 +116,7 @@ setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",  # noqa
         "Natural Language :: English",
         "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS :: MacOS X",
         "Programming Language :: C++",
         "Programming Language :: Python",
         "Topic :: Education",
