@@ -62,7 +62,7 @@ if "CI_AKANTU_INSTALL_PREFIX" in os.environ:
 
 setup_kw = {}
 try:
-    import cmake.semver as semver
+    import semver
 
     _version = semver.get_version()
     setup_kw = {
