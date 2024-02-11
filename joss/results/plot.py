@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import os
 import pandas as pd
 import numpy as np
 
@@ -14,8 +14,30 @@ plt.rcParams["font.sans-serif"] = "cmss10"
 
 # Loading data
 plots = {
-    "elastic_gcc": {"prefix": "timmings_", "suffix": "_jed"},
-    "cohesive_gcc": {"prefix": "timmings_", "suffix": "_jed"},
+    "elastic gcc v5": {
+        "prefix": "timmings_",
+        "material": "elastic",
+        "compiler": "gcc",
+        "suffix": "_jed_v5.0.4"
+    },
+    "cohesive gcc v5": {
+        "prefix": "timmings_",
+        "material": "cohesive",
+        "compiler": "gcc",
+        "suffix": "_jed_v5.0.4"
+    },
+    "elastic gcc v4": {
+        "prefix": "timmings_",
+        "material": "elastic",
+        "compiler": "gcc",
+        "suffix": "_jed_v4.0.1"
+    },
+    "cohesive gcc v4": {
+        "prefix": "timmings_",
+        "material": "cohesive",
+        "compiler": "gcc",
+        "suffix": "_jed_v4.0.1"
+    },
 }
 
 fig, ax = plt.subplots(figsize=(4.5, 4))
@@ -25,18 +47,15 @@ plotting = "TTS"
 
 handles = []
 for plot_name, data in plots.items():
-    material, compiler = plot_name.split("_")
     data["df"] = pd.read_csv(
-        f"""{data["prefix"]}{plot_name}{data["suffix"]}.csv""",
+        f"""{data["prefix"]}{data["material"]}_{data["compiler"]}{data["suffix"]}.csv""",
         sep=",",
         skipinitialspace=True,
     )
-    data["material"] = material
-    data["compiler"] = compiler
 
     df = data["df"]
     step = df["solve_step"] * df["solve_step nb_rep"]
-    if material == "cohesive":
+    if data["material"] == "cohesive":
         step = step + df["check_cohesive_stress"] * df["check_cohesive_stress nb_rep"]
 
     df["TTS"] = step
@@ -50,7 +69,9 @@ def plot_measure(ax, df, plotting, label, **kwargs):
     med = grouped.median()
     min = grouped.min()
     max = grouped.max()
-    print(grouped)
+    min_psize = df["psize"][0]
+
+    print(list(med[plotting]))
 
     (l,) = ax.plot(med.index, med[plotting], label=f"{label} (median)", **kwargs)
 
@@ -58,7 +79,7 @@ def plot_measure(ax, df, plotting, label, **kwargs):
         med.index, min[plotting], max[plotting], color=l.get_color(), alpha=0.2
     )
 
-    ax.plot(med.index, med[plotting][1] / med.index, ls="--", color=l.get_color())
+    ax.plot(med.index, min_psize * med[plotting][min_psize] / med.index, ls="--", color=l.get_color())
     # ax.boxplot(
     #     data[plotting]["grouped"], positions=psize, widths=[0.1 * s for s in psize]
     # )
@@ -66,7 +87,7 @@ def plot_measure(ax, df, plotting, label, **kwargs):
 
 plot_measure(
     ax,
-    plots["cohesive_gcc"]["df"],
+    plots["cohesive gcc v5"]["df"],
     plotting,
     "insertion",
     marker="o",
@@ -74,9 +95,9 @@ plot_measure(
 
 plot_measure(
     ax,
-    plots["elastic_gcc"]["df"],
+    plots["elastic gcc v5"]["df"],
     plotting,
-    "no insertion",
+    "no insertion v5",
     marker="o",
 )
 
@@ -109,4 +130,4 @@ ax.legend(handles=handles, labels=labels)
 
 fig.tight_layout()
 fig.savefig(f"{plotting}.svg", transparent=True, bbox_inches="tight", pad_inches=0.1)
-# plt.show()
+plt.show()
