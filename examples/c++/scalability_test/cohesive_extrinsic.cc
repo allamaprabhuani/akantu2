@@ -47,19 +47,20 @@ using clk = std::chrono::high_resolution_clock;
 using seconds = std::chrono::duration<double>;
 using milliseconds = std::chrono::duration<double, std::milli>;
 
-//#define AKANTU_VERSION_MAJOR 2
+// #define AKANTU_VERSION_MAJOR 2
 class Chrono {
 public:
   Chrono(int prank, int psize) : prank(prank), psize(psize) {}
 
   inline void start() { _start = clk::now(); };
-  inline void store_time(const std::string &type) {
+  inline void store_time(const std::string & type) {
     clk::time_point _end = clk::now();
     if (measures.find(type) == measures.end()) {
       measures[type] = _end - _start;
       nb_measures[type] = 1;
       if (prank == 0) {
-        std::cout << "Passing the first " << type << " chrono! [" << measures[type].count() << "]" << std::endl;
+        std::cout << "Passing the first " << type << " chrono! ["
+                  << measures[type].count() << "]" << std::endl;
       }
     } else {
       measures[type] += _end - _start;
@@ -69,33 +70,33 @@ public:
     _start = clk::now();
   }
 
-  virtual void printself(std::ostream &stream, int indent = 0) const {
+  virtual void printself(std::ostream & stream, int indent = 0) const {
     std::string space(AKANTU_INDENT, indent);
 
     stream << space << "Chrono [" << std::endl;
     for (auto && measure : measures) {
-      const unsigned int &nb_measure = nb_measures.find(measure.first)->second;
+      const unsigned int & nb_measure = nb_measures.find(measure.first)->second;
       stream << space << " + " << measure.first << "\t: " << std::setw(25)
-             << std::fixed << std::setprecision(16)
-             << measure.second.count()
+             << std::fixed << std::setprecision(16) << measure.second.count()
              << "us - nb_repetition: " << nb_measure << std::endl;
     }
     stream << space << "]" << std::endl;
   }
 
-  virtual void printself_csv(std::ostream &stream, int indent = 0) const {
+  virtual void printself_csv(std::ostream & stream, int indent = 0) const {
     std::string space(AKANTU_INDENT, indent);
     stream << "\"psize\"";
     for (auto && measure : measures) {
       stream << ", \"" << measure.first << "\""
-             << ", \"" << measure.first << " nb_rep" << "\"";
+             << ", \"" << measure.first << " nb_rep"
+             << "\"";
     }
     stream << std::endl;
 
     stream << psize;
     for (auto && measure : measures) {
-      const unsigned int &nb_measure = nb_measures.find(measure.first)->second;
-      stream << ", "  << measure.second.count() << ", " << nb_measure;
+      const unsigned int & nb_measure = nb_measures.find(measure.first)->second;
+      stream << ", " << measure.second.count() << ", " << nb_measure;
     }
     stream << std::endl;
   }
@@ -104,18 +105,18 @@ private:
   clk::time_point _start;
   std::map<std::string, seconds> measures;
   std::map<std::string, unsigned int> nb_measures;
-    int prank, psize;
+  int prank, psize;
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const Chrono &_this) {
+inline std::ostream & operator<<(std::ostream & stream, const Chrono & _this) {
   _this.printself_csv(stream);
   return stream;
 }
 
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
-  initialize("material.dat", argc, argv);
+int main(int argc, char * argv[]) {
+  initialize("material-elastic.dat", argc, argv);
 
   const UInt spatial_dimension = 3;
 
@@ -123,18 +124,19 @@ int main(int argc, char *argv[]) {
   auto psize = Communicator::getStaticCommunicator().getNbProc();
   Chrono chrono(prank, psize);
 
-  const auto &usersect = getUserParser();
+  const auto & usersect = getUserParser();
 
   const Real c = usersect.getParameter("compression");
   const Real s = usersect.getParameter("shear");
   const Real inc_s = usersect.getParameter("inc_shear");
   const bool output_energy = usersect.getParameter("output_energy", true);
   const bool output_paraview = usersect.getParameter("output_paraview", true);
-  const bool cohesive_insertion = usersect.getParameter("cohesive_insertion", true);
+  const bool cohesive_insertion =
+      usersect.getParameter("cohesive_insertion", true);
   const UInt max_steps = usersect.getParameter("max_steps");
   const std::string mesh_filename = usersect.getParameter("mesh");
 
-  if(prank == 0) {
+  if (prank == 0) {
     std::cout << "Paramters:\n"
               << " - output_energy: " << output_energy << "\n"
               << " - output_paraview: " << output_paraview << "\n"
@@ -159,19 +161,17 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull(_analysis_method = _static,
-                 _is_extrinsic = true);
+  model.initFull(_analysis_method = _static, _is_extrinsic = true);
 
   chrono.store_time("init_full");
 
-  auto &blocked_dofs = model.getBlockedDOFs();
-  auto &force = model.getExternalForce();
+  auto & blocked_dofs = model.getBlockedDOFs();
+  auto & force = model.getExternalForce();
 
   /// boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _z), "bottom");     // face
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "right line"); // line
   blocked_dofs(3, _y) = true;                                      // point
-
 
   Matrix<Real> compression{{c, 0., 0.}, {0., c, 0.}, {0., 0., c}};
   Matrix<Real> shear{{0., 0., s}, {0., 0., 0.}, {s, 0., 0.}};
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
   model.initNewSolver(_explicit_lumped_mass);
 
   std::ofstream fout;
-  if(output_energy and prank == 0) {
+  if (output_energy and prank == 0) {
     fout.open("energies.csv", std::ofstream::out | std::ofstream::trunc);
     fout << "step, ed, ep, ek, ew, et" << std::endl;
   }
@@ -303,19 +303,17 @@ int main(int argc, char *argv[]) {
   auto nb_dofs_end = mesh.getNbGlobalNodes() * spatial_dimension;
 
   seconds loop_time = clk::now() - start_time;
-  auto nb_cohesive_elements = mesh.getNbElement(spatial_dimension, _not_ghost,
-                                                _ek_cohesive);
+  auto nb_cohesive_elements =
+      mesh.getNbElement(spatial_dimension, _not_ghost, _ek_cohesive);
   Communicator::getStaticCommunicator().allReduce(nb_cohesive_elements);
   Ed = model.getEnergy("dissipated");
   if (prank == 0) {
     std::cout << std::endl;
     std::cout << "Cohesive info: dissipated energy: " << Ed
-              << " - nb_cohesive_element: "
-              << nb_cohesive_elements
+              << " - nb_cohesive_element: " << nb_cohesive_elements
               << std::endl;
     std::cout << "Nb proc: "
-              << Communicator::getStaticCommunicator().getNbProc()
-              << std::endl;
+              << Communicator::getStaticCommunicator().getNbProc() << std::endl;
     std::cout << "Full time: " << (init_time + loop_time).count() << std::endl;
     std::cout << "Init time: " << init_time.count() << std::endl;
     std::cout << "Step time: " << loop_time.count()
@@ -323,7 +321,7 @@ int main(int argc, char *argv[]) {
               << " - time_per_step: " << (loop_time.count() / max_steps)
               << std::endl;
     std::cout << "Ns DOFs - start: " << nb_dofs_start
-	      << " - end: " << nb_dofs_end << std::endl;
+              << " - end: " << nb_dofs_end << std::endl;
   }
 
   if (prank == 0) {
