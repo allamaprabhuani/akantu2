@@ -10,3 +10,5 @@ C++ Examples
 .. include:: examples/c++/diffusion_model/README.rst
 
 .. include:: examples/c++/phase_field_model/README.rst
+
+.. include:: examples/c++/perf-test-akantu-cohesive/README.rst
