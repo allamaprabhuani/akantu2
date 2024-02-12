@@ -5,4 +5,4 @@ module purge
 module -q restore akantu
 
 export OMP_NUM_THREADS=1
-srun ./cohesive_extrinsic --aka_input_file ./material-elastic.dat
+srun ./scalability_test --aka_input_file ./material-elastic.dat

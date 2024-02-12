@@ -6,7 +6,7 @@ user section [
   output_energy = false
   output_paraview = false
   cohesive_insertion = true
-  mesh = cube_fine.msh
+  mesh = cube.msh
 ]
 
 model solid_mechanics_model_cohesive [
