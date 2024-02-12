@@ -1,0 +1,39 @@
+user section [
+  compression = -1e5
+  shear = -6e7
+  inc_shear = -1e6
+  max_steps = 5000
+  output_energy = false
+  output_paraview = false
+  cohesive_insertion = false
+  mesh = cube.msh
+]
+
+model solid_mechanics_model_cohesive [
+  material elastic [
+    name = body
+    rho = 2500   # density
+    E   = 70e9   # young's modulus
+    nu  = 0.22   # poisson's ratio
+    finite_deformation = true
+  ]
+
+  material cohesive_linear [
+    name = insertion
+    beta = 3
+    G_c = 7.6
+    sigma_c = 70e6
+    delta_c = 0.217e-6
+  ]
+
+  cohesive_inserter [
+    bounding_box = [[-1., 1.], [-1., 1.], [-1., 1.]]
+  ]
+
+  time_step_solver static [
+    name = static
+    non_linear_solver linear [
+      type = linear
+    ]
+  ]
+]
