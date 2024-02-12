@@ -5,4 +5,4 @@ add_example(phase_field_model "Example on how to run phase field model simulatio
 add_example(solid_mechanics_cohesive_model "Cohesive element examples" PACKAGE cohesive_element)
 add_example(solid_mechanics_model "Solid mechanics examples" PACKAGE solid_mechanics)
 add_example(structural_mechanics_model "Structural mechanics model examples" PACKAGE structural_mechanics)
-add_example(perf-test-akantu-cohesive "Example ready to make a scalability test" PACKAGE cohesive_element)
+add_example(scalability_test "Example ready to make a scalability test" PACKAGE cohesive_element)

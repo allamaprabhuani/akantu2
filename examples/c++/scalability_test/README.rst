@@ -5,18 +5,18 @@ Scalability test (3D)
 
    .. collapse:: cohesive_extrinsic.cc (click to expand)
 
-      .. literalinclude:: examples/c++/perf-test-akantu-cohesive/cohesive_extrinsic.cc
+      .. literalinclude:: examples/c++/scalability_test/cohesive_extrinsic.cc
          :language: c++
          :lines: 20-
 
    .. collapse:: material-elastic.dat (click to expand)
 
-      .. literalinclude:: examples/c++/diffusion_model/material-elastic.dat
+      .. literalinclude:: examples/c++/scalability_test/material-elastic.dat
          :language: text
 
 :Location:
 
-   ``examples/c++/`` `perf-test-akantu-cohesive <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/perf-test-akantu-cohesive>`_
+   ``examples/c++/`` `scalability_test <https://gitlab.com/akantu/akantu/-/blob/master/examples/c++/scalability_test>`_
 
   This example is used to do scalability test, with elastic material or cohesive elements inserted on the fly.
   The `cube.geo` should generate a mesh with roughly 4'500'000 elements and 730'000 nodes. The `cube.msh` file included is a `tiny` cube only to test if the code works.
@@ -25,7 +25,7 @@ Scalability test (3D)
 
   The simulation consist of a cube with a compressive force on top and a shear force on four sides as shown in the figure bellow
 
-  .. figure:: examples/c++/perf-test-akantu-cohesive/images/cube.svg
+  .. figure:: examples/c++/scalability_test/images/cube.svg
             :align: center
             :width: 60%
 
@@ -34,6 +34,6 @@ Scalability test (3D)
   `perf-test-akantu-cohesive
   <https://gitlab.com/akantu/performance-testing-cohesive/-/tree/publications/joss?ref_type=tags>`_
 
-  .. figure:: examples/c++/perf-test-akantu-cohesive/images/TTS.svg
+  .. figure:: examples/c++/scalability_test/images/TTS.svg
             :align: center
             :width: 60%
