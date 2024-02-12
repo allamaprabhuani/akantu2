@@ -155,12 +155,13 @@ simulation is presented where a cube composed of 4'392'180 tetrahedra and
 734'594 nodes is being compressed and sheared (cf \autoref{fig:setup}). This
 simulation only serves to demonstrate how Akantu behaves in a situation where
 massive fragmentation takes place: about 460'000 cohesive elements are inserted
-during the run. This simulation was run on 1 up to 720 cores, on a cluster
-composed of Intel Xeon nodes with 2 sockets of 36 cores, 512Gb of RAM and dual
-25Gb Ethernet links. The time to solution (TTS) averaged over six different runs
-is computed for each core count on the $x$-axis in \autoref{fig:tts}. The
-overhead due to cohesive element insertion is also highlighted by providing the
-TTS when cohesive element insertions are precluded.
+during the run. The code, material and mesh files to reproduce the study can be
+found on Zenodo (@richart_zenodo_2024).This simulation was run on 1 up to 720
+cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36 cores,
+512Gb of RAM and dual 25Gb Ethernet links. The time to solution (TTS) averaged
+over six different runs is computed for each core count on the $x$-axis in
+\autoref{fig:tts}. The overhead due to cohesive element insertion is also
+highlighted by providing the TTS when cohesive element insertions are precluded.
 
 ![Numerical setup.\label{fig:setup}](results/cube.svg)
 
