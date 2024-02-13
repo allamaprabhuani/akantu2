@@ -1,0 +1,6 @@
+paper.jats
+paper.pdf
+*.out
+*.err
+*.csv
+media/

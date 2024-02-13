@@ -1,5 +1,12 @@
 # Version 5
 
+## Version 5.0.5
+
+### Added
+
+ - JOSS paper
+ - Scalability test for elastic and cohesive for the JOSS paper
+
 ## Version 5.0.4-post0
 
 ### Changed
