@@ -189,7 +189,7 @@ The following publications have been made possible with Akantu:
 @frerot_fourier_2019, @gallyamov_multi-scale_2020, @milanese_mechanistic_2020,
 @albertini_three-dimensional_2021, @brun_hybrid_2021,
 @rezakhani_meso-scale_2021, @pundir_coupling_2021, @roch_velocity-driven_2022,
-@gallyamov_predicting_2022, @gallyamov_study_2022, @gallyamov_long-term_2023
+@gallyamov_predicting_2022, @gallyamov_study_2022, @gallyamov_long-term_2023.
 
 # Acknowledgement
 
