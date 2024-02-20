@@ -71,7 +71,7 @@ bibliography: paper.bib
 ---
 
 # Summary
-Complex, nonlinear and transient phenomena are at the heart of modern research
+Complex, nonlinear, and transient phenomena are at the heart of modern research
 in mechanics of materials. For example, the buildup and release of elastic
 energy at geological fault is what causes earthquakes, and the intricate details
 of the slip zone, the propagation of slip fronts and waves radiated through the
@@ -126,7 +126,7 @@ methods. A distinguishing feature is its communication strategy, which relies on
 a layer of ghost elements instead of the more conventional ghost nodes. This
 choice simplifies the implementation of algorithms involving topological changes
 of the meshes in parallel, such as the dynamic insertion of cohesive elements.
-The \autoref{fig:cohesive_insertion} taken from @vocialta_numerical_2018
+\autoref{fig:cohesive_insertion} taken from @vocialta_numerical_2018
 illustrates the usage of cohesive elements to simulate the dynamic fragmentation
 of tempered glass panes.
 
@@ -134,10 +134,10 @@ Akantu differs from other existing codes in its ability to combine fracture
 dynamics and contact mechanics by introducing new free surfaces through cohesive
 elements insertion strategy. Other open-source parallel finite-element codes are
 capable of performing fracture and/or contact mechanics simulations: among
-others, the most well-known that can be cited are deal.II (@arndt_dealii_2023),
-FEniCS (@baratta_dolfinx_2023), GetFEM (@renard_getfem_2021), MFEM
-(@anderson_mfem_2021), MoFEM (@kaczmarczyk_mofem_2020), Moose
-(@alexander_moose_2022), OOFEM (@patzak_oofem_2012). These codes can do fracture
+others, the most well-known that can be cited are deal.II [@arndt_dealii_2023],
+FEniCS [@baratta_dolfinx_2023], GetFEM [@renard_getfem_2021], MFEM
+[@anderson_mfem_2021], MoFEM [@kaczmarczyk_mofem_2020], Moose
+[@alexander_moose_2022], OOFEM [@patzak_oofem_2012]. These codes can do fracture
 mechanics through continuum damage modeling, phase-field and in some cases,
 X-FEM. Some of them implement traction-separation laws (cohesive elements) by
 means of a discontinuous Galerkin formulation. Only a subset of these codes is
@@ -145,8 +145,8 @@ capable of performing contact mechanics computations. If we consider the dynamic
 insertion of cohesive elements, which avoids the burden of having interface
 elements pre-inserted everywhere and allows representing explicitly the newly
 formed cracked surfaces, there is only one other code capable of doing such
-simulations in parallel (@espinha_scalable_2013), to our best knowledge. However
-this software is not distributed as open-source.
+simulations in parallel [@espinha_scalable_2013], to our best knowledge. However
+this package is not distributed as open-source software.
 
 # Scaling analysis
 
@@ -157,8 +157,8 @@ simulation is presented where a cube composed of 4'392'180 tetrahedra and
 simulation only serves to demonstrate how Akantu behaves in a situation where
 massive fragmentation takes place: about 460'000 cohesive elements are inserted
 during the run. The code, material and mesh files to reproduce the study can be
-found on Zenodo (@richart_zenodo_2024).This simulation was run on 1 up to 720
-cores, on a cluster composed of Intel Xeon nodes with 2 sockets of 36 cores,
+found on Zenodo [@richart_zenodo_2024].This simulation was run on 1 to 720
+cores, on a cluster composed of Intel Xeon nodes with two sockets of 36 cores,
 512Gb of RAM and dual 25Gb Ethernet links. The time to solution (TTS) averaged
 over six different runs is computed for each core count on the $x$-axis in
 \autoref{fig:tts}. The overhead due to cohesive element insertion is also
@@ -170,7 +170,7 @@ When cohesive element insertion is not active, (cf. \autoref{fig:tts} 'no
 insertion'), the time to solution scales well up to ~576 cores. The simulations
 are running on a newly installed machine and the impact of the network on the
 loss of scalability is not fully understood, the min and max measures vary a lot
-after 288 cores (4 nodes). The scalability with insertion of cohesive elements
+after 288 cores (four nodes). The scalability with insertion of cohesive elements
 (\autoref{fig:tts} 'insertion') decreases, and starts to plateau at around 288
 cores: this is due to the extra communications needed to change the topology of
 the mesh.
@@ -189,7 +189,7 @@ The following publications have been made possible with Akantu:
 @frerot_fourier_2019, @gallyamov_multi-scale_2020, @milanese_mechanistic_2020,
 @albertini_three-dimensional_2021, @brun_hybrid_2021,
 @rezakhani_meso-scale_2021, @pundir_coupling_2021, @roch_velocity-driven_2022,
-@gallyamov_predicting_2022, @gallyamov_study_2022, @gallyamov_long-term_2023.
+@gallyamov_predicting_2022, @gallyamov_study_2022, and @gallyamov_long-term_2023.
 
 # Acknowledgement
 
