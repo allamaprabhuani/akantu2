@@ -100,7 +100,7 @@ void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
     return;
   }
 
-  Real kappa = this->lambda + 2. / Real(dim) * this->mu;
+  Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
 
   auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dev_dim));
   [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dev_dim);
