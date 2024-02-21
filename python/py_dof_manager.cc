@@ -241,6 +241,10 @@ void register_dof_manager(py::module & mod) {
            [](NonLinearSolver & self) -> bool { return self.get("converged"); })
       .def("getError",
            [](NonLinearSolver & self) -> Real { return self.get("error"); })
+      .def("getConvergenceCriteriaNormalized",
+           [](NonLinearSolver & self) -> Real {
+             return self.get("threshold_normalized");
+           })
       .def("getMaxIterations",
            [](NonLinearSolver & self) -> Int {
              return self.get("max_iterations");
