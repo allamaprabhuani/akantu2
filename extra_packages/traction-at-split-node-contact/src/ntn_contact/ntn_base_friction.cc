@@ -71,12 +71,11 @@ void NTNBaseFriction::updateSlip() {
                                                rel_tan_incr);
   auto it = rel_tan_incr.begin(dim);
 
-  auto nb_nodes = this->contact.getNbContactNodes();
-  for (Int n = 0; n < nb_nodes; ++n) {
+  for(auto && [n,rti]:enumerate(make_view(rel_tan_incr,dim))){
+  
     if (this->is_sticking(n)) {
       this->slip(n) = 0.;
     } else {
-      const auto & rti = it[n];
       this->slip(n) += rti.norm();
       this->cumulative_slip(n) += rti.norm();
     }
@@ -99,21 +98,19 @@ void NTNBaseFriction::computeFrictionTraction() {
   const SynchronizedArray<bool> & is_in_contact =
       this->contact.getIsInContact();
 
-  const auto & traction = this->friction_traction.getArray();
-  auto it_fric_trac = traction.begin(dim);
+  auto & traction = this->friction_traction.getArray();
 
   this->is_sticking.zero(); // set to not sticking
 
-  Int nb_contact_nodes = this->contact.getNbContactNodes();
-  for (Int n = 0; n < nb_contact_nodes; ++n) {
+  for (auto && [n,fric_trac]:enumerate(make_view(traction,dim))){
     // node pair is in contact
     if (is_in_contact(n)) {
-      auto && fric_trac = it_fric_trac[n];
       // check if it is larger than frictional strength
       auto abs_fric = fric_trac.norm();
+
       if (abs_fric != 0.) {
         auto alpha = this->frictional_strength(n) / abs_fric;
-
+	
         // larger -> sliding
         if (alpha < 1.) {
           fric_trac *= alpha;
@@ -162,28 +159,22 @@ void NTNBaseFriction::computeStickTraction() {
 
   // compute tangential gap_dot array for all nodes
   Array<Real> gap_dot(nb_contact_nodes, dim);
-  for (auto && data : zip(make_view(gap_dot), make_view(r_velo),
+  for (auto && [gap_dot,r_velo,r_acce,r_old_acce] : zip(make_view(gap_dot), make_view(r_velo),
                           make_view(r_acce), make_view(r_old_acce))) {
-    auto & gap_dot = std::get<0>(data);
-    auto & r_velo = std::get<1>(data);
-    auto & r_acce = std::get<2>(data);
-    auto & r_old_acce = std::get<3>(data);
-
     gap_dot = r_velo + delta_t * r_acce - 1. / 2. * delta_t * r_old_acce;
   }
 
   // compute friction traction to stop sliding
-  const auto & traction = this->friction_traction.getArray();
-  auto it_fric_trac = traction.begin(dim);
-  for (Int n = 0; n < nb_contact_nodes; ++n) {
-    auto && fric_trac = it_fric_trac[n];
+  auto & traction = this->friction_traction.getArray();
 
+  for(auto && [n,fric_trac]:enumerate(make_view(traction,dim))){
+    
     if (not is_in_contact(n)) { // node pair is NOT in contact
       fric_trac.zero();         // set to zero
     } else {                    // node pair is in contact
       // compute friction traction
       for (Int d = 0; d < dim; ++d) {
-        fric_trac(d) = impedance(n) * gap_dot(n, d) / 2.;
+	  fric_trac(d) = impedance(n) * gap_dot(n, d) / 2.;
       }
     }
   }
