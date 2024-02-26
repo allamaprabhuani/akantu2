@@ -384,7 +384,7 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTangentTraction(
       Real tau =
           std::min(std::abs(friction_penalty * trial_elastic_slip), tau_max);
 
-      if ((tau < tau_max * 1.05 && tau_max > Math::getTolerance()) or
+      if ((tau < tau_max * 1.02 && tau_max > Math::getTolerance()) or
           Math::are_float_equal(tau_max, 0.)) {
         Matrix<Real> I(spatial_dimension, spatial_dimension);
         I.eye(1.);
