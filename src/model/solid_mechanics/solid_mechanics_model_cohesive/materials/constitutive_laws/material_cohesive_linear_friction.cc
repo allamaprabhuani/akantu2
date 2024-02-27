@@ -376,8 +376,7 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTangentTraction(
       //      Vector<Real> normal_opening_prev = (*normal_it);
       //      normal_opening_prev *= normal_opening_prev_norm;
 
-      Real tau_max =
-          mu * this->penalty * (std::abs(contact_opening_norm)) * 1.01;
+      Real tau_max = mu * this->penalty * (std::abs(contact_opening_norm));
       Real trial_elastic_slip = tangential_opening_norm - _res_sliding_prev;
 
       // tau is the norm of the friction force, acting tangentially to the
