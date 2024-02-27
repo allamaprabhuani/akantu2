@@ -1,3 +1,5 @@
+.. _sect-dm:
+
 Diffusion Model
 ---------------
 
@@ -40,6 +42,8 @@ and the system to solve can be written:
 with :math:`\vec{Q}^{\text{ext}}` the consistent heat generated.
 
 The diffusion model is meant as a base to implement different diffusive processes, heat diffusion, chemical diffusion, simple flow problems, etc. Currently only one of this physics is implemented, the heat diffusion, in a model named HeatTransferModel
+
+.. _sect-dm-using:
 
 Using the Heat Transfer Model
 `````````````````````````````

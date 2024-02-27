@@ -18,17 +18,10 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "aka_common.hh"
-#include "coupler_solid_phasefield.hh"
-#include "material.hh"
-#include "material_phasefield.hh"
-#include "non_linear_solver.hh"
-#include "phase_field_model.hh"
-#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-#include <cmath>
+#include <coupler_solid_phasefield.hh>
+/* -------------------------------------------------------------------------- */
 #include <fstream>
-#include <iostream>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

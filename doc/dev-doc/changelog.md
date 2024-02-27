@@ -1,5 +1,34 @@
 # Version 5
 
+## Version 5.0.5
+
+### Added
+
+ - JOSS paper
+ - Scalability test for elastic and cohesive for the JOSS paper
+
+## Version 5.0.4-post0
+
+### Changed
+
+ - PyPi version 5.0.4 failed
+
+## Version 5.0.4
+
+### Added
+
+- SparseSolverEigen to have a simple solver in sequential
+- Python Wheel build for MacOS
+
+### Changed
+
+- DiffusionModel replaces HeatTransferModel
+- The class name HeatTransferModel is kept for backward compatibility
+- Bug fixes:
+  - Assemble of the K matrix for cohesive elements was wrong since v5
+  - Minor fixes
+  
+  
 ## Version 5.0.3
 
 ### Added

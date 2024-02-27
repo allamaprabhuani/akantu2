@@ -163,9 +163,11 @@ function(mumps_add_dependency _pdep _libs _incs)
   elseif(_pdep MATCHES "Threads")
     find_package(Threads REQUIRED QUIET)
     set(${_libs} Threads::Threads PARENT_SCOPE)
+    set(_target_to_import Threads PARENT_SCOPE)
   elseif(_pdep MATCHES "OpenMP")
     find_package(OpenMP REQUIRED QUIET)
     set(${_libs} OpenMP::OpenMP_C PARENT_SCOPE)
+    set(_target_to_import OpenMP PARENT_SCOPE)
   elseif(_pdep MATCHES "Math")
     set(${_libs} m PARENT_SCOPE)
   elseif(_pdep MATCHES "ScaLAPACK")
@@ -190,6 +192,7 @@ endfunction()
 function(mumps_find_dependencies)
   set(_libraries_all m ${MUMPS_LIBRARIES_ALL})
   set(_include_dirs ${MUMPS_INCLUDE_DIR})
+  set(_targets_to_import)
 
   set(_mumps_test_dir "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
   file(READ ${CMAKE_CURRENT_LIST_DIR}/CheckFindMumps.c _output)
@@ -318,8 +321,13 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       endif()
 
       if(_add_pdep)
+        set(_target_to_import)
         mumps_add_dependency(${_pdep} _libs _incs ${_mumps_dep_comp_${_pdep}})
         debug_message(" - Found: ${_pdep} (${_libs})")
+
+        if(_target_to_import)
+          list(APPEND _targets_to_import ${_target_to_import})
+        endif()
 
         if(NOT _libs)
           message(FATAL_ERROR "MUMPS depends on ${_pdep} but no libraries where found")
@@ -349,34 +357,32 @@ ${_u_first_precision}MUMPS_STRUC_C id;
   endif()
 
   set(MUMPS_LIBRARIES_ALL ${_libraries_all} PARENT_SCOPE)
+
+  if(_targets_to_import)
+    set(MUMPS_TARGETS_TO_IMPORT ${_targets_to_import} CACHE INTERNAL "" FORCE)
+  endif()
 endfunction()
 
 mumps_find_dependencies()
 
 set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} CACHE INTERNAL "" FORCE)
-
 #===============================================================================
 include(FindPackageHandleStandardArgs)
-if(CMAKE_VERSION VERSION_GREATER 2.8.12)
-  if(MUMPS_INCLUDE_DIR)
-    file(STRINGS ${MUMPS_INCLUDE_DIR}/dmumps_c.h _versions
-      REGEX "^#define MUMPS_VERSION .*")
-    foreach(_ver ${_versions})
-      string(REGEX MATCH "MUMPS_VERSION *\"([0-9.]+)\"" _tmp "${_ver}")
-      set(_mumps_VERSION ${CMAKE_MATCH_1})
-    endforeach()
-    set(MUMPS_VERSION "${_mumps_VERSION}" CACHE INTERNAL "")
-  endif()
-
-  find_package_handle_standard_args(Mumps
-    REQUIRED_VARS ${_mumps_required_vars}
-    MUMPS_INCLUDE_DIR
-    VERSION_VAR MUMPS_VERSION
-    )
-else()
-  find_package_handle_standard_args(Mumps DEFAULT_MSG
-    ${_mumps_required_vars} MUMPS_INCLUDE_DIR)
+if(MUMPS_INCLUDE_DIR)
+  file(STRINGS ${MUMPS_INCLUDE_DIR}/dmumps_c.h _versions
+    REGEX "^#define MUMPS_VERSION .*")
+  foreach(_ver ${_versions})
+    string(REGEX MATCH "MUMPS_VERSION *\"([0-9.]+)\"" _tmp "${_ver}")
+    set(_mumps_VERSION ${CMAKE_MATCH_1})
+  endforeach()
+  set(MUMPS_VERSION "${_mumps_VERSION}" CACHE INTERNAL "")
 endif()
+
+find_package_handle_standard_args(Mumps
+  REQUIRED_VARS ${_mumps_required_vars}
+  MUMPS_INCLUDE_DIR
+  VERSION_VAR MUMPS_VERSION
+)
 
 if(Mumps_FOUND)
   set(Mumps_FIND_COMPONENTS_SAVE "${Mumps_FIND_COMPONENTS}" CACHE INTERNAL "")

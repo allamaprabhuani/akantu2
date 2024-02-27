@@ -3,21 +3,33 @@
 
 # Split ci
 .documentation_only:
-  only:
-    - doc/**/*
-    - .readthedocs.yaml
-    - README.md
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        compare_to: 'master'
+        paths:
+          - doc/**/*
+          - examples/**/*
+          - .readthedocs.yaml
+          - README.md
+          - CHANGELOG.md
+          - .gitlab-ci.yml
+          - .gitlab/ci.d/**
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 .code_only:
-  except:
-    - doc/**/*
-    - .gitpod.yml
-    - .gitignore
-    - .editorconfig
-    - .readthedocs.yaml
-    - README.md
-    - AUTHORS
-    - CHANGELOG.md
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        compare_to: 'master'
+        paths:
+          - "**/*.{cc, hh, txt, cmake, py}"
+          - .gitlab-ci.yml
+          - .gitlab/ci.d/**
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
 # Configuration template
 .configure:
   stage: configure
@@ -25,8 +37,8 @@
     - .code_only
   variables:
     BLA_VENDOR: "Generic"
-    CMAKE_GENERATOR: "Unix Makefiles"
-  #    CMAKE_GENERATOR: 'Ninja'
+    #CMAKE_GENERATOR: "Unix Makefiles"
+    CMAKE_GENERATOR: 'Ninja'
   cache:
     - key: ${CI_COMMIT_REF_SLUG}-third-party
       policy: push
@@ -69,7 +81,7 @@
 
     # Copy the compile commands for the code quality
     - if [ -e compile_commands.json ]; then
-    - cp compile_commands.json ..
+    -   cp compile_commands.json ..
     - fi
   artifacts:
     when: on_success
@@ -100,18 +112,18 @@
         - build/
   script:
     - echo BUILD_TYPE=${BUILD_TYPE}
-    - cmake --build build/src
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/python
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build -t akantu -j1
+              > >(tee -a build-${output}-lib-out.log)
+              2> >(tee -a build-${output}-lib-err.log >&2)
+    - cmake --build build -t py11_akantu -j1
+              > >(tee -a build-${output}-python-out.log)
+              2> >(tee -a build-${output}-python-err.log >&2)
     - ls build/test
   artifacts:
     when: on_success
     paths:
       - VERSION
-      - build-${output}-err.log
+      - build-${output}-*-err.log
       - compile_commands.json
     expire_in: 10h
   timeout: 5h
@@ -133,27 +145,19 @@
       paths:
         - .ccache/
     - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
-      policy: pull
+      policy: pull-push
       paths:
         - build/
   script:
-    - ls
-    - ls build
-    - cmake --build build/test
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
-    - cmake --build build/examples
-      > >(tee -a build-${output}-out.log)
-      2> >(tee -a build-${output}-err.log >&2)
+    - cmake --build build -j1
+              > >(tee -a build-${output}-out.log)
+              2> >(tee -a build-${output}-err.log >&2)
   artifacts:
     when: on_success
     paths:
       - VERSION
-      - build-${output}-err.log
+      - build-${output}-*-err.log
       - compile_commands.json
-      - build
-    exclude:
-      - build/**/*.o
     expire_in: 10h
 
 # Run the tests
@@ -161,6 +165,11 @@
   stage: test
   extends:
     - .code_only
+  cache:
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull
+      paths:
+        - build/
   script:
     - cd build
     - ctest -T test --output-on-failure --no-compress-output --timeout 1800
@@ -168,18 +177,18 @@
     - cd build
     - tag=$(head -n 1 < Testing/TAG)
     - if [ -e Testing/${tag}/Test.xml ]; then
-    - xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
-    - fi
+         xsltproc -o ./juint.xml ${CI_PROJECT_DIR}/test/ci/ctest2junit.xsl Testing/${tag}/Test.xml;
+      fi
     - if [ ${BUILD_TYPE} = "Coverage" ]; then
-    - gcovr --xml
-      --gcov-executable "${GCOV_EXECUTABLE}"
-      --xml-pretty
-      --exclude-unreachable-branches
-      --print-summary
-      --output coverage.xml
-      --object-directory ${CI_PROJECT_DIR}/build
-      --root ${CI_PROJECT_DIR}  -s || true
-    - fi
+         gcovr --xml
+               --gcov-executable "${GCOV_EXECUTABLE}"
+               --xml-pretty
+               --exclude-unreachable-branches
+               --print-summary
+               --output coverage.xml
+               --object-directory ${CI_PROJECT_DIR}/build
+               --root ${CI_PROJECT_DIR}  -s || true
+      fi
   artifacts:
     when: always
     expire_in: 2 days
@@ -192,3 +201,118 @@
       coverage_report:
         coverage_format: cobertura
         path: build/coverage.xml
+
+# ------------------------------------------------------------------------------
+# Python stuffs
+# ------------------------------------------------------------------------------
+.configure_python:
+  stage: configure
+  extends:
+    - .build_release
+    - .code_only
+  cache:
+    - key: ${output}-${BUILD_TYPE}-ccache
+      paths:
+        - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      paths:
+        - build/
+        - spack/
+  script:
+    # Variables for cmake
+    - source test/ci/${IMAGE_NAME}/configure_env.sh
+
+    # create the build folder
+    - cmake -E make_directory build
+    - cd build
+
+    # Configure in sequential and without tests or examples
+    - cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE
+            -DAKANTU_IMPLICIT:BOOL=TRUE
+            -DAKANTU_IMPLICIT_SOLVER:STRING=Eigen
+            -DAKANTU_PARALLEL:BOOL=FALSE
+            -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE
+            -DAKANTU_DIFFUSION:BOOL=TRUE
+            -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE
+            -DAKANTU_PHASE_FIELD:BOOL=TRUE
+            -DAKANTU_PYTHON_INTERFACE:BOOL=FALSE
+            -DAKANTU_CONTACT_MECHANICS:BOOL=TRUE
+            -DAKANTU_EXAMPLES:BOOL=FALSE
+            -DAKANTU_TESTS:BOOL=FALSE
+            -DCMAKE_INSTALL_PREFIX:PATH=${CI_PROJECT_DIR}/install
+            -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} ..
+  artifacts:
+    when: on_success
+    paths:
+      - VERSION
+    expire_in: 10h
+
+
+.build_python_akantu:
+  stage: build_libs
+  extends:
+    - .build_release
+    - .code_only
+  cache:
+    - key: ${output}-${BUILD_TYPE}-ccache
+      policy: pull-push
+      paths:
+        - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull-push
+      paths:
+        - build/
+        - spack/
+  script:
+    - source test/ci/${IMAGE_NAME}/build_env.sh
+
+    - cmake --build build --target akantu -j1
+    - cmake --install build
+  artifacts:
+    when: on_success
+    paths:
+      - install/
+      - VERSION
+    expire_in: 10h
+
+.build_python_package:
+  stage: build_tests
+  extends:
+    - .build_release
+    - .code_only
+  cache:
+    - key: ${output}-${BUILD_TYPE}-ccache
+      paths:
+        - .ccache/
+    - key: ${output}-${BUILD_TYPE}-build-${CI_COMMIT_SHORT_SHA}
+      policy: pull
+      paths:
+        - build/
+        - spack/
+  script:
+    - export CI_AKANTU_INSTALL_PREFIX=${CI_PROJECT_DIR}/install
+    - test/ci/${IMAGE_NAME}/make-wheels.sh
+  artifacts:
+    when: on_success
+    paths:
+      - wheelhouse${PLAT_SUFFIX}
+    expire_in: 10h
+
+.test_python_package:
+  stage: test
+  extends:
+    - .code_only 
+  needs:
+    - job: build_pip:python_package_macos
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+
+    - pip install numpy scipy
+    - pip install akantu --no-index --find-links=${PWD}/wheelhouse${PLAT_SUFFIX}
+
+    - python -c "import akantu"
+
+    - cd examples/python/solid_mechanics_model/dynamics/
+    - gmsh -2 bar.geo
+    - python ./dynamics.py

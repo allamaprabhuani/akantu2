@@ -161,6 +161,14 @@ def get_ci_version():
     pieces = _parse_semver(version)
     return pieces
 
+def get_mr_info():
+    pieces = {}
+    if "CI_MERGE_REQUEST_IID" in os.environ:
+        pieces = {
+            "build": "mr" + os.environ["CI_MERGE_REQUEST_IID"]
+        }
+    return pieces
+
 
 def get_version_file():
     """Get the version directly from the VERSION file."""
@@ -191,6 +199,10 @@ def get_version():
     pieces = None
 
     if not pieces:
+        pieces = get_version_file()
+        _eprint(f"pieces from version file: {pieces}")
+
+    if not pieces:
         pieces = get_ci_version()
         _eprint(f"pieces from ci_version: {pieces}")
 
@@ -203,15 +215,16 @@ def get_version():
         _eprint(f"pieces from git attributes: {pieces}")
 
     if not pieces:
-        pieces = get_version_file()
-        _eprint(f"pieces from version file: {pieces}")
-
-    if not pieces:
         raise Exception("No version could be determined")
 
     semver_build = []
     if "build" in pieces:
-        semver_build = [pieces["build"]]
+        semver_build.append(pieces["build"])
+
+    ci_build_pieces = get_mr_info()
+    if "build" in ci_build_pieces:
+        _eprint(f"pieces from version MR: {ci_build_pieces}")
+        semver_build.append(ci_build_pieces["build"])
 
     if "distance" in pieces:
         semver_build.extend([str(pieces["distance"]), "g" + pieces["short"]])
@@ -229,9 +242,6 @@ def get_version():
         pieces["prerelease"] = ""
 
     semver = "{major}.{minor}.{patch}{prerelease}{build_part}".format(**pieces)
-
-    if "CI_MERGE_REQUEST_ID" in os.environ:
-        semver = "{}.mr{}".format(semver, os.environ["CI_MERGE_REQUEST_ID"])
 
     return semver
 

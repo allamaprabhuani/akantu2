@@ -206,9 +206,7 @@ if(__CMAKE_PACKAGES_SYSTEM)
 endif()
 set(__CMAKE_PACKAGES_SYSTEM TRUE)
 
-if(CMAKE_VERSION VERSION_GREATER 3.1.2)
-  cmake_policy(SET CMP0054 NEW)
-endif()
+cmake_policy(SET CMP0054 NEW)
 
 #===============================================================================
 option(AUTO_MOVE_UNKNOWN_FILES
@@ -651,6 +649,15 @@ function(package_get_all_compilation_flags LANG FLAGS)
   string(REPLACE ";" " " _flags "${_tmp_flags}")
   set(${FLAGS} ${_flags} PARENT_SCOPE)
 endfunction()
+
+# ------------------------------------------------------------------------------
+# Get export list for all activated packages
+# ------------------------------------------------------------------------------
+function(package_get_all_target_to_import targets)
+  _package_get_variable_for_activated(TARGET_TO_IMPORT _tmp)
+  set(${targets} ${_tmp} PARENT_SCOPE)
+endfunction()
+
 
 # ------------------------------------------------------------------------------
 # Documentation informations

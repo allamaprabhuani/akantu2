@@ -64,8 +64,8 @@ public:
     return res;
   }
 
-  inline auto operator=(const IntegrationPoint & q)
-      -> IntegrationPoint & = default;
+  //  inline auto operator=(const IntegrationPoint & q)
+  //      -> IntegrationPoint & = default;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

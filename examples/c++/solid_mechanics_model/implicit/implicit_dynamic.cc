@@ -19,16 +19,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "communicator.hh"
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
-
 /* -------------------------------------------------------------------------- */
+
 const Real bar_length = 10.;
 const Real bar_height = 1.;
 const Real bar_depth = 1.;
@@ -62,8 +60,9 @@ int main(int argc, char * argv[]) {
   const auto & comm = Communicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
 
-  if (prank == 0)
+  if (prank == 0) {
     mesh.read("beam.msh");
+  }
 
   mesh.distribute();
 
@@ -87,7 +86,7 @@ int main(int argc, char * argv[]) {
       mesh.getElementGroup("traction").getNodeGroup().getNodes();
 
   bool dump_node = false;
-  if (trac_nodes.size() > 0 && mesh.isLocalOrMasterNode(trac_nodes(0))) {
+  if (not trac_nodes.empty() and mesh.isLocalOrMasterNode(trac_nodes(0))) {
     force(trac_nodes(0), 1) = F;
     dump_node = true;
   }
@@ -95,10 +94,12 @@ int main(int argc, char * argv[]) {
   // output setup
   std::ofstream pos;
   pos.open("position.csv");
-  if (!pos.good())
+  if (not pos.good()) {
     AKANTU_ERROR("Cannot open file \"position.csv\"");
+  }
 
-  pos << "id,time,position,solution" << std::endl;
+  pos << "id,time,position,solution"
+      << "\n";
 
   model.setBaseName("dynamic");
   model.addDumpFieldVector("displacement");
@@ -118,23 +119,24 @@ int main(int argc, char * argv[]) {
   /// time loop
   Real time = 0.;
   for (Int s = 1; time < max_time; ++s, time += time_step) {
-    if (prank == 0)
+    if (prank == 0) {
       std::cout << s << "\r" << std::flush;
+    }
 
     model.solveStep();
 
-    if (dump_node)
+    if (dump_node) {
       pos << s << "," << time << "," << displacment(trac_nodes(0), 1) << ","
-          << analytical_solution(s * time_step) << std::endl;
+          << analytical_solution(s * time_step) << "\n";
+    }
 
-    if (s % 100 == 0)
+    if (s % 100 == 0) {
       model.dump();
+    }
   }
 
-  std::cout << std::endl;
+  std::cout << "\n";
   pos.close();
 
-  finalize();
-
-  return EXIT_SUCCESS;
+  return 0;
 }

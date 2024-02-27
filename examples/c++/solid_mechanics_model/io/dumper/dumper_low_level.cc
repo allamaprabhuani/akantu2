@@ -19,17 +19,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_group.hh"
-#include "group_manager.hh"
-#include "mesh.hh"
-
+#include <mesh.hh>
+/* -------------------------------------------------------------------------- */
 #include "dumper_elemental_field.hh"
 #include "dumper_nodal_field.hh"
-
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
 #include "locomotive_tools.hh"
-
 /* -------------------------------------------------------------------------- */
+
 using namespace akantu;
 
 int main(int argc, char * argv[]) {
@@ -181,8 +179,6 @@ int main(int argc, char * argv[]) {
     dumper.dump();
     wheels.dump();
   }
-
-  finalize();
 
   return 0;
 }

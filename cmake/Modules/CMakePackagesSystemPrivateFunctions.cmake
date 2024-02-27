@@ -161,18 +161,11 @@ function(_package_load_third_party_script pkg_name)
       message(FATAL_ERROR "The package ${_name} does not define any of the variables ${_u_name}_INCLUDE_DIR nor ${_u_name}_LIBRARIES")
     endif()
 
-    if(CMAKE_VERSION VERSION_GREATER 2.8.12)
-      find_package_handle_standard_args(${_name}
-        REQUIRED_VARS ${_required_vars}
-        VERSION_VAR _version
-        FAIL_MESSAGE "Something was not configured by a the third-party script for ${_name}"
-        )
-    else()
-      find_package_handle_standard_args(${_name}
-        "Something was not configured by a the third-party script for ${_name}"
-        ${_required_vars}
-        )
-    endif()
+    find_package_handle_standard_args(${_name}
+      REQUIRED_VARS ${_required_vars}
+      VERSION_VAR _version
+      FAIL_MESSAGE "Something was not configured by a the third-party script for ${_name}"
+    )
   endif()
   set(${pkg_name}_USE_SYSTEM_PREVIOUS FALSE CACHE INTERNAL "" FORCE)
 endfunction()
@@ -561,7 +554,7 @@ function(_package_load_boost_components)
         package_set_project_variable(BOOST_${_u_comp} TRUE)
 
         # Generate the libraries for the package
-        _package_add_libraries(${_pkg_name} ${Boost_${_u_comp}_LIBRARY})
+        _package_add_libraries(${_pkg_name} Boost::${_comp})
       else()
         message(STATUS "   ${_comp}: NOT FOUND")
       endif()
@@ -839,12 +832,15 @@ function(_package_load_external_package pkg_name activate)
     endforeach()
   endif()
 
+  _package_variable_unset(TARGET_TO_IMPORT ${pkg_name})
+
   if(_act)
     set(_include_dirs)
     set(_libraries)
     if(_opt_pkg_TARGET)
       _package_set_libraries(${pkg_name} ${_opt_pkg_TARGET})
       list(APPEND _libraries ${_opt_pkg_TARGET})
+      _package_add_to_variable(TARGET_TO_IMPORT ${pkg_name} ${_real_name})
     else()
       foreach(_prefix ${_prefix_to_consider})
         # Generate the include dir for the package
@@ -869,6 +865,10 @@ function(_package_load_external_package pkg_name activate)
         elseif(DEFINED ${_prefix}_LIBRARY)
           _package_set_libraries(${pkg_name} ${${_prefix}_LIBRARY})
           list(APPEND _libraries ${${_prefix}_LIBRARY})
+        endif()
+
+        if(DEFINED ${_prefix}_TARGETS_TO_IMPORT)
+          _package_add_to_variable(TARGET_TO_IMPORT ${pkg_name} ${${_prefix}_TARGETS_TO_IMPORT})
         endif()
       endforeach()
     endif()

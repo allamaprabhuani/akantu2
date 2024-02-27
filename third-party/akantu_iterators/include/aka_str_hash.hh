@@ -166,9 +166,9 @@ namespace hash {
 
 } // namespace hash
 
-// constexpr auto operator"" _h(const char * str, size_t size) {
-//   return hash::details::fnv1a_64_hash(str, size - 1);
-// }
+constexpr auto operator"" _h(const char * str, size_t size) {
+  return hash::details::fnv1a_64_hash(str, size - 1);
+}
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 

@@ -1,6 +1,3 @@
-# yaml-language-server: $schema=gitlab-ci
-# yaml-language-server: $format.enable=false
-
 .docker_build:
   image: "docker:20.10.21"
   stage: .pre
@@ -17,8 +14,13 @@
     - docker build --no-cache -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
     - docker push registry.gitlab.com/akantu/akantu/${IMAGE_NAME}
   rules:
-    - changes:
-        - test/ci/${IMAGE_NAME}/*
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        compare_to: 'master'
+        paths:
+          - test/ci/${IMAGE_NAME}/*
+      when: manual
+      allow_failure: true
 
 # ------------------------------------------------------------------------------
 .cache_build:
@@ -39,6 +41,8 @@
   image: registry.gitlab.com/akantu/akantu/ubuntu:lts
 
 .image_manylinux:
+  variables:
+    IMAGE_NAME: 'manylinux:2014_x86_64'
   image: registry.gitlab.com/akantu/akantu/manylinux:2014_x86_64
 
 # ------------------------------------------------------------------------------
@@ -103,10 +107,20 @@
     - .image_ubuntu_lts
     - .cache_build
 
-.manylinux_2014_x64_gcc:
+.manylinux_2014_x86_64_gcc:
   variables:
-    output: manylinux_2014_x64_gcc
+    output: manylinux_2014_x86_64_gcc
   extends:
     - .compiler_gcc
     - .image_manylinux
     - .cache_build
+
+.macos_clang:
+  variables:
+    IMAGE_NAME: 'macosx'
+    PLAT_SUFFIX: '_macos'
+    output: macox_clang
+    CC: /usr/bin/clang
+    CXX: /usr/bin/clang++
+  tags:
+    - macos

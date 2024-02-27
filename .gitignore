@@ -1,5 +1,5 @@
 _skbuild
-build*
+build*/
 .dir-locals.el
 TAGS
 third-party/*/
@@ -34,4 +34,4 @@ setup.cfg
 .ccls-cache
 .ccls
 VERSION
-
+examples/c++/perf-test-akantu-cohesive/cube.msh

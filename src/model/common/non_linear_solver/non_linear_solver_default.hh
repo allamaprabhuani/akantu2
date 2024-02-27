@@ -29,6 +29,8 @@
 #include "non_linear_solver_newton_raphson.hh"
 #endif
 
+#include "non_linear_solver_linear.hh"
 #include "non_linear_solver_lumped.hh"
+#include "non_linear_solver_newton_raphson.hh"
 
 #endif /* AKANTU_NON_LINEAR_SOLVER_DEFAULT_HH_ */

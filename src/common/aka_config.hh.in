@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <string>
+#include <string_view>
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_CONFIG_HH_
 #define AKANTU_AKA_CONFIG_HH_
@@ -43,7 +43,7 @@
                         + AKANTU_VERSION_PATCH)
 
 namespace akantu {
-std::string getVersion();
+std::string_view getVersion();
 }
 
 @AKANTU_TYPES_EXTRA_INCLUDES@
@@ -89,7 +89,7 @@ using UInt = @AKANTU_UNSIGNED_INTEGER_TYPE@;
 
 #cmakedefine AKANTU_SOLID_MECHANICS
 #cmakedefine AKANTU_STRUCTURAL_MECHANICS
-#cmakedefine AKANTU_HEAT_TRANSFER
+#cmakedefine AKANTU_DIFFUSION
 #cmakedefine AKANTU_PHASE_FIELD
 
 #cmakedefine AKANTU_COHESIVE_ELEMENT

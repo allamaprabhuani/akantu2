@@ -84,7 +84,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
 #endif
 
-#ifdef AKANTU_HEAT_TRANSFER
+#ifdef AKANTU_DIFFUSION
 /* -------------------------------------------------------------------------- */
 struct HeatTransferModelOptions : public ModelOptions {
   explicit HeatTransferModelOptions(
