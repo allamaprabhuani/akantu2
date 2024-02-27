@@ -253,8 +253,6 @@ package_declare_sources(core
   model/common/non_linear_solver/non_linear_solver.cc
   model/common/non_linear_solver/non_linear_solver.hh
   model/common/non_linear_solver/non_linear_solver_default.hh
-  model/common/non_linear_solver/non_linear_solver_linear.cc
-  model/common/non_linear_solver/non_linear_solver_linear.hh
   model/common/non_linear_solver/non_linear_solver_lumped.cc
   model/common/non_linear_solver/non_linear_solver_lumped.hh
   model/common/non_linear_solver/non_linear_solver_newton_raphson.cc
