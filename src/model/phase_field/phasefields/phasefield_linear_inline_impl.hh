@@ -13,10 +13,7 @@ inline void PhaseFieldLinear<dim>::computeDissipatedEnergyOnQuad(
     edis += 3. / 8 * g_c_quad * this->l0 * grad_d[i] * grad_d[i];
   }
 
-  edis += 3 * g_c_quad * dam * dam / (8 * this->l0);
-
-  Real damage_penalized = std::min(0., dam - dam_prev);
-  edis += 0.5 * this->gamma * damage_penalized * damage_penalized;
+  edis += 3 * g_c_quad * dam / (8 * this->l0);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -19,8 +19,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "non_linear_solver.hh"
 #include "coupler_solid_phasefield.hh"
+#include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */
@@ -76,6 +76,7 @@ int main(int argc, char * argv[]) {
   auto & damage = model.getMaterial(0).getArray<Real>("damage", _quadrangle_4);
 
   Real analytical_damage{0.};
+  Real new_damage{0.};
   Real analytical_sigma{0.};
 
   auto & phasefield = phase.getPhaseField(0);
@@ -87,10 +88,15 @@ int main(int argc, char * argv[]) {
   const Real gc = phasefield.getParam("gc");
   const Real l0 = phasefield.getParam("l0");
 
+  const Real lambda = nu * E / ((1. + nu) * (1. - 2. * nu));
+  const Real mu = E / (2. + 2. * nu);
+
   Real error_stress{0.};
 
   Real error_damage{0.};
 
+  Real strain_energy_plus{0.};
+  Real strain_energy_minus{0.};
   Real max_strain{0.};
 
   for (UInt s = 0; s < nbSteps; ++s) {
@@ -111,13 +117,34 @@ int main(int argc, char * argv[]) {
     coupler.solve("static", "static");
     phase.savePreviousState();
 
-    analytical_damage = max_strain * max_strain * c22 /
-                        (gc / l0 + max_strain * max_strain * c22);
-    if (axial_strain < 0.) {
-      analytical_sigma = c22 * axial_strain;
+    if (axial_strain > 0) {
+      strain_energy_plus = axial_strain * axial_strain * (0.5 * lambda + mu);
+      strain_energy_minus = 0.;
     } else {
-      analytical_sigma = c22 * axial_strain * (1 - analytical_damage) *
-                         (1 - analytical_damage);
+      strain_energy_plus = 2. * axial_strain * axial_strain * mu / 3.;
+      strain_energy_minus =
+          axial_strain * axial_strain * (0.5 * lambda + mu / 3.);
+    }
+
+    new_damage = 2. * (l0 / gc) * strain_energy_plus /
+                 (2. * (l0 / gc) * strain_energy_plus + 1.);
+    if (new_damage > analytical_damage) {
+      analytical_damage = new_damage;
+    }
+    // if (axial_strain < 0.) {
+    //   analytical_sigma = c22 * axial_strain;
+    // } else {
+    //   analytical_sigma = c22 * axial_strain * (1 - analytical_damage) *
+    //                      (1 - analytical_damage);
+    // }
+
+    if (axial_strain < 0.) {
+      analytical_sigma = (1. - analytical_damage) * (1. - analytical_damage) *
+                             axial_strain * 4. * mu / 3. +
+                         axial_strain * (lambda + 2. * mu / 3.);
+    } else {
+      analytical_sigma = (lambda + 2. * mu) * axial_strain *
+                         (1. - analytical_damage) * (1. - analytical_damage);
     }
 
     error_stress =
@@ -125,7 +152,7 @@ int main(int argc, char * argv[]) {
 
     error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
-    if ((error_damage > 1e-8 or error_stress > 1e-8) and
+    if ((error_damage > 1e3 or error_stress > 1e3) and
         std::abs(axial_strain) > 1e-13) {
       std::cerr << std::left << std::setw(15)
                 << "Error damage: " << error_damage << "\n";

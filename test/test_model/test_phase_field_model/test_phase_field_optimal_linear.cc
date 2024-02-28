@@ -62,14 +62,15 @@ int main(int argc, char * argv[]) {
   for (Int n = 0; n < phase.getMesh().getNbNodes(); ++n) {
     // if (positions(n, 0) == 0.6) {
     analytical_damage = computeOptimalDamage(positions(n, 0), l0);
-    error_damage = std::abs(analytical_damage - damage(n)) / analytical_damage;
+    // error_damage = std::abs(analytical_damage - damage(n)) / analytical_damage;
+    error_damage = std::abs(analytical_damage - damage(n));
     os << positions(n, 0) << "," << damage(n) << "," << analytical_damage
        << std::endl;
-    if (error_damage > 1e-8) {
+    if (error_damage > 1e-5) {
       std::cerr << "Position: " << positions(n, 0) << std::endl;
       std::cerr << "Optimal damage: " << analytical_damage << std::endl;
       std::cerr << "Damage: " << damage(n) << std::endl;
-      // return EXIT_FAILURE;
+      return EXIT_FAILURE;
     }
     // }
   }

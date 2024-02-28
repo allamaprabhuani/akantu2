@@ -99,11 +99,11 @@ int main(int argc, char * argv[]) {
     analytical_sigma =
         c22 * axial_strain * (1 - analytical_damage) * (1 - analytical_damage);
 
-    analytical_energy = analytical_damage * analytical_damage * 3. * gc / (8. * l0);
+    analytical_energy = analytical_damage * 3. * gc / (8. * l0);
 
     error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
 
-    error_damage = std::abs(analytical_damage - damage(0));
+    error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
 
     error_energy = std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
 
@@ -111,7 +111,7 @@ int main(int argc, char * argv[]) {
        << analytical_sigma << " " << analytical_damage << " " << error_stress
        << " " << error_damage << " " << error_energy << std::endl;
 
-    if ((error_damage > 1e-2 or error_stress > 1e-2) and s > 0) {
+    if ((error_damage > 1e-8 or error_stress > 1e-8 or error_energy > 1e-8) and s > 0) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;
