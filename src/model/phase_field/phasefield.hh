@@ -22,6 +22,7 @@
 #include "aka_common.hh"
 #include "aka_factory.hh"
 #include "constitutive_law.hh"
+#include "energy_split.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_PHASEFIELD_HH_

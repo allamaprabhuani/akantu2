@@ -1,5 +1,8 @@
 /* -------------------------------------------------------------------------- */
 #include "phasefield.hh"
+#include "volumetric_deviatoric_split.hh"
+#include "no_energy_split.hh"
+#include <memory>
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_PHASEFIELD_LINEAR_HH__
@@ -70,6 +73,9 @@ private:
 
   // dimension to consider in deviatoric split
   Int dev_dim;
+
+  // energy split
+  std::shared_ptr<EnergySplit> energy_split{nullptr};
 };
 
 } // namespace akantu

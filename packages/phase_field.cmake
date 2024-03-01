@@ -51,4 +51,13 @@ package_declare_sources(phase_field
   model/model_couplers/coupler_solid_phasefield.cc
 
   model/phase_field/phase_field_element_filter.hh
+
+  model/phase_field/energy_split.hh
+  model/phase_field/energy_split.cc
+
+  model/phase_field/energy_splits/volumetric_deviatoric_split.hh
+  model/phase_field/energy_splits/volumetric_deviatoric_split.cc
+
+  model/phase_field/energy_splits/no_energy_split.hh
+  model/phase_field/energy_splits/no_energy_split.cc
   )

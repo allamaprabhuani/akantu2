@@ -33,6 +33,8 @@
 #include "material_phasefield_anisotropic.hh"
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
+#include "volumetric_deviatoric_split.hh"
+#include <memory>
 
 namespace akantu {
 
@@ -68,6 +70,7 @@ void MaterialPhaseFieldAnisotropic<dim>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template <Int dim> void MaterialPhaseFieldAnisotropic<dim>::initMaterial() {
   MaterialDamage<dim>::initMaterial();
+  this->energy_split = std::make_shared<VolumetricDeviatoricSplit<dim>>(this->E, this->nu);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,6 +81,7 @@ template <> void MaterialPhaseFieldAnisotropic<2>::initMaterial() {
   if (!this->plane_stress) {
     this->dev_dim = 3;
   }
+  this->energy_split = std::make_shared<VolumetricDeviatoricSplit<2>>(this->E, this->nu, this->plane_stress);
 }
 
 /* -------------------------------------------------------------------------- */

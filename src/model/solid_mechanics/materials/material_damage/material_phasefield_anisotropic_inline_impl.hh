@@ -47,28 +47,33 @@ MaterialPhaseFieldAnisotropic<dim>::computeStressOnQuad(Args && args) {
   auto sigma = args["sigma"_n];
   auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
-  Real trace = strain.trace();
-  Real trace_plus = std::max(Real(0.), trace);
-  Real trace_minus = std::min(Real(0.), trace);
+  // Real trace = strain.trace();
+  // Real trace_plus = std::max(Real(0.), trace);
+  // Real trace_minus = std::min(Real(0.), trace);
 
-  Real sigma_th_plus = std::max(Real(0.), args["sigma_th"_n]);
-  Real sigma_th_minus = std::min(Real(0.), args["sigma_th"_n]);
+  auto && sigma_th = args["sigma_th"_n];
+  // Real sigma_th_plus = std::max(Real(0.), args["sigma_th"_n]);
+  // Real sigma_th_minus = std::min(Real(0.), args["sigma_th"_n]);
 
-  Matrix<Real> strain_dev(dev_dim, dev_dim);
-  Matrix<Real> strain_tmp = Matrix<Real>::Zero(dev_dim, dev_dim);
-  strain_tmp.topLeftCorner(dim, dim) = strain;
+  // Matrix<Real> strain_dev(dev_dim, dev_dim);
+  // Matrix<Real> strain_tmp = Matrix<Real>::Zero(dev_dim, dev_dim);
+  // strain_tmp.topLeftCorner(dim, dim) = strain;
 
-  strain_dev = strain_tmp - trace / Real(dev_dim) * Matrix<Real>::Identity(dev_dim, dev_dim);
+  // strain_dev = strain_tmp - trace / Real(dev_dim) * Matrix<Real>::Identity(dev_dim, dev_dim);
 
-  Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
+  // Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
 
   Real g_d = (1 - dam) * (1 - dam) + eta;
 
-  auto sigma_plus = (kappa * trace_plus + sigma_th_plus) *
-                        Matrix<Real>::Identity(dev_dim, dev_dim) +
-                    2. * this->mu * strain_dev;
-  auto sigma_minus = (kappa * trace_minus + sigma_th_minus) *
-                     Matrix<Real>::Identity(dev_dim , dev_dim);
+  // auto sigma_plus = (kappa * trace_plus + sigma_th_plus) *
+  //                       Matrix<Real>::Identity(dev_dim, dev_dim) +
+  //                   2. * this->mu * strain_dev;
+  // auto sigma_minus = (kappa * trace_minus + sigma_th_minus) *
+  //                    Matrix<Real>::Identity(dev_dim , dev_dim);
+  
+  Matrix<Real> sigma_plus = Matrix<Real>::Zero(dim, dim);
+  Matrix<Real> sigma_minus = Matrix<Real>::Zero(dim, dim);
+  this->energy_split->computeSigmaOnQuad(strain, sigma_th, sigma_plus, sigma_minus);
 
   sigma = g_d * sigma_plus.topLeftCorner(dim, dim) + sigma_minus.topLeftCorner(dim, dim);
 }
@@ -83,51 +88,55 @@ void MaterialPhaseFieldAnisotropic<dim>::computeTangentModuliOnQuad(
 
   auto strain = Material::gradUToEpsilon<dim>(args["grad_u"_n]);
 
-  Real trace = strain.trace();
+  // Real trace = strain.trace();
 
   Real g_d = (1 - dam) * (1 - dam) + eta;
-  Real g_d_hyd = trace > 0. ? g_d : 1.;
+  // Real g_d_hyd = trace > 0. ? g_d : 1.;
 
   auto && tangent = args["tangent_moduli"_n];
   tangent.zero();
 
   constexpr auto n = Material::getTangentStiffnessVoigtSize(dim);
+  Matrix<Real> tmp = Matrix<Real>::Zero(n, n);
 
-  // Real Ep = E/((1+nu)*(1-2*nu));
+  this->energy_split->computeTangentCoefsOnQuad(strain, g_d, tmp);
+  tangent = tmp;
 
-  if constexpr (dim == 1) {
-    tangent(0, 0) = g_d_hyd * this->E;
-    return;
-  }
+  // // Real Ep = E/((1+nu)*(1-2*nu));
 
-  Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
+  // if constexpr (dim == 1) {
+  //   tangent(0, 0) = g_d_hyd * this->E;
+  //   return;
+  // }
 
-  auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dev_dim));
-  [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dev_dim);
-  [[maybe_unused]] auto Mijij = g_d * this->mu;
+  // Real kappa = this->lambda + 2. / Real(dev_dim) * this->mu;
 
-  tangent(0, 0) = Miiii;
+  // auto Miiii = g_d_hyd * kappa + g_d * 2. * this->mu * (1. - 1. / Real(dev_dim));
+  // [[maybe_unused]] auto Miijj = g_d_hyd * kappa - g_d * 2. * this->mu / Real(dev_dim);
+  // [[maybe_unused]] auto Mijij = g_d * this->mu;
 
-  // test of dimension should by optimized out by the compiler due to the
-  // template
-  if constexpr (dim >= 2) {
-    tangent(1, 1) = Miiii;
-    tangent(0, 1) = Miijj;
-    tangent(1, 0) = Miijj;
+  // tangent(0, 0) = Miiii;
 
-    tangent(n - 1, n - 1) = Mijij;
-  }
+  // // test of dimension should by optimized out by the compiler due to the
+  // // template
+  // if constexpr (dim >= 2) {
+  //   tangent(1, 1) = Miiii;
+  //   tangent(0, 1) = Miijj;
+  //   tangent(1, 0) = Miijj;
 
-  if constexpr (dim == 3) {
-    tangent(2, 2) = Miiii;
-    tangent(0, 2) = Miijj;
-    tangent(1, 2) = Miijj;
-    tangent(2, 0) = Miijj;
-    tangent(2, 1) = Miijj;
+  //   tangent(n - 1, n - 1) = Mijij;
+  // }
 
-    tangent(3, 3) = Mijij;
-    tangent(4, 4) = Mijij;
-  }
+  // if constexpr (dim == 3) {
+  //   tangent(2, 2) = Miiii;
+  //   tangent(0, 2) = Miijj;
+  //   tangent(1, 2) = Miijj;
+  //   tangent(2, 0) = Miijj;
+  //   tangent(2, 1) = Miijj;
+
+  //   tangent(3, 3) = Mijij;
+  //   tangent(4, 4) = Mijij;
+  // }
 }
 
 } // namespace akantu

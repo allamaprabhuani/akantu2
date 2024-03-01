@@ -23,6 +23,14 @@ template <Int dim> void PhaseFieldLinear<dim>::initPhaseField() {
   if (dim == 2 && !this->plane_stress) {
     this->dev_dim = 3;
   }
+
+  if (this->isotropic) {
+    this->energy_split = std::make_shared<NoEnergySplit<dim>>(
+        this->E, this->nu, this->plane_stress);
+  } else {
+    this->energy_split = std::make_shared<VolumetricDeviatoricSplit<dim>>(
+        this->E, this->nu, this->plane_stress);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -46,22 +54,13 @@ template <Int dim>
 void PhaseFieldLinear<dim>::computeDrivingForce(ElementType el_type,
                                                 GhostType ghost_type) {
 
-  if (this->isotropic) {
-    for (auto && tuple :
-         zip(this->phi(el_type, ghost_type),
-             make_view(this->strain(el_type, ghost_type), dim, dim))) {
-      auto & phi_quad = std::get<0>(tuple);
-      auto & strain = std::get<1>(tuple);
-      computePhiIsotropicOnQuad(strain, phi_quad);
-    }
-  } else {
-    for (auto && tuple :
-         zip(this->phi(el_type, ghost_type),
-             make_view(this->strain(el_type, ghost_type), dim, dim))) {
-      auto & phi_quad = std::get<0>(tuple);
-      auto & strain = std::get<1>(tuple);
-      computePhiOnQuad(strain, phi_quad);
-    }
+  for (auto && tuple :
+       zip(this->phi(el_type, ghost_type),
+           make_view(this->strain(el_type, ghost_type), dim, dim))) {
+    auto & phi_quad = std::get<0>(tuple);
+    auto & strain = std::get<1>(tuple);
+    // computePhiOnQuad(strain, phi_quad);
+    this->energy_split->computePhiOnQuad(strain, phi_quad);
   }
 
   for (auto && tuple :

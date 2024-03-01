@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "energy_split.hh"
 #include "material.hh"
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
@@ -98,7 +99,10 @@ protected:
   /// Phasefield isotropic
   bool is_isotropic;
 
+  // Dimension considered in volumetric-deviatoric split
   Int dev_dim;
+
+  std::shared_ptr<EnergySplit> energy_split{nullptr};
 };
 
 } // namespace akantu
