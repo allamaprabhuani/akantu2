@@ -209,43 +209,6 @@ Real FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    integrateOnIntegrationPoints(const Array<Real> & f, Array<Real> & intf,
-                                 Int nb_degree_of_freedom, ElementType type,
-                                 GhostType ghost_type,
-                                 const Array<Int> & filter_elements) const {
-
-  auto nb_element = mesh.getNbElement(type, ghost_type);
-  if (filter_elements != empty_filter)
-    nb_element = filter_elements.size();
-  auto nb_quadrature_points = getNbIntegrationPoints(type);
-
-  AKANTU_DEBUG_ASSERT(f.size() == nb_element * nb_quadrature_points,
-                      "The vector f(" << f.getID() << " size " << f.size()
-                                      << ") has not the good size ("
-                                      << nb_element << ").");
-  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom,
-                      "The vector f("
-                          << f.getID()
-                          << ") has not the good number of component.");
-  AKANTU_DEBUG_ASSERT(intf.getNbComponent() == nb_degree_of_freedom,
-                      "The vector intf("
-                          << intf.getID()
-                          << ") has not the good number of component.");
-
-  intf.resize(nb_element * nb_quadrature_points);
-
-  auto && call = [&](auto && enum_type) {
-    constexpr ElementType type = std ::decay_t<decltype(enum_type)>::value;
-    integrator.template integrateOnIntegrationPoints<ElementType(type)>(
-        f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
-  };
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
-}
-
-/* -------------------------------------------------------------------------- */
-template <template <ElementKind, class> class I, template <ElementKind> class S,
-          ElementKind kind, class IntegrationOrderFunctor>
-void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     interpolateOnIntegrationPoints(const Array<Real> & u, Array<Real> & uq,
                                    Int nb_degree_of_freedom, ElementType type,
                                    GhostType ghost_type,
