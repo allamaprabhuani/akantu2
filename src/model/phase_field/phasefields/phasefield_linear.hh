@@ -68,8 +68,14 @@ private:
   // irreversibility tolerance
   Real tol_ir;
 
-  // penalization parameter
+  // recovery tolerance
+  Real tol_rec;
+
+  // irreversibility penalization parameter
   Real gamma;
+
+  // recovery penalization parameter
+  Real rho_rec;
 
   // dimension to consider in deviatoric split
   Int dev_dim;

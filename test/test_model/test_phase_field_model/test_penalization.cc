@@ -44,8 +44,8 @@ int main(int argc, char * argv[]) {
   phase.initFull(_analysis_method = _static);
   auto & solver_phase = phase.getNonLinearSolver("static");
   solver_phase.set("max_iterations", 1000);
-  solver_phase.set("threshold", 1e-8);
-  solver_phase.set("convergence_type", SolveConvergenceCriteria::_residual);
+  solver_phase.set("threshold", 1e-6);
+  solver_phase.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   model.setBaseName("phase_solid");
   model.addDumpField("stress");
@@ -55,7 +55,7 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   UInt nbSteps = 1500;
-  Real increment = 1e-4;
+  Real increment = 1e-5;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
   auto & damage = model.getMaterial(0).getArray<Real>("damage", _quadrangle_4);
@@ -112,14 +112,19 @@ int main(int argc, char * argv[]) {
     phase.savePreviousState();
 
     new_damage = 2. * (l0 / gc) * max_strain_energy /
-                        (2. * (l0 / gc) * max_strain_energy + 1.);
+                 (2. * (l0 / gc) * max_strain_energy + 1.);
     if (new_damage > analytical_damage) {
-      analytical_damage = new_damage; 
+      analytical_damage = new_damage;
     }
+    // if (axial_strain < 0.) {
+    //   analytical_sigma = (1. - analytical_damage) * (1. - analytical_damage)
+    //   *
+    //                          axial_strain * mu +
+    //                      axial_strain * (lambda + mu);
     if (axial_strain < 0.) {
       analytical_sigma = (1. - analytical_damage) * (1. - analytical_damage) *
-                             axial_strain * mu +
-                         axial_strain * (lambda + mu);
+                             axial_strain * 4. * mu / 3. +
+                         axial_strain * (lambda + 2. * mu / 3.);
     } else {
       analytical_sigma = (lambda + 2. * mu) * axial_strain *
                          (1. - analytical_damage) * (1. - analytical_damage);
@@ -134,21 +139,21 @@ int main(int argc, char * argv[]) {
        << analytical_sigma << " " << analytical_damage << " " << error_stress
        << " " << error_damage << std::endl;
 
-//     if ((error_damage > 1e-8 or error_stress > 1e-8) and
-//         std::abs(axial_strain) > 1e-13) {
-//       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
-//       std::cerr << std::left << std::setw(15)
-//                 << "Axial strain: " << axial_strain << std::endl;
-//       std::cerr << std::left << std::setw(15)
-//                 << "An. damage: " << analytical_damage << std::endl;
-//       std::cerr << std::left << std::setw(15)
-//                 << "Damage: " << damage(0) << std::endl;
-//       std::cerr << std::left << std::setw(15)
-//                 << "Error damage: " << error_damage << std::endl;
-//       std::cerr << std::left << std::setw(15)
-//                 << "Error stress: " << error_stress << std::endl;
-//       return EXIT_FAILURE;
-//     }
+    if ((error_damage > 1e-3 or error_stress > 1e-3) and
+        std::abs(axial_strain) > 1e-13) {
+      std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Axial strain: " << axial_strain << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "An. damage: " << analytical_damage << std::endl;
+      std::cerr << std::left << std::setw(15) << "Damage: " << damage(0)
+                << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error damage: " << error_damage << std::endl;
+      std::cerr << std::left << std::setw(15)
+                << "Error stress: " << error_stress << std::endl;
+      return EXIT_FAILURE;
+    }
 
     model.dump();
   }

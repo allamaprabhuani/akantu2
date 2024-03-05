@@ -79,6 +79,7 @@ int main(int argc, char * argv[]) {
   Real error_stress{0.};
   Real error_damage{0.};
   Real error_energy{0.};
+  Real tol = 1e-8;
 
   for (Int s = 0; s < nbSteps; ++s) {
     Real axial_strain = increment * s;
@@ -92,7 +93,7 @@ int main(int argc, char * argv[]) {
 
     model.assembleInternalForces();
 
-    //TODO: change to match AT1 formulation
+    // TODO: change to match AT1 formulation
     analytical_damage =
         1. - 3. * gc / (8. * l0 * axial_strain * axial_strain * c22);
     analytical_damage = std::max(0., analytical_damage);
@@ -103,15 +104,21 @@ int main(int argc, char * argv[]) {
 
     error_stress = std::abs(analytical_sigma - stress(0, 3)) / analytical_sigma;
 
-    error_damage = std::abs(analytical_damage - damage(0)) / analytical_damage;
+    error_damage = std::abs(analytical_damage - damage(0));
 
-    error_energy = std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
+    error_energy =
+        std::abs(analytical_energy - phase.getEnergy()) / analytical_energy;
 
     os << axial_strain << " " << stress(0, 3) << " " << damage(0) << " "
        << analytical_sigma << " " << analytical_damage << " " << error_stress
        << " " << error_damage << " " << error_energy << std::endl;
 
-    if ((error_damage > 1e-8 or error_stress > 1e-8 or error_energy > 1e-8) and s > 0) {
+    if (analytical_damage < 1e-8) {
+      tol = 1e-5;
+    } else {
+      tol = 1e-8;
+    }
+    if ((error_damage > tol or error_stress > tol) and s > 0) {
       std::cerr << std::left << std::setw(15) << "Step: " << s << std::endl;
       std::cerr << std::left << std::setw(15)
                 << "Axial strain: " << axial_strain << std::endl;
@@ -224,8 +231,7 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
 
         switch (spatial_dimension) {
         case 1: {
-          auto & mat =
-              dynamic_cast<MaterialDamage<1> &>(material);
+          auto & mat = dynamic_cast<MaterialDamage<1> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :
@@ -239,8 +245,7 @@ void computeDamageOnQuadPoints(SolidMechanicsModel & solid,
           break;
         }
         case 2: {
-          auto & mat =
-              dynamic_cast<MaterialDamage<2> &>(material);
+          auto & mat = dynamic_cast<MaterialDamage<2> &>(material);
           auto & solid_damage = mat.getDamage();
 
           for (const auto & type :

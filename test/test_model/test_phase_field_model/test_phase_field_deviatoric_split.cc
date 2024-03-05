@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
   auto & solver_phase = phase.getNonLinearSolver("static");
   solver_phase.set("max_iterations", 1000);
   solver_phase.set("threshold", 1e-6);
-  solver_phase.set("convergence_type", SolveConvergenceCriteria::_residual);
+  solver_phase.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   model.setBaseName("phase_solid");
   model.addDumpField("stress");
@@ -55,7 +55,7 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   UInt nbSteps = 1500;
-  Real increment = 1e-4;
+  Real increment = 1e-5;
 
   auto & stress = model.getMaterial(0).getArray<Real>("stress", _quadrangle_4);
   auto & damage = model.getMaterial(0).getArray<Real>("damage", _quadrangle_4);

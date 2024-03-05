@@ -11,13 +11,26 @@ PhaseFieldLinear<dim>::PhaseFieldLinear(PhaseFieldModel & model, const ID & id)
     : PhaseField(model, id) {
   registerParam("irreversibility_tol", tol_ir, Real(1e-2),
                 _pat_parsable | _pat_readable, "Irreversibility tolerance");
+  registerParam("recovery_tol", tol_rec, Real(1e-2),
+                _pat_parsable | _pat_readable, "Recovery tolerance");
 }
 
 /* -------------------------------------------------------------------------- */
 template <Int dim> void PhaseFieldLinear<dim>::initPhaseField() {
   PhaseField::initPhaseField();
 
+  // initiate irreversibility param
   this->gamma = Real(this->g_c) / this->l0 * 27. / (64. * tol_ir * tol_ir);
+
+  // initiate recovery param
+  Real diam = 0.;
+  BBox bbox = this->getHandler().getMesh().getBBox();
+  for (auto i : arange(dim)) {
+    diam += bbox.size(SpatialDirection(i)) * bbox.size(SpatialDirection(i));
+  }
+  diam = std::sqrt(diam);
+  this->rho_rec = Real(this->g_c) / this->l0 * 9. * (diam / this->l0 - 2.) /
+                  (64. * tol_rec);
 
   this->dev_dim = dim;
   if (dim == 2 && !this->plane_stress) {
@@ -84,14 +97,17 @@ void PhaseFieldLinear<dim>::computeDrivingForce(ElementType el_type,
     auto & dam_prev_quad = std::get<8>(tuple);
 
     computeDamageEnergyDensityOnQuad(phi_quad, dam_energy_density_quad);
-    Real penalization =
+    Real penalization_ir =
         this->gamma * std::min(Real(0.), dam_on_quad - dam_prev_quad);
+    Real penalization_rec = this->rho_rec * std::min(Real(0.), dam_on_quad);
 
     driving_force_quad = dam_on_quad * dam_energy_density_quad - 2 * phi_quad +
-                         3 * g_c_quad / (8 * this->l0) + penalization;
+                         3 * g_c_quad / (8 * this->l0) + penalization_ir +
+                         penalization_rec;
     driving_energy_quad = damage_energy_quad * gradd_quad;
 
     dam_energy_density_quad += this->gamma * (dam_on_quad < dam_prev_quad);
+    dam_energy_density_quad += this->rho_rec * (dam_on_quad < 0);
   }
 }
 
@@ -153,9 +169,9 @@ void PhaseFieldLinear<dim>::computeDissipatedEnergyByElement(
 /* -------------------------------------------------------------------------- */
 template <Int dim> void PhaseFieldLinear<dim>::afterSolveStep() {
   // clamp negative damage to 0
-  for (auto & dam : this->getHandler().getDamage()) {
-    dam = std::max(Real(0.), dam);
-  }
+  // for (auto & dam : this->getHandler().getDamage()) {
+  //   dam = std::max(Real(0.), dam);
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
