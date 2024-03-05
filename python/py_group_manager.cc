@@ -21,8 +21,9 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
-#include <dumpable.hh>
+#include <dumper_iohelper_paraview.hh>
 #include <element_group.hh>
+#include <mesh.hh>
 #include <node_group.hh>
 /* -------------------------------------------------------------------------- */
 #include <dumpable_inline_impl.hh>
