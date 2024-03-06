@@ -85,14 +85,6 @@ public:
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
                  Int nb_degree_of_freedom, GhostType ghost_type) const;
 
-  /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q *
-  /// w_q @f$)
-  template <ElementType type>
-  void
-  integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
-                               Int nb_degree_of_freedom, GhostType ghost_type,
-                               const Array<Idx> & filter_elements) const;
-
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
   [[nodiscard]] const Matrix<Real> &
@@ -142,15 +134,6 @@ protected:
 
   /// check that the jacobians are not negative
   template <ElementType type> void checkJacobians(GhostType ghost_type) const;
-
-  /// internal integrate partially around a quadrature point (@f$ intf_q = f_q *
-  /// J_q *
-  /// w_q @f$)
-  void integrateOnIntegrationPoints(const Array<Real> & in_f,
-                                    Array<Real> & intf,
-                                    Int nb_degree_of_freedom,
-                                    const Array<Real> & jacobians,
-                                    Int nb_element) const;
 
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
                  Int nb_degree_of_freedom, const Array<Real> & jacobians,
