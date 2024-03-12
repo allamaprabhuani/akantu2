@@ -175,6 +175,42 @@ void register_model(py::module & mod) {
             self.dump(dumper, time, step);
           },
           py::arg("dumper_name"), py::arg("time"), py::arg("step"))
+
+      .def(
+          "dumpGroup",
+          [](Model & self, const std::string & group_name) {
+            self.dumpGroup(group_name);
+          },
+          py::arg("group_name"))
+      .def(
+          "setGroupDirectory",
+          [](Model & self, const std::string & directory,
+             const std::string & group_name) {
+            self.setGroupDirectory(directory, group_name);
+          },
+          py::arg("directory"), py::arg("group_name"))
+      .def(
+          "setGroupBaseName",
+          [](Model & self, const std::string & basename,
+             const std::string & group_name) {
+            self.setGroupBaseName(basename, group_name);
+          },
+          py::arg("basename"), py::arg("group_name"))
+      .def(
+          "addDumpGroupField",
+          [](Model & self, const std::string & field_id,
+             const std::string & group_name) {
+            self.addDumpGroupField(field_id, group_name);
+          },
+          py::arg("field_id"), py::arg("group_name"))
+
+      .def(
+          "addDumpGroupFieldVector",
+          [](Model & self, const std::string & field_id,
+             const std::string & group_name) {
+            self.addDumpGroupFieldVector(field_id, group_name);
+          },
+          py::arg("field_id"), py::arg("group_name"))
       .def("initNewSolver", &Model::initNewSolver)
       .def(
           "getNewSolver",

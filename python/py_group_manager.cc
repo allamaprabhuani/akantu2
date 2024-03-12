@@ -21,8 +21,12 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <dumper_iohelper_paraview.hh>
 #include <element_group.hh>
+#include <mesh.hh>
 #include <node_group.hh>
+/* -------------------------------------------------------------------------- */
+#include <dumpable_inline_impl.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -63,7 +67,7 @@ void register_group_manager(py::module & mod) {
       .def("remove", &NodeGroup::add);
 
   /* ------------------------------------------------------------------------ */
-  py::class_<ElementGroup>(mod, "ElementGroup")
+  py::class_<ElementGroup, Dumpable>(mod, "ElementGroup")
       .def(
           "getNodeGroup",
           [](ElementGroup & self) -> decltype(auto) {

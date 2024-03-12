@@ -1,5 +1,25 @@
 # Version 5
 
+## Version 5.0.6
+
+### Added
+
+- FEEngine features in python api: 
+   - `fem.integrate`,
+   - `fem.computeBtD`,
+   - `fem.computeBtDB`,
+   - `fem.computeNtb`,
+   - `fem.computeNtbN`,
+   - `fem.getShapes`
+   - `fem.getShapesDerivatives`
+
+- Group dump features in python api 
+   - `model.dumpGroup`
+   - `model.setGroupDirectory`
+   - `model.setGroupBaseName`
+   - `model.addDumpGroupField`
+   - `model.addDumpGroupFieldVector`
+
 ## Version 5.0.5
 
 ### Added
