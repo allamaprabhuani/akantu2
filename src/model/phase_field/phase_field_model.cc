@@ -358,7 +358,6 @@ Int PhaseFieldModel::getNbData(const Array<Element> & elements,
 void PhaseFieldModel::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
-  Parent::packData(buffer, elements, tag);
   switch (tag) {
   case SynchronizationTag::_for_dump: {
     packNodalDataHelper(*damage, buffer, elements, mesh);
@@ -380,7 +379,6 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
 void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
                                  const Array<Element> & elements,
                                  const SynchronizationTag & tag) {
-  Parent::unpackData(buffer, elements, tag);
   switch (tag) {
   case SynchronizationTag::_for_dump: {
     unpackNodalDataHelper(*damage, buffer, elements, mesh);
@@ -396,8 +394,6 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
   }
 
   Parent::unpackData(buffer, elements, tag);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
