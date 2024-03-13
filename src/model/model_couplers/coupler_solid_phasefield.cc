@@ -396,23 +396,23 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
 
   solid->solveStep(solid_solver_id);
 
-  solid->synchronize(SynchronizationTag::_smm_gradu);
+  // solid->synchronize(SynchronizationTag::_smm_gradu);
 
   AKANTU_DEBUG_INFO("exchange strain for local elements");
   this->computeStrainOnQuadPoints(_not_ghost);
 
-  AKANTU_DEBUG_INFO("exchange strain for ghost elements");
-  this->computeStrainOnQuadPoints(_ghost);
+  // AKANTU_DEBUG_INFO("exchange strain for ghost elements");
+  // this->computeStrainOnQuadPoints(_ghost);
 
   phase->solveStep(phase_solver_id);
 
-  phase->synchronize(SynchronizationTag::_pfm_damage);
+  // phase->synchronize(SynchronizationTag::_pfm_damage);
 
   AKANTU_DEBUG_INFO("exchange damage for local elements");
   this->computeDamageOnQuadPoints(_not_ghost);
 
-  AKANTU_DEBUG_INFO("exchange damage for ghost elements");
-  this->computeDamageOnQuadPoints(_ghost);
+  // AKANTU_DEBUG_INFO("exchange damage for ghost elements");
+  // this->computeDamageOnQuadPoints(_ghost);
 
   solid->assembleInternalForces();
 }

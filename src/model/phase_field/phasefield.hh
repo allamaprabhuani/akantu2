@@ -69,6 +69,23 @@ public:
 
   /// compute the driving force for this phasefield
   virtual void computeAllDrivingForces(GhostType ghost_type = _not_ghost);
+  
+
+  /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
+public:
+  [[nodiscard]] inline Int
+  getNbData(const Array<Element> & elements,
+            const SynchronizationTag & tag) const override;
+
+  inline void packData(CommunicationBuffer & buffer,
+                       const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
+
+  inline void unpackData(CommunicationBuffer & buffer,
+                         const Array<Element> & elements,
+                         const SynchronizationTag & tag) override;
 
 protected:
   /// compute the dissipated energy by element

@@ -290,11 +290,11 @@ void PhaseFieldModel::assembleInternalForces() {
 
   this->internal_force->zero();
 
-  this->synchronize(SynchronizationTag::_pfm_damage);
-
   for_each_constitutive_law([](auto && phasefield) {
     phasefield.computeAllDrivingForces(_not_ghost);
   });
+
+  this->asynchronousSynchronize(SynchronizationTag::_pfm_damage);
 
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
@@ -302,6 +302,7 @@ void PhaseFieldModel::assembleInternalForces() {
     phasefield.assembleInternalForces(_not_ghost);
   });
 
+  this->waitEndSynchronize(SynchronizationTag::_pfm_damage);
   // assemble the forces due to local driving forces
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   for_each_constitutive_law(
@@ -327,7 +328,7 @@ void PhaseFieldModel::setTimeStep(Real time_step, const ID & solver_id) {
 /* -------------------------------------------------------------------------- */
 Int PhaseFieldModel::getNbData(const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
-  Int size = Parent::getNbData(elements, tag);
+  Int size = 0;
   Int nb_nodes_per_element = 0;
 
   for (const Element & el : elements) {
@@ -340,14 +341,15 @@ Int PhaseFieldModel::getNbData(const Array<Element> & elements,
     size += nb_nodes_per_element * sizeof(Real);
     break;
   }
-  case SynchronizationTag::_pfm_damage: {
-    size += nb_nodes_per_element * sizeof(Real);
-    break;
-  }
+  // case SynchronizationTag::_pfm_damage: {
+  //   size += nb_nodes_per_element * sizeof(Real);
+  //   break;
+  // }
   default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    // AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
+  size += Parent::getNbData(elements, tag);
 
   return size;
 }
@@ -362,14 +364,16 @@ void PhaseFieldModel::packData(CommunicationBuffer & buffer,
     packNodalDataHelper(*damage, buffer, elements, mesh);
     break;
   }
-  case SynchronizationTag::_pfm_damage: {
-    packNodalDataHelper(*damage, buffer, elements, mesh);
-    break;
-  }
+  // case SynchronizationTag::_pfm_damage: {
+  //   packNodalDataHelper(*damage, buffer, elements, mesh);
+  //   break;
+  // }
   default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    // AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
+
+  Parent::packData(buffer, elements, tag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -382,14 +386,16 @@ void PhaseFieldModel::unpackData(CommunicationBuffer & buffer,
     unpackNodalDataHelper(*damage, buffer, elements, mesh);
     break;
   }
-  case SynchronizationTag::_pfm_damage: {
-    unpackNodalDataHelper(*damage, buffer, elements, mesh);
-    break;
-  }
+  // case SynchronizationTag::_pfm_damage: {
+  //   unpackNodalDataHelper(*damage, buffer, elements, mesh);
+  //   break;
+  // }
   default: {
-    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    // AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
+
+  Parent::unpackData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
