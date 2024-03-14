@@ -571,7 +571,9 @@ TEST(TestFilteredIterator, Temporary) {
 /* -------------------------------------------------------------------------- */
 TEST(TestFilteredIfIterator, Simple) {
   std::vector<int> values{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  for (auto && data : filter_if(values, [](auto && a) { return a % 2 == 0; })) {
+  auto f = [](auto && a) { return a % 2 == 0; };
+
+  for (auto && data : filter_if(values, f)) {
     std::cout << data << std::endl;
     EXPECT_EQ(data % 2, 0);
   }
