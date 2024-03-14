@@ -322,6 +322,11 @@ public:
     push_back(*it);
   }
 
+  template <typename Other>
+  inline void push_back(std::initializer_list<Other> && new_elem) {
+    parent::push_back(Vector<T>(std::forward<decltype(new_elem)>(new_elem)));
+  }
+
   /// erase the value at position i
   inline void erase(Idx i);
 

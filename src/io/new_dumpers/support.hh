@@ -28,10 +28,13 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_enum_macros.hh"
 #include "internal_field.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
+#include <hdf5.h>
 #include <map>
+#include <type_traits>
 #include <typeindex>
 #include <variant>
 /* -------------------------------------------------------------------------- */
@@ -42,7 +45,15 @@
 namespace akantu {
 namespace dumper {
   class FieldBase;
-  template <class T> class FieldArrayTemplateBase;
+  class FieldNodalArrayBase;
+  class FieldElementalArrayBase;
+  template <class T, class Base> class FieldArrayTemplateBase;
+  template <class T>
+  using FieldNodalArrayTemplateBase =
+      FieldArrayTemplateBase<T, FieldNodalArrayBase>;
+  template <class T>
+  using FieldElementalArrayTemplateBase =
+      FieldArrayTemplateBase<T, FieldElementalArrayBase>;
   template <class T> class FieldElementMapArrayTemplateBase;
 
   class VariableBase;
@@ -74,22 +85,35 @@ namespace dumper {
     _element_group,
   };
 
-  enum class FieldType {
-    _not_defined,
-    _node_array,
-    _node_array_function,
-    _element_map_array,
-    _element_map_array_function,
-    _internal_field,
-    _internal_field_function,
-  };
+#define AKANTU_FIELD_TYPES                                                     \
+  (not_defined)(array)(                                                        \
+      node_array)(element_array)(element_map_array)(internal_field)
+
+  AKANTU_CLASS_ENUM_DECLARE(FieldType, AKANTU_FIELD_TYPES)
+
+  namespace {
+    template <FieldType t>
+    using field_type_t = std::integral_constant<FieldType, t>;
+
+// creating a type instead of a using helps to debug
+#define AKANTU_DECLARE_FIELD_TYPES(r, data, ty)                                \
+  using BOOST_PP_CAT(_field_type_, ty) =                                       \
+      field_type_t<BOOST_PP_CAT(FieldType::_, ty)>;
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_DECLARE_FIELD_TYPES, _, AKANTU_FIELD_TYPES)
+  } // namespace
 
   /* ------------------------------------------------------------------------ */
   class PropertiesManager {
+    using integral_type = std::common_type_t<size_t, hsize_t, hid_t>;
+
   public:
+    using slabs_type =
+        std::vector<std::tuple<integral_type, integral_type, integral_type>>;
+
     using Property =
-        std::variant<Int, Real, bool, std::string, FieldType, FieldUsageType,
-                     std::tuple<ElementType, GhostType>, Release>;
+        std::variant<integral_type, Real, bool, std::string, FieldType,
+                     FieldUsageType, std::tuple<ElementType, GhostType>,
+                     Release, ElementTypeMap<integral_type>, slabs_type>;
 
     PropertiesManager() = default;
     PropertiesManager(const PropertiesManager &) = default;
@@ -103,7 +127,7 @@ namespace dumper {
               std::enable_if_t<std::is_integral_v<T> and
                                not std::is_same_v<T, bool>> * = nullptr>
     void addProperty(const std::string & property, const T & value) {
-      properties[property] = Int(value);
+      properties[property] = size_t(value);
     }
 
     template <class T,
@@ -121,17 +145,23 @@ namespace dumper {
     }
 
     void removeProperty(const std::string & property) {
+      AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
+                          "The property " << property << " is not registered");
       properties.erase(property);
     }
 
     template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
     [[nodiscard]] T getProperty(const std::string & property) const {
-      return std::get<Int>(properties.at(property));
+      AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
+                          "The property " << property << " is not registered");
+      return std::get<integral_type>(properties.at(property));
     }
 
     template <class T,
               std::enable_if_t<std::is_floating_point_v<T>> * = nullptr>
     [[nodiscard]] T getProperty(const std::string & property) const {
+      AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
+                          "The property " << property << " is not registered");
       return std::get<Real>(properties.at(property));
     }
 
@@ -190,15 +220,26 @@ namespace dumper {
     [[nodiscard]] decltype(auto) getFields() const { return (fields_); }
 
     [[nodiscard]] decltype(auto) getField(const ID & field) const {
+      AKANTU_DEBUG_ASSERT(fields_.find(field) != fields_.end(),
+                          "The field " << field
+                                       << " is not registered in the support");
       return fields_.at(field);
     }
 
     [[nodiscard]] decltype(auto) getField(const ID & field) {
+      AKANTU_DEBUG_ASSERT(fields_.find(field) != fields_.end(),
+                          "The field " << field
+                                       << " is not registered in the support");
       return fields_.at(field);
     }
 
     [[nodiscard]] bool hasField(const ID & field) const {
       return (fields_.find(field) != fields_.end());
+    }
+
+    [[nodiscard]] virtual bool isDistributed() const { return false; }
+    [[nodiscard]] virtual const Communicator & getCommunicator() const {
+      return Communicator::getSelfCommunicator();
     }
 
   protected:
@@ -237,12 +278,13 @@ namespace dumper {
     [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
 
     [[nodiscard]] virtual Int getNbNodes() const = 0;
+    [[nodiscard]] virtual Int getNbGlobalNodes() const = 0;
     [[nodiscard]] virtual Int
     getNbElements(const ElementType & type,
                   const GhostType & ghost_type = _not_ghost) const = 0;
 
   protected:
-    std::shared_ptr<FieldArrayTemplateBase<Real>> nodes;
+    std::shared_ptr<FieldNodalArrayTemplateBase<Real>> nodes;
     std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> connectivities;
   };
 

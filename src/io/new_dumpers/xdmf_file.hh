@@ -271,15 +271,12 @@ namespace dumper {
       [[nodiscard]] std::string
       attributeLocation(const FieldBase & field) const {
         switch (field.getFieldType()) {
-        case FieldType::_node_array_function: /* FALLTHRU */
         case FieldType::_node_array: {
           return "Node";
         }
-        case FieldType::_element_map_array_function: /* FALLTHRU */
         case FieldType::_element_map_array: {
           return "Cell";
         }
-        case FieldType::_internal_field_function: /* FALLTHRU */
         case FieldType::_internal_field: {
           return "Cell";
         }

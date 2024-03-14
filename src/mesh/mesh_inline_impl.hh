@@ -560,6 +560,19 @@ inline auto Mesh::isPeriodicMaster(Idx n) const -> bool {
 }
 
 /* -------------------------------------------------------------------------- */
+inline auto Mesh::getNbLocalNodes() const -> Int {
+  if (not nodes_flags) {
+    return nodes->size();
+  }
+
+  Int count = 0;
+  for (auto flag : *nodes_flags) {
+    count += Int((flag & NodeFlag::_local_master_mask) == NodeFlag::_normal);
+  }
+  return count;
+}
+
+/* -------------------------------------------------------------------------- */
 inline auto Mesh::getNodeFlag(Idx local_id) const -> NodeFlag {
   return (*nodes_flags)(local_id);
 }

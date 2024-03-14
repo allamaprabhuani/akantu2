@@ -69,18 +69,15 @@ namespace dumper {
     }
 
     [[nodiscard]] inline bool is_nodal_field() const {
-      return (field_type == FieldType::_node_array_function or
-              field_type == FieldType::_node_array);
+      return (field_type == FieldType::_node_array);
     }
 
     [[nodiscard]] inline bool is_quadrature_points_field() const {
-      return (field_type == FieldType::_internal_field_function or
-              field_type == FieldType::_internal_field);
+      return (field_type == FieldType::_internal_field);
     }
 
     [[nodiscard]] inline bool is_elemental_field() const {
-      return (field_type == FieldType::_element_map_array_function or
-              field_type == FieldType::_element_map_array) or
+      return (field_type == FieldType::_element_map_array) or
              this->is_quadrature_points_field();
     }
 
@@ -107,7 +104,7 @@ namespace dumper {
   class FieldArrayBase : public FieldBase {
   public:
     FieldArrayBase(const SupportBase & support, std::type_index type,
-                   FieldType field_type = FieldType::_node_array)
+                   FieldType field_type = FieldType::_array)
         : FieldBase(support, type, field_type) {}
 
     [[nodiscard]] virtual const void * data() const = 0;
@@ -116,24 +113,27 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T> class FieldArrayTemplateBase : public FieldArrayBase {
+  template <class T, class Base> class FieldArrayTemplateBase : public Base {
   public:
-    using FieldArrayBase::FieldArrayBase;
+    using Base::Base;
     [[nodiscard]] virtual const Array<T> & getArray() const = 0;
     [[nodiscard]] virtual const Array<T> & getArray() = 0;
 
     auto getSharedPointer() {
-      return std::dynamic_pointer_cast<FieldArrayTemplateBase<T>>(
+      return std::dynamic_pointer_cast<FieldArrayTemplateBase<T, Base>>(
           this->shared_from_this());
     }
   };
 
   /* ------------------------------------------------------------------------ */
-  template <typename T, class Array_ = const Array<T> &>
-  class FieldArray : public FieldArrayTemplateBase<T> {
+  template <typename T, class Array_ = const Array<T> &,
+            class Base = FieldArrayBase>
+  class FieldArray : public FieldArrayTemplateBase<T, Base> {
   public:
-    FieldArray(Array_ && array, const SupportBase & support)
-        : FieldArrayTemplateBase<T>(support, typeid(T)),
+    template <class... Args>
+    FieldArray(Array_ && array, const SupportBase & support, Args &&... args)
+        : FieldArrayTemplateBase<T, Base>(
+              support, typeid(T), std::forward<decltype(args)>(args)...),
           array(std::forward<Array_>(array)) {}
 
     [[nodiscard]] const void * data() const override { return array.data(); }
@@ -151,19 +151,20 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
+  template <class T, class Function, class Base = FieldArrayBase>
   class FieldFunctionArray
       : public FieldArrayTemplateBase<
-            details::function_return_scalar_t<T, Function>> {
+            details::function_return_scalar_t<T, Function>, Base> {
     using OutT = details::function_return_scalar_t<T, Function>;
 
   public:
+    template <class... Args>
     FieldFunctionArray(
-        const std::shared_ptr<FieldArrayTemplateBase<T>> & array_in,
-        const SupportBase & support,
-        Function && function) // NOLINT
-        : FieldArrayTemplateBase<OutT>(support, typeid(T),
-                                       FieldType::_node_array_function),
+        const std::shared_ptr<FieldArrayTemplateBase<T, Base>> & array_in,
+        const SupportBase & support, Function && function,
+        Args &&... args) // NOLINT
+        : FieldArrayTemplateBase<OutT, Base>(
+              support, typeid(T), std::forward<decltype(args)>(args)...),
           function(std::forward<Function>(function)), array_in(array_in) {
       // update();
     }
@@ -234,446 +235,17 @@ namespace dumper {
 
   private:
     Function function;
-    std::shared_ptr<FieldArrayTemplateBase<T>> array_in;
+    std::shared_ptr<FieldArrayTemplateBase<T, Base>> array_in;
     std::unique_ptr<Array<OutT>> array_out;
     Release last_release;
   };
 
-  /* ------------------------------------------------------------------------ */
-  template <class T, class Array_ = const Array<T> &>
-  class FieldNodeArray : public FieldArray<T, Array_> {
-  public:
-    using FieldArray<T, Array_>::FieldArray;
-
-    [[nodiscard]] Int size() const override {
-      return aka::as_type<SupportElements>(this->getSupport()).getNbNodes();
-    }
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <class T, class Array_ = const Array<T> &>
-  class FieldElementsArray : public FieldArray<T, Array_> {
-  public:
-    FieldElementsArray(Array_ && array, const SupportBase & support,
-                       const ElementType & type) // NOLINT
-        : FieldArray<T, Array_>(std::forward<Array_>(array), support),
-          type(type) {}
-
-    [[nodiscard]] Int size() const override {
-      return aka::as_type<SupportElements>(this->getSupport())
-          .getNbElements(type);
-    }
-
-  protected:
-    ElementType type;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
-  class FieldFunctionNodeArray : public FieldFunctionArray<T, Function> {
-  public:
-    FieldFunctionNodeArray(
-        const std::shared_ptr<FieldArrayTemplateBase<T>> & array_in,
-        const SupportBase & support, Function && function) // NOLINT
-        : FieldFunctionArray<T, Function>(array_in, support,
-                                          std::forward<Function>(function)) {
-      this->update();
-    }
-
-    FieldFunctionNodeArray(const Array<T> & array_in,
-                           const SupportBase & support, Function && function)
-        : FieldFunctionArray<T, Function>(array_in, support,
-                                          std::forward<Function>(function)) {
-      this->update();
-    }
-
-    [[nodiscard]] Int size() const override {
-      return aka::as_type<SupportElements>(this->getSupport()).getNbNodes();
-    }
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
-  class FieldFunctionElementsArray
-      : public FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>> {
-  public:
-    FieldFunctionElementsArray(
-        const std::shared_ptr<FieldArrayTemplateBase<T>> & array_in,
-        const SupportBase & support, Function && function, // NOLINT
-        const ElementType & type)
-        : FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>>(
-              array_in, support,
-              ElementTypeMapArrayFunctor<Function>(
-                  type, std::forward<Function>(function))),
-          type(type) {
-      this->update();
-    }
-
-    FieldFunctionElementsArray(const Array<T> & array_in,
-                               const SupportBase & support,
-                               Function && function, // NOLINT
-                               const ElementType & type)
-        : FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>>(
-              array_in, support,
-              ElementTypeMapArrayFunctor<Function>(
-                  type, std::forward<Function>(function))),
-          type(type) {
-      this->update();
-    }
-
-    [[nodiscard]] Int size() const override {
-      return aka::as_type<SupportElements>(this->getSupport())
-          .getNbElements(type);
-    }
-
-  protected:
-    ElementType type;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  class FieldElementMapArrayBase : public FieldBase {
-  public:
-    using ElementTypesIteratorHelper =
-        ElementTypeMapArray<Idx, ElementType>::ElementTypesIteratorHelper;
-
-    explicit FieldElementMapArrayBase(
-        const SupportBase & support, std::type_index type,
-        FieldType field_type = FieldType::_element_map_array)
-        : FieldBase(support, type, field_type),
-          support_element(dynamic_cast<const SupportElements &>(support)) {}
-
-    [[nodiscard]] virtual const FieldArrayBase &
-    array(ElementType type, GhostType ghost_type = _not_ghost) const {
-      return *fields.at({type, ghost_type});
-    }
-
-    [[nodiscard]] virtual FieldArrayBase &
-    array(ElementType type, GhostType ghost_type = _not_ghost) {
-      return *fields.at({type, ghost_type});
-    }
-
-    [[nodiscard]] virtual ElementTypesIteratorHelper elementTypes() const {
-      return this->support_element.elementTypes();
-    };
-
-    [[nodiscard]] virtual std::pair<Int, Int> size() const = 0;
-    [[nodiscard]] virtual Int
-    getNbComponent(const ElementType & type) const = 0;
-
-    void update() override {
-      for (auto && [_, field] : fields) {
-        field->update();
-      }
-    }
-
-  protected:
-    virtual void createByTypesFields() {}
-
-  protected:
-    const SupportElements & support_element;
-    std::map<std::pair<ElementType, GhostType>, std::shared_ptr<FieldArrayBase>>
-        fields;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T>
-  class FieldElementMapArrayTemplateBase : public FieldElementMapArrayBase {
-  public:
-    using FieldElementMapArrayBase::FieldElementMapArrayBase;
-
-    auto getSharedPointer() {
-      return std::dynamic_pointer_cast<FieldElementMapArrayTemplateBase<T>>(
-          this->shared_from_this());
-    }
-
-    [[nodiscard]] decltype(auto) arrayTyped(ElementType type,
-                                            GhostType ghost_type = _not_ghost) {
-      return (aka::as_type<FieldArrayTemplateBase<T>>(
-          this->array(type, ghost_type)));
-    }
-
-    [[nodiscard]] decltype(auto)
-    arrayTyped(ElementType type, GhostType ghost_type = _not_ghost) const {
-      return (aka::as_type<FieldArrayTemplateBase<T>>(
-          this->array(type, ghost_type)));
-    }
-
-    [[nodiscard]] std::pair<Int, Int> size() const override {
-      Int total_element{0};
-      Int total_size{0};
-
-      for (auto && type : this->elementTypes()) {
-        auto && array = this->array(type);
-        total_element += array.size();
-        total_size += Int(array.size()) * array.getNbComponent();
-      }
-      return std::make_pair(total_element, total_size);
-    }
-
-    [[nodiscard]] Int getNbComponent(const ElementType & type) const override {
-      return this->array(type).getNbComponent();
-    }
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T,
-            class ElementTypeMapArray_ = const ElementTypeMapArray<T> &,
-            std::enable_if_t<details::is_element_type_map_array_v<
-                std::decay_t<ElementTypeMapArray_>>> * = nullptr>
-  class FieldElementMapArray : public FieldElementMapArrayTemplateBase<T> {
-  public:
-    FieldElementMapArray(ElementTypeMapArray_ && map_array,
-                         const SupportBase & support,
-                         FieldType field_type = FieldType::_element_map_array)
-        : FieldElementMapArrayTemplateBase<T>(support, typeid(T), field_type),
-          map_array(std::forward<ElementTypeMapArray_>(map_array)) {
-      createByTypesFields();
-    }
-
-    [[nodiscard]] Release getRelease() const override {
-      return map_array.getRelease();
-    }
-
-  private:
-    void createByTypesFields() override {
-      for (auto ghost_type : ghost_types) {
-        for (auto && type : this->support_element.elementTypes(ghost_type)) {
-          auto name = std::to_string(type);
-          if (ghost_type != _not_ghost) {
-            name += ":" + std::to_string(ghost_type);
-          }
-
-          auto field = std::make_shared<FieldElementsArray<T>>(
-              map_array(type, ghost_type), this->getSupport(), type);
-          field->addProperty("name", name);
-          this->fields.emplace(std::pair(type, ghost_type), std::move(field));
-        }
-      }
-    }
-
-  private:
-    ElementTypeMapArray_ map_array;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
-  class FieldFunctionElementMapArray
-      : public FieldElementMapArrayTemplateBase<
-            details::function_with_type_return_scalar_t<T, Function>> {
-    using OutT = details::function_with_type_return_scalar_t<T, Function>;
-
-  public:
-    FieldFunctionElementMapArray(
-        const std::shared_ptr<FieldElementMapArrayTemplateBase<T>> &
-            map_array_in,
-        const SupportBase & support,
-        Function && function, // NOLINT
-        FieldType field_type = FieldType::_element_map_array_function,
-        bool create_fields = true)
-        : FieldElementMapArrayTemplateBase<OutT>(support, typeid(T),
-                                                 field_type),
-          function(std::forward<Function>(function)),
-          map_array_in(map_array_in) {
-      if (create_fields) {
-        createByTypesFields();
-      }
-    }
-
-    template <class ElementTypeMapArray_ = const ElementTypeMapArray<T> &,
-              std::enable_if_t<details::is_element_type_map_array_v<
-                  std::decay_t<ElementTypeMapArray_>>> * = nullptr>
-    FieldFunctionElementMapArray(
-        ElementTypeMapArray_ && map_array_in, const SupportBase & support,
-        Function && function, // NOLINT
-        FieldType field_type = FieldType::_element_map_array_function,
-        bool create_fields = true)
-        : FieldFunctionElementMapArray(
-              make_field(std::forward<ElementTypeMapArray_>(map_array_in),
-                         support),
-              support, std::forward<Function>(function), field_type,
-              create_fields) {}
-
-    [[nodiscard]] decltype(auto) arrayTyped(ElementType type,
-                                            GhostType ghost_type) const {
-      return (aka::as_type<FieldFunctionNodeArray<T, decltype(function)>>(
-          this->array(type, ghost_type)));
-    }
-
-    [[nodiscard]] Release getRelease() const override {
-      return map_array_in->getRelease();
-    }
-
-  protected:
-    void createByTypesFields() override {
-      for (auto ghost_type : ghost_types) {
-        for (auto && type : aka::as_type<SupportElements>(this->support_element)
-                                .elementTypes(ghost_type)) {
-          auto name = std::to_string(type);
-          if (ghost_type != _not_ghost) {
-            name += ":" + std::to_string(ghost_type);
-          }
-
-          auto field =
-              std::make_shared<FieldFunctionElementsArray<T, const Function &>>(
-                  map_array_in->arrayTyped(type, ghost_type).getSharedPointer(),
-                  this->getSupport(), this->function, type);
-          field->addProperty("name", name);
-          field->removeProperty("data_location");
-          this->fields.emplace(std::pair(type, ghost_type), std::move(field));
-        }
-      }
-    }
-
-  protected:
-    Function function;
-    std::shared_ptr<FieldElementMapArrayTemplateBase<T>> map_array_in;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  using FieldConnectivity =
-      FieldFunctionElementMapArray<Idx, toVTKConnectivity>;
-
-  /* ------------------------------------------------------------------------ */
-  template <class T> class FieldInternalField : public FieldElementMapArray<T> {
-  public:
-    FieldInternalField(InternalField<T> & map_array_in,
-                       const SupportBase & support) // NOLINT
-        : FieldElementMapArray<T>(map_array_in, support,
-                                  FieldType::_internal_field) {}
-  };
-
-  /* ------------------------------------------------------------------------ */
-
-  template <class T, class Function>
-  class FieldFunctionInternalField
-      : public FieldFunctionElementMapArray<T, Function> {
-    using parent = FieldFunctionElementMapArray<T, Function>;
-
-  public:
-    FieldFunctionInternalField(InternalField<T> & map_array_in,
-                               const SupportBase & support,
-                               Function && function) // NOLINT
-        : parent(map_array_in, support, std::forward<Function>(function),
-                 FieldType::_internal_field_function, false) {
-      createByTypesFields();
-    }
-
-    [[nodiscard]] virtual FieldArrayBase &
-    array(ElementType type, GhostType ghost_type = _not_ghost) {
-      update_nb_integration_points();
-      return *this->fields.at({type, ghost_type});
-    }
-
-    void update() override {
-      this->update_nb_integration_points();
-      parent::update();
-    }
-
-  private:
-    bool unchanged() { return this->getRelease() == last_release; }
-
-    void createByTypesFields() override {
-      update_nb_integration_points();
-      parent::createByTypesFields();
-    }
-
-    void update_nb_integration_points() {
-      if (unchanged()) {
-        return;
-      }
-
-      if constexpr (details::has_set_nb_integration_points_member<Function>) {
-        ElementTypeMap<Int> nb_integration_points_per_elem;
-        auto && support = aka::as_type<SupportElements>(this->getSupport());
-        auto && connectivities = support.getConnectivities();
-        for (auto type : this->map_array_in->elementTypes()) {
-          auto nb_elements = connectivities.array(type).size();
-          auto nb_integration_points = this->map_array_in->array(type).size();
-
-          nb_integration_points_per_elem(type) =
-              nb_integration_points / nb_elements;
-        }
-        this->function.setNbIntegtrationPoints(nb_integration_points_per_elem);
-      }
-    }
-
-    Release last_release;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  template <class Array_, std::enable_if_t<dumper::details::is_array_v<
-                              std::decay_t<Array_>>> * = nullptr>
-  auto make_field(Array_ && array, const SupportBase & support) {
-    using T = typename std::decay_t<Array_>::value_type;
-    return std::make_shared<FieldNodeArray<T, Array_>>(
-        std::forward<Array_>(array), support);
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class Function, class Array_,
-            std::enable_if_t<
-                dumper::details::is_array_v<std::decay_t<Array_>>> * = nullptr>
-  auto make_field(Array_ && array, const SupportBase & support,
-                  Function && function) {
-    using T = typename std::decay_t<Array_>::value_type;
-    return std::make_shared<FieldFunctionNodeArray<T, Function>>(
-        std::forward<Array_>(array), support, std::forward<Function>(function));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
-  auto make_field(const std::shared_ptr<FieldArrayTemplateBase<T>> & array,
-                  const SupportBase & support, Function && function) {
-    return std::make_shared<FieldFunctionNodeArray<T, Function>>(
-        array, support, std::forward<Function>(function));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class ElementTypeMapArray_,
-            std::enable_if_t<dumper::details::is_element_type_map_array_v<
-                std::decay_t<ElementTypeMapArray_>>> * = nullptr>
-  auto make_field(ElementTypeMapArray_ && array, const SupportBase & support) {
-    using T = typename std::decay_t<ElementTypeMapArray_>::value_type;
-    return std::make_shared<FieldElementMapArray<T, ElementTypeMapArray_>>(
-        std::forward<ElementTypeMapArray_>(array), support);
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class Function, class ElementTypeMapArray_,
-            std::enable_if_t<dumper::details::is_element_type_map_array_v<
-                std::decay_t<ElementTypeMapArray_>>> * = nullptr>
-  auto make_field(ElementTypeMapArray_ && array, const SupportBase & support,
-                  Function && function) {
-    using T = typename std::decay_t<ElementTypeMapArray_>::value_type;
-    return std::make_shared<FieldFunctionElementMapArray<T, Function>>(
-        std::forward<ElementTypeMapArray_>(array), support,
-        std::forward<Function>(function));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
-  auto
-  make_field(const std::shared_ptr<FieldElementMapArrayTemplateBase<T>> & array,
-             const SupportBase & support, Function && function) {
-    return std::make_shared<FieldFunctionElementMapArray<T, Function>>(
-        array, support, std::forward<Function>(function));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T>
-  auto make_field(InternalField<T> & array, const SupportBase & support) {
-    return std::make_shared<FieldInternalField<T>>(array, support);
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
-  auto make_field(InternalField<T> & array, const SupportBase & support,
-                  Function && function) {
-    return std::make_shared<FieldFunctionInternalField<T, Function>>(
-        array, support, std::forward<Function>(function));
-  }
-
 } // namespace dumper
 } // namespace akantu
+
+/* -------------------------------------------------------------------------- */
+#include "dumper_field_elemental.hh"
+#include "dumper_field_nodal.hh"
+/* -------------------------------------------------------------------------- */
 
 #endif /* AKANTU_DUMPER_FIELD_HH_ */

@@ -42,7 +42,7 @@ namespace akantu {
 struct XdmfConnectivityFunctor {
   template <class Derived>
   Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & connectivity,
-                         ElementType type) const {
+                         ElementType type, GhostType /*ghost_type*/) const {
     Eigen::PermutationMatrix<Eigen::Dynamic> P(connectivity.size());
     P.setIdentity();
 
@@ -106,15 +106,18 @@ void DumperXdmf::dumpInternal() {
   }
 
   DumperHDF5::dumpInternal();
-  using dumper::XDMF::File;
 
-  if (not xdmf) {
-    auto path = fs::path(directory);
-    path /= filename + ".xmf";
-    xdmf = std::make_unique<File>(support, path);
-  }
+  // if (prank == 0) {
+  //   if (not xdmf) {
+  //     using dumper::XDMF::File;
+  //     auto path = fs::path(directory);
+  //     path /= filename + ".xmf";
 
-  xdmf->dump();
+  //     xdmf = std::make_unique<File>(support, path);
+  //   }
+
+  //   xdmf->dump();
+  // }
 }
 
 } // namespace akantu

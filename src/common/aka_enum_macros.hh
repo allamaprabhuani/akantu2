@@ -20,9 +20,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
+#include <boost/preprocessor.hpp>
 #include <cstdlib> // std::size_t
 #include <string>
-
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_ENUM_MACROS_HH_
 #define AKANTU_AKA_ENUM_MACROS_HH_
@@ -39,7 +39,7 @@
   namespace std {                                                              \
   template <> struct hash<::akantu::type_name> {                               \
     using argument_type = ::akantu::type_name;                                 \
-    auto operator()(const argument_type &e) const noexcept {                   \
+    auto operator()(const argument_type & e) const noexcept {                  \
       auto ue = underlying_type_t<argument_type>(e);                           \
       return uh(ue);                                                           \
     }                                                                          \
@@ -70,7 +70,7 @@
   }                                                                            \
   AKANTU_ENUM_HASH(type_name)                                                  \
   namespace std {                                                              \
-  inline auto to_string(const ::akantu::type_name &type) -> string {           \
+  inline auto to_string(const ::akantu::type_name & type) -> string {          \
     using namespace akantu;                                                    \
     static unordered_map<::akantu::type_name, string> convert{                 \
         BOOST_PP_SEQ_FOR_EACH_I(                                               \
@@ -80,14 +80,14 @@
   }                                                                            \
   } /* namespace std */                                                        \
   namespace akantu {                                                           \
-  inline auto operator<<(std::ostream &stream, const type_name &type)          \
+  inline auto operator<<(std::ostream & stream, const type_name & type)        \
       -> std::ostream & {                                                      \
     stream << std::to_string(type);                                            \
     return stream;                                                             \
   }
 
 #define AKANTU_ENUM_INPUT_STREAM_(type_name, list, prefix)                     \
-  inline auto operator>>(std::istream &stream, type_name &type)                \
+  inline auto operator>>(std::istream & stream, type_name & type)              \
       ->std::istream & {                                                       \
     std::string str;                                                           \
     stream >> str; /* NOLINT */                                                \
@@ -99,7 +99,7 @@
       type = convert.at(str);                                                  \
     } catch (std::out_of_range &) {                                            \
       std::ostringstream values;                                               \
-      std::for_each(convert.begin(), convert.end(), [&values](auto &&pair) {   \
+      std::for_each(convert.begin(), convert.end(), [&values](auto && pair) {  \
         static bool first = true;                                              \
         if (not first)                                                         \
           values << ", ";                                                      \

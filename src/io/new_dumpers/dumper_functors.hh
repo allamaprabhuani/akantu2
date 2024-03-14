@@ -8,13 +8,13 @@ namespace akantu {
 namespace dumper {
   /* ------------------------------------------------------------------------ */
   template <class ElementFunction> struct ElementTypeMapArrayFunctor {
-    ElementTypeMapArrayFunctor(ElementType type,
+    ElementTypeMapArrayFunctor(ElementType type, GhostType ghost_type,
                                const ElementFunction & function)
-        : type(type), function(function) {}
+        : type(type), ghost_type(ghost_type), function(function) {}
 
     [[nodiscard]] Int getNbComponent(Int nb_component) const {
       if constexpr (details::has_getNbComponent_member<ElementFunction>) {
-        return function.getNbComponent(nb_component, type);
+        return function.getNbComponent(nb_component, type, ghost_type);
       } else {
         return nb_component;
       }
@@ -22,7 +22,7 @@ namespace dumper {
 
     [[nodiscard]] Int size(Int old_size) const {
       if constexpr (details::has_size_member<ElementFunction>) {
-        return function.size(old_size, type);
+        return function.size(old_size, type, ghost_type);
       } else {
         return old_size;
       }
@@ -31,10 +31,11 @@ namespace dumper {
     template <class Derived>
     [[nodiscard]] decltype(auto)
     operator()(const Eigen::MatrixBase<Derived> & in) const {
-      return function(in, type);
+      return function(in, type, ghost_type);
     }
 
     ElementType type;
+    GhostType ghost_type;
     const ElementFunction & function;
   };
 
@@ -42,7 +43,8 @@ namespace dumper {
   struct toVTKConnectivity {
     template <class Derived>
     Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & connectivity,
-                           ElementType /*type*/) const {
+                           ElementType /*type*/,
+                           GhostType /*ghost_type*/) const {
       return connectivity;
     }
   };
@@ -53,16 +55,16 @@ namespace dumper {
         const ElementTypeMapArray<Idx> & connectivities)
         : connectivities(connectivities) {}
 
-    [[nodiscard]] Int getNbComponent(Int /*nb_component*/,
-                                     ElementType type) const {
-      return connectivities(type).getNbComponent();
+    [[nodiscard]] Int getNbComponent(Int /*nb_component*/, ElementType type,
+                                     GhostType ghost_type) const {
+      return connectivities(type, ghost_type).getNbComponent();
     }
 
     template <class Derived>
     Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & element,
-                           ElementType type) const {
-      Element el{type, element[0], _not_ghost};
-      return rewrite(connectivities.get(el), type);
+                           ElementType type, GhostType ghost_type) const {
+      Element el{type, element[0], ghost_type};
+      return rewrite(connectivities.get(el), type, ghost_type);
     }
 
   private:

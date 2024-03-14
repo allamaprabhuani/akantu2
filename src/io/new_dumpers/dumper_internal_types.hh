@@ -21,7 +21,7 @@ namespace dumper {
     template <class T>
     constexpr bool has_getNbComponent_member<
         T, std::void_t<decltype(std::declval<T &>().getNbComponent(
-               1, _not_defined))>> = true;
+               1, _not_defined, _casper))>> = true;
 
     /* ---------------------------------------------------------------------- */
     template <class, class = void> constexpr bool has_size_member{};
@@ -32,9 +32,9 @@ namespace dumper {
             true;
 
     template <class T>
-    constexpr bool has_size_member<
-        T, std::void_t<decltype(std::declval<T &>().size(1, _not_defined))>> =
-        true;
+    constexpr bool
+        has_size_member<T, std::void_t<decltype(std::declval<T &>().size(
+                               1, _not_defined, _casper))>> = true;
 
     /* ---------------------------------------------------------------------- */
     template <class, class = void>
@@ -48,7 +48,7 @@ namespace dumper {
     /* ---------------------------------------------------------------------- */
     template <class T, class Function> struct function_with_type_return_scalar {
       using type = typename decltype(std::declval<Function &>().operator()(
-          VectorProxy<T>(nullptr, 1), _not_defined))::Scalar;
+          VectorProxy<T>(nullptr, 1), _not_defined, _casper))::Scalar;
     };
 
     template <class T, class Function>

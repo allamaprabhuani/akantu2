@@ -280,6 +280,7 @@ public:
 
   /// get the number of nodes
   auto getNbNodes() const { return nodes->size(); }
+  auto getNbLocalNodes() const -> Int;
 
   /// get the Array of global ids of the nodes (only used in parallel)
   AKANTU_GET_MACRO_AUTO(GlobalNodesIds, *nodes_global_ids);

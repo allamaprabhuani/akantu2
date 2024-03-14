@@ -30,7 +30,7 @@
 #===============================================================================
 
 package_declare(dumpers
-  DEFAULT OFF
+  DEFAULT ON
   DESCRIPTION "Dumpers for Akantu"
   DEPENDS HDF5)
 
@@ -41,8 +41,8 @@ package_declare_sources(dumpers
   io/new_dumpers/dumper_variable.hh
   io/new_dumpers/support.hh
   io/new_dumpers/support_tmpl.hh
-
-
+  io/new_dumpers/dumper_functors.hh
+  io/new_dumpers/dumper_internal_types.hh
 
   # io/dumper/dumpable_iohelper.hh
   # io/dumper/dumper_compute.hh

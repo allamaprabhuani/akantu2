@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "dumper_field.hh"
 #include "element_group.hh"
+#include "element_synchronizer.hh"
 #include "mesh_accessor.hh"
 #include "node_group.hh"
 /* -------------------------------------------------------------------------- */
@@ -54,6 +55,19 @@ namespace dumper {
       this->connectivities =
           make_field(mesh.getConnectivities(), *this, toVTKConnectivity());
 
+      if (mesh.isDistributed()) {
+        this->connectivities =
+            make_field(this->connectivities, *this,
+                       [&mesh](auto && connectivity, ElementType /*type*/,
+                               GhostType /* ghost_type*/) -> Vector<Idx> {
+                         Vector<Idx> out(connectivity.size());
+                         for (auto && [in, out] : zip(connectivity, out)) {
+                           out = mesh.getNodeGlobalId(in);
+                         }
+                         return out;
+                       });
+      }
+
       nodes->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");
 
@@ -71,14 +85,52 @@ namespace dumper {
     }
 
     [[nodiscard]] Int getNbNodes() const override { return mesh.getNbNodes(); }
+    [[nodiscard]] Int getNbGlobalNodes() const override {
+      return mesh.getNbGlobalNodes();
+    }
+    [[nodiscard]] Int getNbLocalNodes() const { return mesh.getNbLocalNodes(); }
+
     [[nodiscard]] Int
     getNbElements(const ElementType & type,
                   const GhostType & ghost_type = _not_ghost) const override {
       return mesh.getConnectivities()(type, ghost_type).size();
     }
 
+    [[nodiscard]] bool isDistributed() const override {
+      return mesh.isDistributed();
+    }
+
+    [[nodiscard]] const Communicator & getCommunicator() const override {
+      return mesh.getCommunicator();
+    }
+
+    void updateTypeOffsets() {
+      if (mesh.getRelease() == offset_release) {
+        return;
+      }
+
+      offset_elements.fill(0);
+
+      for (auto type : this->elementTypes()) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+        offset_elements[type] = mesh.getNbElement(type);
+      }
+
+      mesh.getCommunicator().exclusiveScan(offset_elements);
+      offset_release = mesh.getRelease();
+    }
+
+    [[nodiscard]] Int getTypeOffset(const ElementType & type) const {
+      return offset_elements[type];
+    }
+
+    Mesh & getMesh() { return mesh; }
+    const Mesh & getMesh() const { return mesh; }
+
   protected:
     Mesh & mesh;
+    std::array<Int, _max_element_type> offset_elements;
+    Release offset_release{};
   };
 
   /* ------------------------------------------------------------------------ */
@@ -99,7 +151,7 @@ namespace dumper {
 
       nodes->addProperty("name", "nodes");
       elements->addProperty("name", "elements");
-      connectivities->addProperty("name", "xdmf_connectivities");
+      connectivities->addProperty("name", "group_connectivities");
 
       this->addProperty("name", inner.getName());
     }
@@ -131,10 +183,18 @@ namespace dumper {
       return inner.getElements()(type, ghost_type).size();
     }
 
+    [[nodiscard]] bool isDistributed() const override {
+      return inner.getMesh().isDistributed();
+    }
+
+    [[nodiscard]] Int getNbGlobalNodes() const override {
+      AKANTU_TO_IMPLEMENT();
+    }
+
   protected:
     ElementGroup & inner;
     std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> elements;
-    std::shared_ptr<FieldArrayTemplateBase<Idx>> nodes_list;
+    std::shared_ptr<FieldNodalArrayTemplateBase<Idx>> nodes_list;
   };
 
   /* ------------------------------------------------------------------------

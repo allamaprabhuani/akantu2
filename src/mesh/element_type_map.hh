@@ -165,6 +165,8 @@ public:
   /// helper class to use in range for constructions
   class ElementTypesIteratorHelper {
   public:
+    using size_type = std::size_t;
+
     ElementTypesIteratorHelper(const ElementTypeMap & container, Int dim,
                                GhostType ghost_type, ElementKind kind)
         : container(std::cref(container)), dim(dim), ghost_type(ghost_type),

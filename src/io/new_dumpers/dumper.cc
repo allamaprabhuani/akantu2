@@ -45,7 +45,13 @@ namespace akantu {
 using dumper::SupportBase;
 
 /* -------------------------------------------------------------------------- */
-Dumper::Dumper(dumper::SupportBase & support) : support(support) {}
+Dumper::Dumper(dumper::SupportBase & support) : support(support) {
+  if (support.isDistributed()) {
+    auto && communicator = support.getCommunicator();
+    prank = communicator.whoAmI();
+    psize = communicator.getNbProc();
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 Dumper::~Dumper() = default;

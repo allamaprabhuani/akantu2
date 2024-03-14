@@ -30,6 +30,9 @@
 #include "dumper_hdf5.hh"
 #include "hdf5_file.hh"
 #include "support.hh"
+#if defined(AKANTU_USE_MPI)
+#include "mpi_communicator_data.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 #include <filesystem>
 /* -------------------------------------------------------------------------- */
@@ -46,28 +49,65 @@ void DumperHDF5::dumpInternal() {
   /*
      HDF5 structure
 
-     /Support[Name]
-     - /_Nodes_
-     - /Connectivities
-     -   /_types_
-     -   /...
-     - /Data
-     -   /Data1
-     -     /_types_
-     -     /...
-     /Global Data
+     -/steps
+     -  /[time]
+     -    /[mesh_name]
+     -      /topology
+     -        /nodes
+     -          /position
+     -        /connectivities
+     -          /[_types_]
+     -          /...
+     -      /[data_el]
+     -        /_types_
+     -        /...
+     -      /[data_node]
+     -      /...
+     -      /groups
+     -        /[group_name]
+     -          /topology
+     -        /[data_el]
    */
   using dumper::HDF5::File;
 
+  auto fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+#if defined(AKANTU_USE_MPI)
+  auto && comm = aka::as_type<MPICommunicatorData>(
+                     support.getCommunicator().getCommunicatorData())
+                     .getMPICommunicator();
+  H5Pset_fapl_mpio(fapl_id, comm, MPI_INFO_NULL);
+  /*
+   * OPTIONAL: Set collective metadata reads on FAPL to allow
+   *           parallel writes to filtered datasets to perform
+   *           better at scale. While not strictly necessary,
+   *           this is generally recommended.
+   */
+  H5Pset_all_coll_metadata_ops(fapl_id, true);
+#endif
+
+  /*
+   * OPTIONAL: Set the latest file format version for HDF5 in
+   *           order to gain access to different dataset chunk
+   *           index types and better data encoding methods.
+   *           While not strictly necessary, this is generally
+   *           recommended.
+   */
+  H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+
+  auto path = fs::path(directory);
+  path /= filename + ".h5";
+
   if (not h5) {
-    auto path = fs::path(directory);
-    path /= filename + ".h5";
-    h5 = std::make_unique<File>(support, path);
+    h5 = std::make_unique<File>(support, path, fapl_id);
+  } else {
+    aka::as_type<File>(h5.get())->open(path, fapl_id);
   }
 
   h5->dump();
 
   H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
+
+  aka::as_type<File>(h5.get())->close();
 }
 
 } // namespace akantu

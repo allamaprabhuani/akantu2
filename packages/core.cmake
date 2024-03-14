@@ -81,7 +81,8 @@ package_declare_sources(core
   common/aka_voigthelper_tmpl.hh
   common/aka_warning.hh
   common/aka_warning_restore.hh
-  
+  common/aka_release.hh
+
   fe_engine/element_class.hh
   fe_engine/element_class_helper.hh
   fe_engine/element_class_tmpl.hh

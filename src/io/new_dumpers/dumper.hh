@@ -88,6 +88,9 @@ protected:
 
   /// is time tracking activated in the dumper
   bool time_activated{true};
+
+  Int prank{0};
+  Int psize{1};
 };
 
 } // namespace akantu

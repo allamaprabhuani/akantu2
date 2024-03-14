@@ -467,11 +467,11 @@ void Mesh::getGlobalConnectivity(
 }
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper & Mesh::getGroupDumper(const std::string & dumper_name,
-                                      const std::string & group_name) {
-  if (group_name == "all") {
-    //    return this->getDumper(dumper_name);
-  }
+DumperIOHelper & Mesh::getGroupDumper(const std::string & /*dumper_name*/,
+                                      const std::string & /*group_name*/) {
+  // if (group_name == "all") {
+  //     return this->getDumper(dumper_name);
+  //}
   //  return element_groups[group_name]->getDumper(dumper_name);
 }
 

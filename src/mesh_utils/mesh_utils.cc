@@ -219,8 +219,10 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
       auto facet_types = mesh.getAllFacetTypes(type);
 
       for (auto && facet_type : facet_types) {
-        mesh_accessor.getElementToSubelement(facet_type, ghost_type);
-        mesh_accessor.getConnectivity(facet_type, ghost_type);
+        auto && element_to_subelement [[maybe_unused]] =
+            mesh_accessor.getElementToSubelement(facet_type, ghost_type);
+        auto && connectivity [[maybe_unused]] =
+            mesh_accessor.getConnectivity(facet_type, ghost_type);
       }
     }
   }
@@ -230,7 +232,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
     synchronizer = &(mesh.getElementSynchronizer());
   }
 
-  Element current_element;
+  Element current_element{};
   for (auto && ghost_type : ghost_types) {
     GhostType facet_ghost_type = ghost_type;
     current_element.ghost_type = ghost_type;
