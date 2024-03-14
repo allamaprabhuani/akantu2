@@ -47,7 +47,7 @@ void initialize(int & argc, char **& argv) {
 /* -------------------------------------------------------------------------- */
 void initialize(const std::string & input_file, int & argc, char **& argv) {
   AKANTU_DEBUG_IN();
-  Communicator & comm = Communicator::getStaticCommunicator(argc, argv);
+  Communicator & comm = Communicator::getWorldCommunicator();
 
   Tag::setMaxTag(comm.getMaxTag());
 
@@ -136,7 +136,12 @@ const ParserSection & getUserParser() {
   return *(static_parser.getSubSections(ParserType::_user).first);
 }
 
-std::unique_ptr<Communicator> Communicator::static_communicator;
+std::unique_ptr<Communicator> Communicator::
+    world_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::unique_ptr<Communicator> Communicator::
+    self_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::unique_ptr<Communicator> Communicator::
+    null_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 std::ostream & operator<<(std::ostream & stream, NodeFlag flag) {
   using under = std::underlying_type_t<NodeFlag>;

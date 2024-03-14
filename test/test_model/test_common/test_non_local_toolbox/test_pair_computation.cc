@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
   // some configuration variables
   const Int spatial_dimension = 2;
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   // mesh creation and read

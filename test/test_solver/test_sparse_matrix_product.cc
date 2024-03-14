@@ -37,7 +37,7 @@ int main(int argc, char * argv[]) {
   const Int spatial_dimension = 2;
   const Int nb_dof = 2;
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

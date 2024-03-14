@@ -1,4 +1,4 @@
-#===============================================================================
+# ==============================================================================
 # Copyright (©) 2010-2023 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
@@ -19,20 +19,15 @@
 #
 # @section DESCRIPTION
 #
-#===============================================================================
+# ==============================================================================
 
+# ==============================================================================
+add_mesh(material_viscoelastic_maxwell_mesh
+  material_viscoelastic_maxwell_mesh.geo 2 1)
 
-#===============================================================================
-
-
-
-
-add_mesh(material_viscoelastic_maxwell_mesh material_viscoelastic_maxwell_mesh.geo 2 1)
 register_example(material_viscoelastic_maxwell_energies
   SOURCES material_viscoelastic_maxwell_energies.cc
   DEPENDS material_viscoelastic_maxwell_mesh
-  USE_PACKAGES iohelper
   FILES_TO_COPY material_viscoelastic_maxwell.dat
   DIRECTORIES_TO_CREATE paraview
-  )
-
+)

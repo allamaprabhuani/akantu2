@@ -70,7 +70,7 @@ public:
 
   void SetUp() {
     mesh = std::make_unique<Mesh>(this->dim);
-    if (Communicator::getStaticCommunicator().whoAmI() == 0) {
+    if (Communicator::getWorldCommunicator().whoAmI() == 0) {
       mesh->read(this->mesh_name);
     }
     mesh->distribute();

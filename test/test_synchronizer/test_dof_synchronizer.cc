@@ -26,7 +26,7 @@
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
-#include "io_helper.hh"
+// s#include "io_helper.hh"
 
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
 
   initialize(argc, argv);
 
-  const auto & comm = akantu::Communicator::getStaticCommunicator();
+  const auto & comm = akantu::Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);

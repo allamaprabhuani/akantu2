@@ -176,7 +176,9 @@ template <> struct ElementTypes<_ek_cohesive> {
       BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ek_cohesive_ELEMENT_TYPE))>;
 };
 #else
-template <> struct ElementTypes<_ek_cohesive> { using type = std::tuple<>; };
+template <> struct ElementTypes<_ek_cohesive> {
+  using type = std::tuple<>;
+};
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
@@ -185,7 +187,9 @@ template <> struct ElementTypes<_ek_structural> {
       BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ek_structural_ELEMENT_TYPE))>;
 };
 #else
-template <> struct ElementTypes<_ek_structural> { using type = std::tuple<>; };
+template <> struct ElementTypes<_ek_structural> {
+  using type = std::tuple<>;
+};
 #endif
 
 #undef OP_CAT

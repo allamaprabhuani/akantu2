@@ -45,7 +45,7 @@ Real F = -10;
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt prank = Communicator::getStaticCommunicator().whoAmI();
+  UInt prank = Communicator::getWorldCommunicator().whoAmI();
 
   std::cout << std::setprecision(7);
 

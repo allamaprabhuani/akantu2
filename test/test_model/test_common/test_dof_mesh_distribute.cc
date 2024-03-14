@@ -29,7 +29,7 @@
 #include <string>
 
 /* -------------------------------------------------------------------------- */
-#include "io_helper.hh"
+// #include "io_helper.hh"
 
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
@@ -42,7 +42,7 @@ TEST(TestMesh, TestMeshDistribute) {
   char ** argv = nullptr;
   initialize(argc, argv);
 
-  const auto & comm = akantu::Communicator::getStaticCommunicator();
+  const auto & comm = akantu::Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   Mesh mesh1(spatial_dimension);

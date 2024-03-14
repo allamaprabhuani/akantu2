@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   // mesh creation and read

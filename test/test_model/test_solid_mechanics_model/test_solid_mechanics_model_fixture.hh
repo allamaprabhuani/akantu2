@@ -42,7 +42,7 @@ public:
 
   void SetUp() override {
     this->mesh = std::make_unique<Mesh>(this->spatial_dimension);
-    auto prank = Communicator::getStaticCommunicator().whoAmI();
+    auto prank = Communicator::getWorldCommunicator().whoAmI();
     if (prank == 0) {
       this->mesh->read(this->mesh_file);
       if (spatial_dimension > 1 and

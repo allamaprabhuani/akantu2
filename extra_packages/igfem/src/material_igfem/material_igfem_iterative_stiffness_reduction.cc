@@ -29,8 +29,8 @@ template <Int spatial_dimension>
 MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
     MaterialIGFEMIterativeStiffnessReduction(SolidMechanicsModel & model,
                                              const ID & id)
-    : Material(model, id), MaterialIGFEMSawToothDamage<spatial_dimension>(model,
-                                                                          id),
+    : Material(model, id),
+      MaterialIGFEMSawToothDamage<spatial_dimension>(model, id),
       eps_u("ultimate_strain", *this), reduction_step("damage_step", *this),
       D("tangent", *this), Gf(0.), crack_band_width(0.), max_reductions(0),
       reduction_constant(0.) {
@@ -220,7 +220,7 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
     }
   }
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   comm.allReduce(&nb_damaged_elements, 1, _so_sum);
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

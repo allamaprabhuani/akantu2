@@ -35,7 +35,7 @@ public:
 
     mesh = std::make_unique<Mesh>(spatial_dimension);
 
-    const auto & comm = Communicator::getStaticCommunicator();
+    const auto & comm = Communicator::getWorldCommunicator();
     prank = comm.whoAmI();
     psize = comm.getNbProc();
 

@@ -67,7 +67,7 @@ static void genMesh(Mesh & mesh, Int nb_nodes);
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  Int prank = Communicator::getStaticCommunicator().whoAmI();
+  Int prank = Communicator::getWorldCommunicator().whoAmI();
   Int global_nb_nodes = 201;
   Int max_steps = 400;
   Real time_step = 0.001;

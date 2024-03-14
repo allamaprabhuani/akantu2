@@ -27,10 +27,6 @@
 
 namespace akantu {
 
-#if defined(AKANTU_USE_MPI)
-int MPICommunicatorData::is_externaly_initialized = 0;
-#endif
-
 Int InternalCommunicationRequest::counter = 0;
 
 /* -------------------------------------------------------------------------- */
@@ -63,26 +59,13 @@ Communicator::~Communicator() {
 
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getStaticCommunicator() {
-  AKANTU_DEBUG_IN();
-
-  if (!static_communicator) {
-    int nb_args = 0;
-    char ** null = nullptr;
-    static_communicator =
-        std::make_unique<Communicator>(nb_args, null, private_member{});
-  }
-
-  AKANTU_DEBUG_OUT();
-  return *static_communicator;
+  return getWorldCommunicator();
 }
 
 /* -------------------------------------------------------------------------- */
-Communicator & Communicator::getStaticCommunicator(int & argc, char **& argv) {
-  if (!static_communicator) {
-    static_communicator =
-        std::make_unique<Communicator>(argc, argv, private_member{});
-  }
-  return getStaticCommunicator();
+Communicator & Communicator::getStaticCommunicator(int & /*argc*/,
+                                                   char **& /*argv*/) {
+  return getWorldCommunicator();
 }
 
 } // namespace akantu
@@ -139,9 +122,12 @@ namespace akantu {
 #if !defined(DOXYGEN)
 
 AKANTU_COMM_INSTANTIATE(bool);
-AKANTU_COMM_INSTANTIATE(Real);
-AKANTU_COMM_INSTANTIATE(UInt);
-AKANTU_COMM_INSTANTIATE(Int);
+AKANTU_COMM_INSTANTIATE(float);
+AKANTU_COMM_INSTANTIATE(double);
+AKANTU_COMM_INSTANTIATE(unsigned int);
+AKANTU_COMM_INSTANTIATE(long long);
+AKANTU_COMM_INSTANTIATE(unsigned long long);
+AKANTU_COMM_INSTANTIATE(int);
 AKANTU_COMM_INSTANTIATE(char);
 AKANTU_COMM_INSTANTIATE(NodeFlag);
 AKANTU_COMM_INSTANTIATE(MIN_MAX_REAL);
@@ -153,29 +139,4 @@ AKANTU_COMM_INSTANTIATE(int);
 
 #endif
 
-// template void Communicator::send<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * buffer, Int size, Int receiver, Int tag);
-// template void Communicator::receive<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * buffer, Int size, Int sender, Int tag);
-// template CommunicationRequest
-// Communicator::asyncSend<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * buffer, Int size, Int receiver, Int tag);
-// template CommunicationRequest
-// Communicator::asyncReceive<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * buffer, Int size, Int sender, Int tag);
-// template void Communicator::probe<SCMinMaxLoc<Real, int>>(
-//     Int sender, Int tag, CommunicationStatus & status);
-// template void Communicator::allGather<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int nb_values);
-// template void Communicator::allGatherV<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int * nb_values);
-// template void Communicator::gather<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int nb_values, int root);
-// template void Communicator::gatherV<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int * nb_values, int root);
-// template void Communicator::broadcast<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int nb_values, int root);
-// template void Communicator::allReduce<SCMinMaxLoc<Real, int>>(
-//     SCMinMaxLoc<Real, int> * values, int nb_values,
-//     const SynchronizerOperation & op);
 } // namespace akantu

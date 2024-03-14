@@ -257,7 +257,7 @@ The mesh as to be distributed
 
 .. code-block:: c++
 
-    const auto & comm = Communicator::getStaticCommunicator();
+    const auto & comm = Communicator::getWorldCommunicator();
     if (comm.whoAmI() == 0) {  // MPI rank
       // Read the mesh
       mesh.read("square_2d.msh");

@@ -140,6 +140,30 @@ int Communicator::getMinTag() const { return 0; }
 Int Communicator::getNbProc() const { return 1; }
 Int Communicator::whoAmI() const { return 0; }
 
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getWorldCommunicator() {
+  if (!world_communicator) {
+    world_communicator = std::make_unique<Communicator>(private_member{});
+  }
+  return *world_communicator;
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getSelfCommunicator() {
+  if (!self_communicator) {
+    self_communicator = std::make_unique<Communicator>(private_member{});
+  }
+  return *self_communicator;
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getNullCommunicator() {
+  if (!null_communicator) {
+    null_communicator = std::make_unique<Communicator>(private_member{});
+  }
+  return *null_communicator;
+}
+
 // NOLINTEND(misc-definitions-in-headers)
 
 } // namespace akantu

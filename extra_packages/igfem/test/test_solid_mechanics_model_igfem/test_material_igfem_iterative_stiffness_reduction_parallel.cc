@@ -66,7 +66,7 @@ int main(int argc, char * argv[]) {
 
   const Int spatial_dimension = 2;
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
@@ -227,7 +227,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
   const Int spatial_dimension = model.getSpatialDimension();
   const Mesh & mesh = model.getMesh();
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
 
   if (psize == 1) {

@@ -37,7 +37,7 @@ int main(int argc, char * argv[]) {
 
   const Int spatial_dimension = 2;
   ElementType element_type = _triangle_3;
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

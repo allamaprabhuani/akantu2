@@ -41,7 +41,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
   akantu::initialize("material_parallel_test.dat", argc, argv);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   //  Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

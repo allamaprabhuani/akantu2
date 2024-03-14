@@ -640,8 +640,8 @@ public:
 class Sinusoidal : public BC::Dirichlet::DirichletFunctor {
 public:
   Sinusoidal(MyModel & model, Real amplitude, Real pulse_width, Real t)
-      : model(model), A(amplitude), k(2 * M_PI / pulse_width),
-        t(t), v{std::sqrt(model.E / model.rho)} {}
+      : model(model), A(amplitude), k(2 * M_PI / pulse_width), t(t),
+        v{std::sqrt(model.E / model.rho)} {}
 
   void operator()(UInt n, Vector<bool> & /*flags*/, Vector<Real> & disp,
                   const Vector<Real> & coord) const {
@@ -664,7 +664,7 @@ int main(int argc, char * argv[]) {
 
   PetscInitialize(&argc, &argv, nullptr, nullptr);
 
-  UInt prank = Communicator::getStaticCommunicator().whoAmI();
+  UInt prank = Communicator::getWorldCommunicator().whoAmI();
   UInt global_nb_nodes = 3;
   UInt max_steps = 400;
   Real time_step = 0.001;

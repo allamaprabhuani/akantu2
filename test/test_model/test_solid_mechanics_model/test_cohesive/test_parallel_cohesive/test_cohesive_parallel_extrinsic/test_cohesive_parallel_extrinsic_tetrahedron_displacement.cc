@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
@@ -220,7 +220,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model, ElementType type,
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(type);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

@@ -94,7 +94,7 @@ public:
   void SetUp() override {
     mesh = std::make_unique<Mesh>(this->dim);
 
-    auto & communicator = Communicator::getStaticCommunicator();
+    auto & communicator = Communicator::getWorldCommunicator();
     if (communicator.whoAmI() == 0) {
       mesh->read("mesh.msh");
     }

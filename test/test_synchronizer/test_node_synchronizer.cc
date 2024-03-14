@@ -160,7 +160,7 @@ TEST_F(TestNodeSynchronizerFixture, Asynchrone) {
 TEST_F(TestNodeSynchronizerFixture, Gather) {
   auto & synchronizer = this->mesh->getNodeSynchronizer();
 
-  const auto & comm = akantu::Communicator::getStaticCommunicator();
+  const auto & comm = akantu::Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   if (prank == 0) {

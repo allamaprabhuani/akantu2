@@ -56,7 +56,7 @@ namespace dumpers {
         const GhostType ghost_type = _not_ghost, UInt sub_element = 0)
         : parent(field, t_it, t_it_end, array_it, array_it_end, ghost_type,
                  sub_element) {
-      prank = StaticCommunicator::getStaticCommunicator().whoAmI();
+      prank = StaticCommunicator::getWorldCommunicator().whoAmI();
     }
 
     /* ------------------------------------------------------------------------

@@ -30,7 +30,7 @@ Real computeL2Error(SolidMechanicsModelIGFEM & model,
 int main(int argc, char * argv[]) {
 
   initialize("material_test_interface_position.dat", argc, argv);
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

@@ -38,7 +38,7 @@ std::ofstream output;
 /* -------------------------------------------------------------------------- */
 void printMeshContent(Mesh & mesh) {
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
   comm.barrier();
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -96,7 +96,7 @@ void getGlobalIDs(Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void printSynchroinfo(Mesh & mesh, const DistributedSynchronizer & synch) {
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
   Int psize = comm.getNbProc();
 
@@ -126,7 +126,7 @@ void printSynchroinfo(Mesh & mesh, const DistributedSynchronizer & synch) {
 /* -------------------------------------------------------------------------- */
 void printDOF(SolidMechanicsModelCohesive & model) {
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   if (comm.getNbProc() == 1)
     return;
   Int prank = comm.whoAmI();
@@ -161,7 +161,7 @@ int main(int argc, char * argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
   akantu::MeshPartition * partition = NULL;

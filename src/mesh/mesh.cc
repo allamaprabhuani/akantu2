@@ -84,12 +84,12 @@ Mesh::Mesh(Int spatial_dimension, Communicator & communicator, const ID & id)
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(Int spatial_dimension, const ID & id)
-    : Mesh(spatial_dimension, Communicator::getStaticCommunicator(), id) {}
+    : Mesh(spatial_dimension, Communicator::getSelfCommunicator(), id) {}
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
            const ID & id)
-    : Mesh(spatial_dimension, id, Communicator::getStaticCommunicator()) {
+    : Mesh(spatial_dimension, id, Communicator::getSelfCommunicator()) {
   // NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   this->nodes = nodes;
   ++this->nodes->getRelease();

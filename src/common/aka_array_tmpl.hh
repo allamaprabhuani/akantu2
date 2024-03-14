@@ -27,8 +27,8 @@
 #include <memory>
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
-//#ifndef __AKANTU_AKA_ARRAY_TMPL_HH__
-//#define __AKANTU_AKA_ARRAY_TMPL_HH__
+// #ifndef __AKANTU_AKA_ARRAY_TMPL_HH__
+// #define __AKANTU_AKA_ARRAY_TMPL_HH__
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -1195,4 +1195,4 @@ decltype(auto) make_const_view(const Array & array, const Ns... ns) {
 
 } // namespace akantu
 
-//#endif /* __AKANTU_AKA_ARRAY_TMPL_HH__ */
+// #endif /* __AKANTU_AKA_ARRAY_TMPL_HH__ */

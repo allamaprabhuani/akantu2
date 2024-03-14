@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
   Int max_steps = 1000;
   Mesh mesh(spatial_dimension);
 
-  if (Communicator::getStaticCommunicator().whoAmI() == 0)
+  if (Communicator::getWorldCommunicator().whoAmI() == 0)
     mesh.read("bar.msh");
 
   SolidMechanicsModel model(mesh);

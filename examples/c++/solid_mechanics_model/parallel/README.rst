@@ -22,7 +22,7 @@ In ``parallel``, an example of how to run a 2D parallel simulation is presented.
 
 First, the mesh needs to be distributed among the processors. This is done with::
     
-    const auto & comm = Communicator::getStaticCommunicator();
+    const auto & comm = Communicator::getWorldCommunicator();
     Int prank = comm.whoAmI();
     if (prank == 0) {
         mesh.read("square_2d.msh");

@@ -45,7 +45,7 @@ namespace akantu {
 // // Array<Real> * displacement_tmp = NULL;
 // // Array<Real> * velocity_tmp = NULL;
 // // Array<Real> * acceleration_tmp = NULL;
-// // StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+// // StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
 // // Int prank = comm.whoAmI();
 
 // // /// Loop for the insertion of new cohesive elements

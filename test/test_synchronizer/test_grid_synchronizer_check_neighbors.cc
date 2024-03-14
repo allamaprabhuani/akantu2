@@ -56,7 +56,7 @@ void readNeighbors(
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

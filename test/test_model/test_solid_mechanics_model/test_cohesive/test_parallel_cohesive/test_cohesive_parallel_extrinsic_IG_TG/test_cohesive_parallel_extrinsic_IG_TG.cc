@@ -137,7 +137,7 @@ int main(int argc, char * argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

@@ -58,7 +58,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material_damage.dat", argc, argv);
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

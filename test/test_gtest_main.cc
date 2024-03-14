@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
 
   ::testing::TestEventListeners & listeners =
       ::testing::UnitTest::GetInstance()->listeners();
-  if (::akantu::Communicator::getStaticCommunicator().whoAmI() != 0) {
+  if (::akantu::Communicator::getWorldCommunicator().whoAmI() != 0) {
     delete listeners.Release(listeners.default_result_printer());
   }
 

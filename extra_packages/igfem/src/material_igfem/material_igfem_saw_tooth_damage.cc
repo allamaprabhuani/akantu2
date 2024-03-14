@@ -118,7 +118,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeAllStresses(
 
   /// find global Gauss point with highest stress
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   comm.allReduce(&norm_max_equivalent_stress, 1, _so_max);
 
   AKANTU_DEBUG_OUT();
@@ -246,7 +246,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
   }
 
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   comm.allReduce(&nb_damaged_elements, 1, _so_sum);
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

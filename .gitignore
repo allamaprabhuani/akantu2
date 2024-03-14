@@ -1,5 +1,5 @@
-_skbuild
-build*/
+_skbuild/*
+build*/*
 .dir-locals.el
 TAGS
 third-party/*/

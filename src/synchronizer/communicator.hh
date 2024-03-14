@@ -61,13 +61,19 @@ enum class SynchronizerOperation {
 enum class CommunicationMode { _auto, _synchronous, _ready };
 
 namespace {
-  int _any_source = -1;
+  constexpr int _any_source = -1;
 }
 } // namespace akantu
 
 namespace akantu {
 
 struct CommunicatorInternalData {
+  CommunicatorInternalData() = default;
+  CommunicatorInternalData(const CommunicatorInternalData &) = default;
+  CommunicatorInternalData(CommunicatorInternalData &&) = default;
+  CommunicatorInternalData &
+  operator=(const CommunicatorInternalData &) = default;
+  CommunicatorInternalData & operator=(CommunicatorInternalData &&) = default;
   virtual ~CommunicatorInternalData() = default;
 };
 
@@ -75,14 +81,27 @@ struct CommunicatorInternalData {
 /* -------------------------------------------------------------------------- */
 
 class Communicator : public EventHandlerManager<CommunicatorEventHandler> {
-  struct private_member {};
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Communicator(int & argc, char **& argv, const private_member & /*m*/);
+  struct private_member {
+    private_member() = default;
+    private_member(const private_member &) = default;
+    private_member(private_member &&) = default;
+    private_member & operator=(const private_member &) = default;
+    private_member & operator=(private_member &&) = default;
+    virtual ~private_member() = default;
+  };
+
+  [[deprecated("argc, argv arguments are not nedded anymore")]] Communicator(
+      int & argc, char **& argv, const private_member & /*m*/);
   Communicator(const private_member & /*unused*/ = private_member{});
   ~Communicator() override;
+  Communicator(const Communicator &) = delete;
+  Communicator(Communicator &&) = delete;
+  Communicator & operator=(const Communicator &) = delete;
+  Communicator & operator=(Communicator &&) = delete;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -95,7 +114,8 @@ public:
   void probe(Int sender, Int tag, CommunicationStatus & status) const;
 
   template <typename T>
-  bool asyncProbe(Int sender, Int tag, CommunicationStatus & status) const;
+  [[nodiscard]] bool asyncProbe(Int sender, Int tag,
+                                CommunicationStatus & status) const;
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
@@ -119,7 +139,7 @@ public:
 
   inline void receive(CommunicationBufferTemplated<true> & values, Int sender,
                       Int tag) const {
-    return this->receiveImpl(values.data(), values.size(), sender, tag);
+    return this->receiveImpl(values.data(), Int(values.size()), sender, tag);
   }
 
   inline void receive(CommunicationBufferTemplated<false> & values, Int sender,
@@ -127,7 +147,7 @@ public:
     CommunicationStatus status;
     this->probe<char>(sender, tag, status);
     values.reserve(status.size());
-    return this->receiveImpl(values.data(), values.size(), sender, tag);
+    return this->receiveImpl(values.data(), int(values.size()), sender, tag);
   }
 
   template <typename T>
@@ -179,7 +199,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
-  inline CommunicationRequest
+  [[nodiscard]] inline CommunicationRequest
   asyncSend(const Array<T> & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto) const {
     return this->asyncSendImpl(values.data(),
@@ -187,7 +207,7 @@ public:
                                receiver, tag, mode);
   }
   template <typename T>
-  inline CommunicationRequest
+  [[nodiscard]] inline CommunicationRequest
   asyncSend(const std::vector<T> & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto) const {
     return this->asyncSendImpl(values.data(), values.size(), receiver, tag,
@@ -195,7 +215,7 @@ public:
   }
 
   template <typename Tensor>
-  inline CommunicationRequest asyncSend(
+  [[nodiscard]] inline CommunicationRequest asyncSend(
       const Tensor & values, Int receiver, Int tag,
       const CommunicationMode & mode = CommunicationMode::_auto,
       std::enable_if_t<aka::is_tensor_v<Tensor>> * /*unused*/ = nullptr) const {
@@ -203,7 +223,7 @@ public:
                                mode);
   }
   template <bool is_static>
-  inline CommunicationRequest
+  [[nodiscard]] inline CommunicationRequest
   asyncSend(const CommunicationBufferTemplated<is_static> & values,
             Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto) const {
@@ -211,7 +231,7 @@ public:
                                mode);
   }
   template <typename T>
-  inline CommunicationRequest
+  [[nodiscard]] inline CommunicationRequest
   asyncSend(const T & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto,
             std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
@@ -221,25 +241,25 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
-  inline CommunicationRequest asyncReceive(Array<T> & values, Int sender,
-                                           Int tag) const {
+  [[nodiscard]] inline CommunicationRequest
+  asyncReceive(Array<T> & values, Int sender, Int tag) const {
     return this->asyncReceiveImpl(
         values.data(), values.size() * values.getNbComponent(), sender, tag);
   }
   template <typename T>
-  inline CommunicationRequest asyncReceive(std::vector<T> & values, Int sender,
-                                           Int tag) const {
+  [[nodiscard]] inline CommunicationRequest
+  asyncReceive(std::vector<T> & values, Int sender, Int tag) const {
     return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
   }
 
   template <typename Tensor,
             typename = std::enable_if_t<aka::is_tensor_v<Tensor>>>
-  inline CommunicationRequest asyncReceive(Tensor & values, Int sender,
-                                           Int tag) const {
+  [[nodiscard]] inline CommunicationRequest
+  asyncReceive(Tensor & values, Int sender, Int tag) const {
     return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
   }
   template <bool is_static>
-  inline CommunicationRequest
+  [[nodiscard]] inline CommunicationRequest
   asyncReceive(CommunicationBufferTemplated<is_static> & values, Int sender,
                Int tag) const {
     return this->asyncReceiveImpl(values.data(), values.size(), sender, tag);
@@ -254,6 +274,13 @@ public:
             SynchronizerOperation op = SynchronizerOperation::_sum) const {
     this->allReduceImpl(values.data(), values.size() * values.getNbComponent(),
                         op);
+  }
+
+  template <typename T>
+  inline void
+  allReduce(std::vector<T> & values,
+            SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    this->allReduceImpl(values.data(), values.size(), op);
   }
 
   template <typename Derived>
@@ -301,29 +328,42 @@ public:
                             values.size() * values.getNbComponent(), op);
   }
 
-  template <typename Tensor>
+  template <typename Tensor,
+            std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr>
   inline void
   exclusiveScan(Tensor & values,
-                SynchronizerOperation op = SynchronizerOperation::_sum,
-                std::enable_if_t<aka::is_tensor_v<Tensor>> * = nullptr) const {
+                SynchronizerOperation op = SynchronizerOperation::_sum) const {
     this->exclusiveScanImpl(values.data(), values.size(), op);
   }
 
-  template <typename T>
+  template <typename T, size_t size>
   inline void
-  exclusiveScan(T & values,
-                SynchronizerOperation op = SynchronizerOperation::_sum,
-                std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
-                    nullptr) const {
-    this->exclusiveScanImpl(&values, &values, 1, op);
+  exclusiveScan(std::array<T, size> & values,
+                SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    this->exclusiveScanImpl(values.data(), values.data(), size, op);
   }
 
   template <typename T>
   inline void
+  exclusiveScan(std::vector<T> & values, std::vector<T> & results,
+                SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    results.resize(values.size());
+    this->exclusiveScanImpl(values.data(), results.data(), values.size(), op);
+  }
+
+  template <typename T,
+            std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr>
+  inline void
+  exclusiveScan(T & values,
+                SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    this->exclusiveScanImpl(&values, &values, 1, op);
+  }
+
+  template <typename T,
+            std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr>
+  inline void
   exclusiveScan(T & values, T & result,
-                SynchronizerOperation op = SynchronizerOperation::_sum,
-                std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
-                    nullptr) const {
+                SynchronizerOperation op = SynchronizerOperation::_sum) const {
     this->exclusiveScanImpl(&values, &result, 1, op);
   }
 
@@ -400,18 +440,18 @@ public:
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void broadcast(Array<T> & values, int root = 0) const {
-    this->broadcastImpl(values.data(), values.size() * values.getNbComponent(),
-                        root);
+    this->broadcastImpl(values.data(),
+                        int(values.size() * values.getNbComponent()), root);
   }
 
   template <typename T>
   inline void broadcast(std::vector<T> & values, int root = 0) const {
-    this->broadcastImpl(values.data(), values.size(), root);
+    this->broadcastImpl(values.data(), int(values.size()), root);
   }
 
   inline void broadcast(CommunicationBufferTemplated<true> & buffer,
                         int root = 0) const {
-    this->broadcastImpl(buffer.data(), buffer.size(), root);
+    this->broadcastImpl(buffer.data(), int(buffer.size()), root);
   }
 
   inline void broadcast(CommunicationBufferTemplated<false> & buffer,
@@ -425,7 +465,7 @@ public:
     if (buffer_size == 0) {
       return;
     }
-    this->broadcastImpl(buffer.data(), buffer.size(), root);
+    this->broadcastImpl(buffer.data(), int(buffer.size()), root);
   }
 
   template <typename T> inline void broadcast(T & values, int root = 0) const {
@@ -434,7 +474,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   void barrier() const;
-  CommunicationRequest asyncBarrier() const;
+  [[nodiscard]] CommunicationRequest asyncBarrier() const;
 
   /* ------------------------------------------------------------------------ */
   /* Request handling                                                         */
@@ -506,14 +546,22 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbProc() const;
-  Int whoAmI() const;
+  [[nodiscard]] Int getNbProc() const;
+  [[nodiscard]] Int whoAmI() const;
 
-  static Communicator & getStaticCommunicator();
-  static Communicator & getStaticCommunicator(int & argc, char **& argv);
+  [[deprecated("Use getWorldCommunicator or getSelfCommunicator "
+               "instead")]] static Communicator &
+  getStaticCommunicator();
+  [[deprecated("Use getWorldCommunicator or getSelfCommunicator "
+               "instead")]] static Communicator &
+  getStaticCommunicator(int & argc, char **& argv);
 
-  int getMaxTag() const;
-  int getMinTag() const;
+  static Communicator & getSelfCommunicator();
+  static Communicator & getWorldCommunicator();
+  static Communicator & getNullCommunicator();
+
+  [[nodiscard]] int getMaxTag() const;
+  [[nodiscard]] int getMinTag() const;
 
   AKANTU_GET_MACRO(CommunicatorData, (*communicator_data), decltype(auto));
 
@@ -521,7 +569,12 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  static std::unique_ptr<Communicator> static_communicator;
+  static std::unique_ptr<Communicator>
+      world_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+  static std::unique_ptr<Communicator>
+      self_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+  static std::unique_ptr<Communicator>
+      null_communicator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 protected:
   std::unique_ptr<CommunicatorInternalData> communicator_data;

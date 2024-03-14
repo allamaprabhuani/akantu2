@@ -233,7 +233,7 @@ public:
         element_synchronizer(element_synchronizer), nb_cluster(nb_cluster) {}
 
   auto synchronize() {
-    auto & comm = Communicator::getStaticCommunicator();
+    auto & comm = Communicator::getWorldCommunicator();
     auto rank = comm.whoAmI();
     auto nb_proc = comm.getNbProc();
 

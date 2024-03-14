@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
 
   const Int spatial_dimension = 2;
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

@@ -151,7 +151,7 @@ public:
   std::enable_if_t<are_named_argument<pack...>::value>
   distribute(pack &&... _pack) {
     distributeImpl(
-        OPTIONAL_NAMED_ARG(communicator, Communicator::getStaticCommunicator()),
+        OPTIONAL_NAMED_ARG(communicator, Communicator::getWorldCommunicator()),
         OPTIONAL_NAMED_ARG(edge_weight_function,
                            [](auto &&, auto &&) { return 1; }),
         OPTIONAL_NAMED_ARG(vertex_weight_function, [](auto &&) { return 1; }));

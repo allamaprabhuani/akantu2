@@ -34,7 +34,7 @@ int main(int argc, char * argv[]) {
 
   initialize("material.dat", argc, argv);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   /// input parameters for the simulation

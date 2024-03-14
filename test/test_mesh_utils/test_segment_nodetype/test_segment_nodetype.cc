@@ -31,7 +31,7 @@ int main(int argc, char * argv[]) {
   Int spatial_dimension = 3;
   Mesh mesh(spatial_dimension);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

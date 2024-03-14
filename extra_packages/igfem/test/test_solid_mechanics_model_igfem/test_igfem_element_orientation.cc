@@ -27,7 +27,7 @@ using namespace akantu;
 int main(int argc, char * argv[]) {
 
   initialize("material.dat", argc, argv);
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
