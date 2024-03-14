@@ -508,23 +508,24 @@ function(register_test test_name)
 
   # register the test for ctest
   set(_arguments -n "${test_name}")
+  set(exe_name "./${test_name}")
   if(_register_test_SCRIPT)
     _add_file_to_copy(${test_name} ${_register_test_SCRIPT})
     if(_register_test_PYTHON)
       if(NOT PYTHONINTERP_FOUND)
         find_package(PythonInterp ${AKANTU_PREFERRED_PYTHON_VERSION} REQUIRED)
       endif()
-      list(APPEND _arguments -e "${PYTHON_EXECUTABLE}")
+      set(exe_name "${PYTHON_EXECUTABLE}")
       list(APPEND _extra_args "${_register_test_SCRIPT}")
       add_dependencies(${test_name} py11_akantu)
     else()
-      list(APPEND _arguments -e "./${_register_test_SCRIPT}")
+      set(exe_name "./${_register_test_SCRIPT}")
     endif()
   elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh")
     _add_file_to_copy(${test_name} ${test_name}.sh)
-    list(APPEND _arguments -e "./${test_name}.sh")
+    set(exe_name "./${test_name}.sh")
   else()
-    list(APPEND _arguments -e "./${test_name}")
+
   endif()
 
   # if(_register_test_GTEST)
@@ -532,6 +533,13 @@ function(register_test test_name)
   # endif()
 
   list(APPEND _arguments -E "${PROJECT_BINARY_DIR}/akantu_environement.sh")
+
+  # set(environment
+  #   PYTHONPATH=${PROJECT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}
+  #   ASAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/asan_akantu.supp"
+  #   LSAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/lsan_akantu.supp:print_suppressions=0"
+  # )
+
 
   package_is_activated(parallel _is_parallel)
   if(_is_parallel AND AKANTU_TESTS_ALWAYS_USE_MPI AND NOT _register_test_PARALLEL)
@@ -545,6 +553,7 @@ function(register_test test_name)
       set(_mpi_launcher ${MPIEXEC_EXECUTABLE})
     endif()
     set(_mpi_launcher "${_mpi_launcher} ${MPIEXEC_PREFLAGS} ${MPIEXEC_NUMPROC_FLAG}")
+
     list(APPEND _arguments -p "${_mpi_launcher}")
     if(_register_test_PARALLEL_LEVEL)
       set(_procs "${_register_test_PARALLEL_LEVEL}")
@@ -580,15 +589,16 @@ function(register_test test_name)
 
   list(APPEND _arguments -w "${CMAKE_CURRENT_BINARY_DIR}")
 
+  set(reference FALSE)
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
     list(APPEND _arguments -r "${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified")
-    endif()
+    set(reference TRUE)
+  endif()
 
   if(CMAKE_BUILD_TYPE MATCHES "[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]" AND VALGRINDXECUTABLE)
     list(APPEND _arguments
       -v "${VALGRIND_EXECUTABLE} --error-exitcode=111 --leak-check=full --suppressions=${PROJECT_SOURCE_DIR}/test/ci/ompi_init.supp")
   endif()
-
 
   # register them test
   foreach(p ${_procs})
@@ -599,32 +609,34 @@ function(register_test test_name)
 
     set(_properties
       PROCESSORS ${p}
-      ENVIRONMENT
-        PYTHONPATH=${PROJECT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}
-        ASAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/asan_akantu.supp"
-        LSAN_OPTIONS="suppressions=${PROJECT_SOURCE_DIR}/cmake/lsan_akantu.supp:print_suppressions=0"
-      )
+      #ENVIRONMENT ${environment}
+    )
 
-    if(_register_test_GTEST)
-      if(_mpi_launcher)
-        separate_arguments(_launcher UNIX_COMMAND "${_mpi_launcher} ${p}")
-        set_property(TARGET ${test_name} PROPERTY CROSSCOMPILING_EMULATOR "${_launcher}")
-      endif()
+    set_property(
+      TARGET ${test_name}
+      PROPERTY
+        CROSSCOMPILING_EMULATOR ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} -e
+    )
+
+    if(_register_test_GTEST AND NOT reference)
       gtest_discover_tests(${test_name}
         TEST_SUFFIX "${_suffix}"
         PROPERTIES ${_properties}
-        #NO_PRETTY_TYPES
       )
-
-      if(_mpi_launcher)
-        set_property(TARGET ${test_name} PROPERTY CROSSCOMPILING_EMULATOR "")
-      endif()
     else()
-      add_test(NAME ${test_name}${_suffix}
-        COMMAND ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} ${_extra_args})
-      set_test_properties(${test_name}${_suffix}
+      add_test(
+        NAME ${test_name}${_suffix}
+        COMMAND ${exe_name} ${_extra_args}
+      )
+      set_tests_properties(${test_name}${_suffix}
         PROPERTIES ${_properties})
     endif()
+
+    set_property(
+      TARGET ${test_name}
+      PROPERTY CROSSCOMPILING_EMULATOR ""
+    )
+
   endforeach()
 endfunction()
 

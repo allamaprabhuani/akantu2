@@ -36,7 +36,7 @@ full_redirect() {
     sout="-${nproc}${sout}"
     serr="-${nproc}${serr}"
   fi
-  echo "Run $*"
+  echo "Run $*" >> out
   ( ($* | tee "${name}${sout}") 3>&1 1>&2 2>&3 | tee "${name}${serr}") 3>&1 1>&2 2>&3
 
   lastout="${name}${sout}"
@@ -52,8 +52,9 @@ envi=
 parallel_processes="2"
 valgrind=""
 
-while :
-do
+echo "$*" > out
+
+while true; do
   case "$1" in
     -e)
       executable=$2
@@ -99,11 +100,6 @@ do
       shift
       break
       ;;
-    -*)
-      echo "Error: Unknown option: $1" >&2
-      show_help
-      exit 1
-      ;;
     *) #No more options
       break
       ;;
@@ -123,20 +119,17 @@ if [ -z "${name}" ] || [ -z "${executable}" ]; then
 fi
 
 if [ -n "${working_dir}" ]; then
-#    current_directory=$PWD
   echo "Entering directory ${working_dir}"
   cd "${working_dir}"
 fi
 
 if [ -z "${parallel}" ]; then
-  echo "Executing the test ${name}"
+  #echo "Executing the test ${name}"
   full_redirect 0 "${name}" "${valgrind} ${executable} ${_args}"
 else
-  #for i in ${parallel_processes}; do
   i=${parallel_processes}
-  echo "Executing the test ${name} for ${i} procs"
+  #echo "Executing the test ${name} for ${i} procs"
   full_redirect "$i" "${name}"_"$i" "${parallel} ${i} ${valgrind} ${executable} ${_args}"
-  #done
 fi
 
 if [ -n "${postprocess_script}" ]; then
