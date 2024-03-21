@@ -157,6 +157,10 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(Damage, damage);
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Damage, damage);
 
+  /// return the previous damage array
+  AKANTU_GET_MACRO_DEREF_PTR(PreviousDamage, previous_damage);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(PreviousDamage, previous_damage);
+
   /// get the PhaseFieldModel::internal_force vector (internal forces)
   AKANTU_GET_MACRO_DEREF_PTR(InternalForce, internal_force);
   AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);

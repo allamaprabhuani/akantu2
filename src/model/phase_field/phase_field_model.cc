@@ -240,12 +240,12 @@ void PhaseFieldModel::afterSolveStep(bool converged) {
     return;
   }
 
-  for (auto && values : zip(*damage, *previous_damage)) {
-    auto & dam = std::get<0>(values);
-    auto & prev_dam = std::get<1>(values);
+  // for (auto && values : zip(*damage, *previous_damage)) {
+  //   auto & dam = std::get<0>(values);
+  //   auto & prev_dam = std::get<1>(values);
 
-    prev_dam = dam;
-  }
+  //   prev_dam = dam;
+  // }
 
   for (auto && values : zip(*damage, *blocked_dofs)) {
     auto & dam = std::get<0>(values);
