@@ -59,6 +59,15 @@ void register_fe_engine(py::module & mod) {
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("initShapeFunctions", &FEEngine::initShapeFunctions,
            py::arg("ghost_type") = _not_ghost)
+      .def(
+          "integrate",
+          [](FEEngine & self,
+             const std::shared_ptr<ElementTypeMapArray<Real>> f,
+             std::shared_ptr<ElementTypeMapArray<Real>> intf,
+             std::shared_ptr<const ElementTypeMapArray<Idx>> filter_elements) {
+            self.integrate(*f, *intf, filter_elements.get());
+          },
+          py::arg("f"), py::arg("intf"), py::arg("filter_elements") = nullptr)
 
       .def(
           "integrate",
