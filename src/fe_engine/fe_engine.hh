@@ -81,10 +81,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
-  /// integrate f for all elements of type "type"
+  /// integrate f for all elements
   virtual void integrate(
       const ElementTypeMapArray<Real> & f, ElementTypeMapArray<Real> & intf,
-      const ElementTypeMapArray<Idx> & filter_elements = nullptr) const = 0;
+      const ElementTypeMapArray<Idx> * filter_elements = nullptr) const = 0;
 
   /// integrate f for all elements of type "type"
   virtual void
