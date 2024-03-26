@@ -1,5 +1,12 @@
 # Version 5
 
+## Version 5.0.7
+
+### Changed
+
+- Bug fixes:
+  - Correct a bug with empty filters when using the python interface
+
 ## Version 5.0.6
 
 ### Added

@@ -66,8 +66,15 @@ void register_fe_engine(py::module & mod) {
              Int nb_degree_of_freedom, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) {
-            self.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
-                           filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
+                             empty_filter);
+            } else {
+              self.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
+                             filter_elements);
+            }
           },
           py::arg("f"), py::arg("intf"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
@@ -77,7 +84,13 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & f, ElementType type,
              GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) -> Real {
-            return self.integrate(f, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              return self.integrate(f, type, ghost_type, empty_filter);
+            } else {
+              return self.integrate(f, type, ghost_type, filter_elements);
+            }
           },
           py::arg("f"), py::arg("type"), py::arg("ghost_type") = _not_ghost,
           py::arg("filter_elements") = empty_filter)
@@ -86,8 +99,16 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
              const Int nb_degree_of_freedom, ElementType type,
              GhostType ghost_type, const Array<Idx> & filter_elements) {
-            fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
-                                            type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
+                                              type, ghost_type, empty_filter);
+            } else {
+              fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
+                                              type, ghost_type,
+                                              filter_elements);
+            }
           },
           py::arg("u"), py::arg("nablauq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
@@ -97,8 +118,16 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
              Int nb_degree_of_freedom, ElementType type, GhostType ghost_type,
              const Array<Idx> & filter_elements) {
-            self.interpolateOnIntegrationPoints(
-                u, uq, nb_degree_of_freedom, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.interpolateOnIntegrationPoints(
+                  u, uq, nb_degree_of_freedom, type, ghost_type, empty_filter);
+            } else {
+              self.interpolateOnIntegrationPoints(u, uq, nb_degree_of_freedom,
+                                                  type, ghost_type,
+                                                  filter_elements);
+            }
           },
           py::arg("u"), py::arg("uq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
@@ -117,7 +146,13 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & Ds, Array<Real> & BtDs,
              ElementType type, GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) {
-            self.computeBtD(Ds, BtDs, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeBtD(Ds, BtDs, type, ghost_type, empty_filter);
+            } else {
+              self.computeBtD(Ds, BtDs, type, ghost_type, filter_elements);
+            }
           },
           py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
@@ -128,8 +163,15 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & Ds, Array<Real> & BtDBs,
              Int order_d, ElementType type, GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) {
-            self.computeBtDB(Ds, BtDBs, order_d, type, ghost_type,
-                             filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeBtDB(Ds, BtDBs, order_d, type, ghost_type,
+                               empty_filter);
+            } else {
+              self.computeBtDB(Ds, BtDBs, order_d, type, ghost_type,
+                               filter_elements);
+            }
           },
           py::arg("Ds"), py::arg("BtDBs"), py::arg("order_d"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
@@ -140,7 +182,13 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & bs, Array<Real> & Ntbs,
              ElementType type, GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) {
-            self.computeNtb(bs, Ntbs, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeNtb(bs, Ntbs, type, ghost_type, empty_filter);
+            } else {
+              self.computeNtb(bs, Ntbs, type, ghost_type, filter_elements);
+            }
           },
           py::arg("bs"), py::arg("Ntbs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
@@ -150,7 +198,13 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & bs, Array<Real> & NtbNs,
              ElementType type, GhostType ghost_type = _not_ghost,
              const Array<Idx> & filter_elements = empty_filter) {
-            self.computeNtbN(bs, NtbNs, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeNtbN(bs, NtbNs, type, ghost_type, empty_filter);
+            } else {
+              self.computeNtbN(bs, NtbNs, type, ghost_type, filter_elements);
+            }
           },
           py::arg("bs"), py::arg("NtbNs"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost,
