@@ -39,9 +39,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
-                           NodeGroup & node_group, Int dimension,
-                           const std::string & id)
+ElementGroup::ElementGroup(const std::string &group_name, const Mesh &mesh,
+                           NodeGroup &node_group, Int dimension,
+                           const std::string &id)
     : mesh(mesh), name(group_name), elements("elements", id),
       node_group(node_group), dimension(dimension) {
   AKANTU_DEBUG_IN();
@@ -73,7 +73,7 @@ void ElementGroup::clear(ElementType type, GhostType ghost_type) {
 bool ElementGroup::empty() const { return elements.empty(); }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::append(const ElementGroup & other_group) {
+void ElementGroup::append(const ElementGroup &other_group) {
   AKANTU_DEBUG_IN();
 
   node_group.append(other_group.node_group);
@@ -82,13 +82,13 @@ void ElementGroup::append(const ElementGroup & other_group) {
   for (auto ghost_type : ghost_types) {
     for (auto type : other_group.elementTypes(_ghost_type = ghost_type,
                      _element_kind = _ek_not_defined)) {
-      const auto & other_elem_list = other_group.elements(type, ghost_type);
+      const auto &other_elem_list = other_group.elements(type, ghost_type);
       auto nb_other_elem = other_elem_list.size();
 
       if (not elements.exists(type, ghost_type)) {
         elements.alloc(0, 1, type, ghost_type);
       }
-      auto & elem_list = elements(type, ghost_type);
+      auto &elem_list = elements(type, ghost_type);
       auto nb_elem = elem_list.size();
       /// append new elements to current list
       elem_list.resize(nb_elem + nb_other_elem);
@@ -105,7 +105,7 @@ void ElementGroup::append(const ElementGroup & other_group) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::printself(std::ostream & stream, int indent) const {
+void ElementGroup::printself(std::ostream &stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
   stream << space << "ElementGroup ["
          << "\n";
@@ -122,7 +122,7 @@ void ElementGroup::optimize() {
   // increasing the locality of data when iterating on the element of a group
   for (auto ghost_type : ghost_types) {
     for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
-      auto & els = elements(type, ghost_type);
+      auto &els = elements(type, ghost_type);
       std::sort(els.begin(), els.end());
 
       auto end = std::unique(els.begin(), els.end());
@@ -140,8 +140,8 @@ void ElementGroup::fillFromNodeGroup() {
 
   std::set<Element> seen;
 
-  for (const auto & node : this->node_group) {
-    for (const auto & element : node_to_elem.getRow(node)) {
+  for (const auto &node : this->node_group) {
+    for (const auto &element : node_to_elem.getRow(node)) {
       if (this->dimension != _all_dimensions &&
           this->dimension != Mesh::getSpatialDimension(element.type)) {
         continue;
@@ -179,23 +179,23 @@ void ElementGroup::addDimension(Int dimension) {
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::onNodesAdded(const Array<Idx> & /*new_nodes*/,
-                                const NewNodesEvent & event [[gnu::unused]]) {
+                                const NewNodesEvent &event [[gnu::unused]]) {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   if (aka::is_of_type<CohesiveNewNodesEvent>(event)) {
     // nodes might have changed in the connectivity
     node_group.clear();
     for (auto ghost_type : ghost_types) {
       for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
-        auto & els = elements(type, ghost_type);
+        auto &els = elements(type, ghost_type);
 
         auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-        auto && conn_it = make_view(mesh.getConnectivity(type, ghost_type),
-                                    nb_nodes_per_element)
-                              .begin();
+        auto &&conn_it = make_view(mesh.getConnectivity(type, ghost_type),
+                                   nb_nodes_per_element)
+                             .begin();
 
         for (auto element : els) {
-          auto && conn = conn_it[element];
-          for (auto && n : conn) {
+          auto &&conn = conn_it[element];
+          for (auto &&n : conn) {
             node_group.add(n, false);
           }
         }

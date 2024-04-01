@@ -808,6 +808,32 @@ void GroupManager::fillBufferWithGroupNames(
 }
 
 /* -------------------------------------------------------------------------- */
+void GroupManager::synchronizeGroupTypes() {
+  std::vector<Int> types(element_groups.size() * Int(_max_element_type), 0);
+
+  for (auto && [g, group] : enumerate(element_groups)) {
+    for (auto ghost_type : ghost_types) {
+      for (auto type : group.second->elementTypes(ghost_type)) {
+        types[g * Int(_max_element_type) + Int(type)] +=
+            group.second->getElements(type, ghost_type).size();
+      }
+    }
+  }
+
+  mesh.getCommunicator().allReduce(types);
+
+  for (auto && [g, group] : enumerate(element_groups)) {
+    auto & elements = group.second->getElements();
+    for (auto t : arange(Int(_max_element_type))) {
+      if (types[g * Int(_max_element_type) + t] != 0 and
+          not elements.exists(ElementType(t))) {
+        elements.alloc(0, 1, ElementType(t));
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void GroupManager::synchronizeGroupNames() {
   AKANTU_DEBUG_IN();
 

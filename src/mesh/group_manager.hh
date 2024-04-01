@@ -216,6 +216,8 @@ public:
   /// /!\ it is a SMP call
   void synchronizeGroupNames();
 
+  void synchronizeGroupTypes();
+
   /// register an elemental field to the given group name (overloading for
   /// ElementalPartionField)
   template <typename T, template <bool> class dump_type>

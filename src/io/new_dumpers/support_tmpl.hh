@@ -32,8 +32,11 @@
 #include "dumper_field.hh"
 #include "element_group.hh"
 #include "element_synchronizer.hh"
+#include "mesh.hh"
 #include "mesh_accessor.hh"
 #include "node_group.hh"
+/* -------------------------------------------------------------------------- */
+#include <map>
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SUPPORT_TMPL_HH__
@@ -51,28 +54,17 @@ namespace dumper {
     explicit Support(Mesh & mesh)
         : SupportBase(SupportType::_mesh), mesh(mesh) {
 
-      this->nodes = make_field(mesh.getNodes(), *this);
+      this->positions = make_field(mesh.getNodes(), *this);
       this->connectivities =
-          make_field(mesh.getConnectivities(), *this, toVTKConnectivity());
+          make_field(mesh.getConnectivities(), *this, toVTKConnectivity(mesh));
 
-      if (mesh.isDistributed()) {
-        this->connectivities =
-            make_field(this->connectivities, *this,
-                       [&mesh](auto && connectivity, ElementType /*type*/,
-                               GhostType /* ghost_type*/) -> Vector<Idx> {
-                         Vector<Idx> out(connectivity.size());
-                         for (auto && [in, out] : zip(connectivity, out)) {
-                           out = mesh.getNodeGlobalId(in);
-                         }
-                         return out;
-                       });
-      }
-
-      nodes->addProperty("name", "position");
+      positions->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");
 
       this->addProperty("name", mesh.getID());
     }
+
+    void updateOffsets() override { mesh.updateOffsets(); }
 
     [[nodiscard]] ElementTypesIteratorHelper
     elementTypes(GhostType ghost_type = _not_ghost) const override {
@@ -85,15 +77,26 @@ namespace dumper {
     }
 
     [[nodiscard]] Int getNbNodes() const override { return mesh.getNbNodes(); }
+    [[nodiscard]] Int getNbLocalNodes() const { return mesh.getNbLocalNodes(); }
     [[nodiscard]] Int getNbGlobalNodes() const override {
       return mesh.getNbGlobalNodes();
     }
-    [[nodiscard]] Int getNbLocalNodes() const { return mesh.getNbLocalNodes(); }
 
     [[nodiscard]] Int
     getNbElements(const ElementType & type,
                   const GhostType & ghost_type = _not_ghost) const override {
       return mesh.getConnectivities()(type, ghost_type).size();
+    }
+    [[nodiscard]] Int getNbGlobalElements(
+        const ElementType & type,
+        const GhostType & ghost_type = _not_ghost) const override {
+      return mesh.getNbGlobalElements(type, ghost_type);
+    }
+
+    [[nodiscard]] Int getElementsOffsets(
+        const ElementType & type,
+        const GhostType & ghost_type = _not_ghost) const override {
+      return mesh.getElementsOffsets(type, ghost_type);
     }
 
     [[nodiscard]] bool isDistributed() const override {
@@ -104,59 +107,47 @@ namespace dumper {
       return mesh.getCommunicator();
     }
 
-    void updateTypeOffsets() {
-      if (mesh.getRelease() == offset_release) {
-        return;
-      }
-
-      offset_elements.fill(0);
-
-      for (auto type : this->elementTypes()) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-        offset_elements[type] = mesh.getNbElement(type);
-      }
-
-      mesh.getCommunicator().exclusiveScan(offset_elements);
-      offset_release = mesh.getRelease();
-    }
-
-    [[nodiscard]] Int getTypeOffset(const ElementType & type) const {
-      return offset_elements[type];
-    }
-
     Mesh & getMesh() { return mesh; }
     const Mesh & getMesh() const { return mesh; }
 
   protected:
     Mesh & mesh;
-    std::array<Int, _max_element_type> offset_elements;
-    Release offset_release{};
   };
 
-  /* ------------------------------------------------------------------------ */
+  /* ---------------------------------------------------------------------- */
   template <>
   class Support<ElementGroup> : public SupportBase, public SupportElements {
   public:
     explicit Support(ElementGroup & inner)
-        : SupportBase(SupportType::_element_group), inner(inner),
-          elements(make_field(inner.getElements(), *this)),
-          nodes_list(make_field(inner.getNodeGroup().getNodes(), *this)) {
+        : SupportBase(SupportType::_element_group), inner(inner) {
 
-      this->nodes =
-          make_field(inner.getNodeGroup().getNodes(), *this,
-                     ElementGroupNodesFunctor(inner.getMesh().getNodes()));
-      this->connectivities = make_field(
-          inner.getElements(), *this,
-          ElementGroupConnectivityFunctor(inner.getMesh().getConnectivities()));
+      auto && mesh = inner.getMesh();
 
-      nodes->addProperty("name", "nodes");
+      this->positions = make_field(inner.getNodeGroup().getNodes(), *this,
+                                   ElementGroupNodesFunctor(mesh.getNodes()));
+      this->connectivities = make_field(inner.getElements(), *this,
+                                        ElementGroupConnectivityFunctor(mesh));
+      positions->addProperty("name", "positions");
+      connectivities->addProperty("name", "connectivities");
+
+      nodes_list = make_field(inner.getNodeGroup().getNodes(), *this,
+                              NodeGroupsGlobalNodes(mesh));
+
+      elements = make_field(inner.getElements(), *this,
+                            ElementGroupGlobalElements(inner));
+
+      nodes_list->addProperty("name", "nodes");
       elements->addProperty("name", "elements");
-      connectivities->addProperty("name", "group_connectivities");
 
       this->addProperty("name", inner.getName());
     }
 
+    //    void updateOffsets() override { inner.getMesh().updateOffsets(); }
+
+    [[nodiscard]] auto & getMesh() const { return inner.getMesh(); }
+
     [[nodiscard]] auto & getElements() const { return *elements; }
+    [[nodiscard]] auto & getNodeIds() const { return *nodes_list; }
 
     [[nodiscard]] ElementTypesIteratorHelper
     elementTypes(GhostType ghost_type = _not_ghost) const override {
@@ -174,21 +165,42 @@ namespace dumper {
       return (std::find(types.begin(), types.end(), type) != types.end());
     }
 
-    [[nodiscard]] Int getNbNodes() const override {
-      return inner.getNodeGroup().getNodes().size();
+    [[nodiscard]] bool isDistributed() const override {
+      return inner.getMesh().isDistributed();
     }
+
+    [[nodiscard]] Int getNbNodes() const override {
+      return inner.getNodeGroup().getNbNodes();
+    }
+
+    [[nodiscard]] Int getNbLocalNodes() const override {
+      return inner.getNodeGroup().getNbLocalNodes();
+    }
+
+    [[nodiscard]] Int getNbGlobalNodes() const override {
+      return inner.getNodeGroup().getNbGlobalNodes();
+    }
+
     [[nodiscard]] Int
     getNbElements(const ElementType & type,
                   const GhostType & ghost_type = _not_ghost) const override {
       return inner.getElements()(type, ghost_type).size();
     }
 
-    [[nodiscard]] bool isDistributed() const override {
-      return inner.getMesh().isDistributed();
+    [[nodiscard]] Int getNbGlobalElements(
+        const ElementType & type,
+        const GhostType & ghost_type = _not_ghost) const override {
+      return inner.getNbGlobalElements(type, ghost_type);
     }
 
-    [[nodiscard]] Int getNbGlobalNodes() const override {
-      AKANTU_TO_IMPLEMENT();
+    [[nodiscard]] Int getElementsOffsets(
+        const ElementType & type,
+        const GhostType & ghost_type = _not_ghost) const override {
+      return inner.getElementsOffsets(type, ghost_type);
+    }
+
+    [[nodiscard]] Int getNodesOffsets() const {
+      return inner.getNodeGroup().getOffsets();
     }
 
   protected:

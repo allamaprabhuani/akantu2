@@ -150,6 +150,13 @@ namespace dumper {
       properties.erase(property);
     }
 
+    [[nodiscard]] Property
+    getPropertyVariant(const std::string & property) const {
+      AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
+                          "The property " << property << " is not registered");
+      return properties.at(property);
+    }
+
     template <class T, std::enable_if_t<std::is_integral_v<T>> * = nullptr>
     [[nodiscard]] T getProperty(const std::string & property) const {
       AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
@@ -169,6 +176,8 @@ namespace dumper {
               std::enable_if_t<not std::disjunction_v<
                   std::is_integral<T>, std::is_floating_point<T>>> * = nullptr>
     [[nodiscard]] const T & getProperty(const std::string & property) const {
+      AKANTU_DEBUG_ASSERT(properties.find(property) != properties.end(),
+                          "The property " << property << " is not registered");
       return std::get<T>(properties.at(property));
     }
 
@@ -181,6 +190,10 @@ namespace dumper {
     }
 
     [[nodiscard]] virtual Release getRelease() const { return Release(); }
+
+    decltype(auto) getPropertiesList() const {
+      return make_keys_adaptor(properties);
+    }
 
   private:
     std::map<std::string, Property> properties;
@@ -274,17 +287,28 @@ namespace dumper {
 
     virtual ~SupportElements() = default;
 
-    [[nodiscard]] auto & getNodes() const { return *nodes; }
+    [[nodiscard]] auto & getNodes() const { return *positions; }
     [[nodiscard]] auto & getConnectivities() const { return *connectivities; }
 
     [[nodiscard]] virtual Int getNbNodes() const = 0;
     [[nodiscard]] virtual Int getNbGlobalNodes() const = 0;
+    [[nodiscard]] virtual Int getNbLocalNodes() const = 0;
     [[nodiscard]] virtual Int
     getNbElements(const ElementType & type,
                   const GhostType & ghost_type = _not_ghost) const = 0;
 
+    [[nodiscard]] virtual Int
+    getElementsOffsets(const ElementType & type,
+                       const GhostType & ghost_type = _not_ghost) const = 0;
+
+    [[nodiscard]] virtual Int
+    getNbGlobalElements(const ElementType & type,
+                        const GhostType & ghost_type = _not_ghost) const = 0;
+
+    virtual void updateOffsets() {}
+
   protected:
-    std::shared_ptr<FieldNodalArrayTemplateBase<Real>> nodes;
+    std::shared_ptr<FieldNodalArrayTemplateBase<Real>> positions;
     std::shared_ptr<FieldElementMapArrayTemplateBase<Idx>> connectivities;
   };
 

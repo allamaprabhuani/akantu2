@@ -107,17 +107,16 @@ void DumperXdmf::dumpInternal() {
 
   DumperHDF5::dumpInternal();
 
-  // if (prank == 0) {
-  //   if (not xdmf) {
-  //     using dumper::XDMF::File;
-  //     auto path = fs::path(directory);
-  //     path /= filename + ".xmf";
+  if (prank == 0) {
+    if (not xdmf) {
+      using dumper::XDMF::File;
+      auto path = fs::path(directory);
+      path /= filename + ".xmf";
+      xdmf = std::make_unique<File>(support, path);
+    }
 
-  //     xdmf = std::make_unique<File>(support, path);
-  //   }
-
-  //   xdmf->dump();
-  // }
+    xdmf->dump();
+  }
 }
 
 } // namespace akantu

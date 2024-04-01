@@ -29,6 +29,10 @@
 #define AKANTU_NODE_GROUP_HH_
 
 namespace akantu {
+class Mesh;
+}
+
+namespace akantu {
 
 class NodeGroup : public Dumpable {
   /* ------------------------------------------------------------------------ */
@@ -89,6 +93,11 @@ public:
   AKANTU_GET_MACRO_AUTO(Nodes, node_group);
   AKANTU_GET_MACRO_AUTO(Name, name);
 
+  AKANTU_GET_MACRO_AUTO(Offsets, offsets);
+  [[nodiscard]] inline auto getNbGlobalNodes() const -> Idx;
+  [[nodiscard]] auto getNbLocalNodes() const -> Idx;
+  [[nodiscard]] inline auto getNbNodes() const -> Idx;
+
   /// give the number of nodes in the current group
   [[nodiscard]] inline Idx size() const;
 
@@ -105,8 +114,15 @@ private:
   /// list of nodes in the group
   Array<Idx> node_group;
 
-  /// reference to the mesh in question
-  // const Mesh & mesh;
+  /// nodes offsets
+  Idx offsets{0};
+
+  /// nodes offsets
+  Idx nb_global_nodes{-1};
+
+  const Mesh & mesh;
+
+  friend class Mesh;
 };
 
 /// standard output stream operator

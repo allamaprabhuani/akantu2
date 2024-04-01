@@ -257,6 +257,9 @@ public:
   /// fills the nodes_to_elements for given dimension elements
   void fillNodesToElements(Int dimension = _all_dimensions);
 
+  /// update offsets for parallel dumping of mesh info
+  void updateOffsets();
+
 private:
   /// update the global ids, nodes type, ...
   std::tuple<Int, Int> updateGlobalData(NewNodesEvent & nodes_event,
@@ -295,6 +298,16 @@ public:
 
   /// get the global number of nodes
   inline auto getNbGlobalNodes() const;
+
+  Idx getElementsOffsets(const ElementType & type,
+                         const GhostType & ghost_type) const {
+    return (offsets(type, ghost_type));
+  }
+
+  Idx getNbGlobalElements(const ElementType & type,
+                          const GhostType & ghost_type) const {
+    return (global_sizes(type, ghost_type));
+  }
 
   /// get the nodes type Array
   AKANTU_GET_MACRO(NodesFlags, *nodes_flags, const Array<NodeFlag> &);
@@ -539,6 +552,12 @@ public:
 
   AKANTU_GET_MACRO_AUTO(Release, release);
 
+  AKANTU_GET_MACRO_AUTO(Offsets, offsets);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Offsets, offsets);
+
+  AKANTU_GET_MACRO_AUTO(GlobalSizes, global_sizes);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(GlobalSizes, global_sizes);
+
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
   /* ------------------------------------------------------------------------ */
@@ -664,6 +683,9 @@ private:
 
   /// mesh release
   Release release;
+
+  ElementTypeMap<Idx> offsets, global_sizes;
+  Release offset_release;
 };
 
 /// standard output stream operator

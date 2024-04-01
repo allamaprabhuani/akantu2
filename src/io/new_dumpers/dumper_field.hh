@@ -76,7 +76,7 @@ namespace dumper {
       return (field_type == FieldType::_internal_field);
     }
 
-    [[nodiscard]] inline bool is_elemental_field() const {
+    [[nodiscard]] inline bool is_elemental_map_field() const {
       return (field_type == FieldType::_element_map_array) or
              this->is_quadrature_points_field();
     }
@@ -107,7 +107,7 @@ namespace dumper {
                    FieldType field_type = FieldType::_array)
         : FieldBase(support, type, field_type) {}
 
-    [[nodiscard]] virtual const void * data() const = 0;
+    [[nodiscard]] virtual const void * data() = 0;
     [[nodiscard]] virtual Int size() const = 0;
     [[nodiscard]] virtual Int getNbComponent() const = 0;
   };
@@ -116,7 +116,7 @@ namespace dumper {
   template <class T, class Base> class FieldArrayTemplateBase : public Base {
   public:
     using Base::Base;
-    [[nodiscard]] virtual const Array<T> & getArray() const = 0;
+    //[[nodiscard]] virtual const Array<T> & getArray() const = 0;
     [[nodiscard]] virtual const Array<T> & getArray() = 0;
 
     auto getSharedPointer() {
@@ -134,16 +134,16 @@ namespace dumper {
     FieldArray(Array_ && array, const SupportBase & support, Args &&... args)
         : FieldArrayTemplateBase<T, Base>(
               support, typeid(T), std::forward<decltype(args)>(args)...),
-          array(std::forward<Array_>(array)) {}
+          array(array) {}
 
-    [[nodiscard]] const void * data() const override { return array.data(); }
+    [[nodiscard]] const void * data() override { return array.data(); }
 
     [[nodiscard]] Int getNbComponent() const override {
       // auto factor = array.size() / this->size();
       return array.getNbComponent();
     }
 
-    [[nodiscard]] const Array<T> & getArray() const override { return array; }
+    //[[nodiscard]] const Array<T> & getArray() const override { return array; }
     [[nodiscard]] const Array<T> & getArray() override { return array; }
 
   private:
@@ -151,54 +151,32 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function, class Base = FieldArrayBase>
-  class FieldFunctionArray
-      : public FieldArrayTemplateBase<
-            details::function_return_scalar_t<T, Function>, Base> {
-    using OutT = details::function_return_scalar_t<T, Function>;
-
+  template <class InT, class OutT, class Base = FieldArrayBase>
+  class FieldComputeArray : public FieldArrayTemplateBase<OutT, Base> {
   public:
     template <class... Args>
-    FieldFunctionArray(
-        const std::shared_ptr<FieldArrayTemplateBase<T, Base>> & array_in,
-        const SupportBase & support, Function && function,
-        Args &&... args) // NOLINT
+    FieldComputeArray(
+        const std::shared_ptr<FieldArrayTemplateBase<InT, Base>> & array_in,
+        const SupportBase & support, Args &&... args)
         : FieldArrayTemplateBase<OutT, Base>(
-              support, typeid(T), std::forward<decltype(args)>(args)...),
-          function(std::forward<Function>(function)), array_in(array_in) {
-      // update();
-    }
+              support, typeid(OutT), std::forward<decltype(args)>(args)...),
+          array_in(array_in) {}
 
-    FieldFunctionArray(const Array<T> & array_in, const SupportBase & support,
-                       Function && function) // NOLINT
-        : FieldFunctionArray(make_field(array_in, support), support,
-                             std::forward<Function>(function)) {}
-
-    [[nodiscard]] const void * data() const override {
-      return array_out->data();
-    }
-
-    template <class OutT = T>
-    [[nodiscard]] std::enable_if<not std::is_const_v<OutT>> * data() {
-      update();
-
-      return array_out->data();
-    }
+    template <class... Args>
+    FieldComputeArray(const Array<InT> & array_in, const SupportBase & support,
+                      Args &&... args)
+        : FieldComputeArray(make_field(array_in, support), support,
+                            std::forward<decltype(args)>(args)...) {}
 
     [[nodiscard]] Int getNbComponent() const override {
-      // auto old_size = this->array_in->size();
-      // auto new_size = this->size();
-      // auto factor = old_size / new_size;
-      if constexpr (details::has_getNbComponent_member<Function>) {
-        return function.getNbComponent(this->array_in->getNbComponent());
-      } else {
-        return this->array_in->getNbComponent();
-      }
+      return this->array_in->getNbComponent();
     }
 
-    [[nodiscard]] const Array<OutT> & getArray() const override {
-      return *array_out;
+    [[nodiscard]] const void * data() {
+      update();
+      return array_out->data();
     }
+
     [[nodiscard]] const Array<OutT> & getArray() override {
       update();
       return *array_out;
@@ -207,7 +185,7 @@ namespace dumper {
     [[nodiscard]] Release getRelease() const override { return last_release; }
 
     void update() override {
-      if (unchanged() and array_out) {
+      if (unchanged() or this->size() == 0) {
         return;
       }
 
@@ -218,26 +196,68 @@ namespace dumper {
         array_out->resize(this->size());
       }
 
-      auto nb_component_in = array_in->getNbComponent();
-      auto nb_component_out = array_out->getNbComponent();
-      for (auto && [out, in] :
-           zip(make_view(*array_out, nb_component_out),
-               make_view(array_in->getArray(), nb_component_in))) {
-        auto && res = function(in);
-        out = res;
-      }
+      compute();
 
       last_release = getRelease();
     }
 
-  private:
-    bool unchanged() { return getRelease() == last_release; }
+    virtual void compute() = 0;
+
+  public:
+    [[nodiscard]] virtual bool unchanged() const {
+      return (getRelease() == last_release) and array_out;
+    }
+
+  protected:
+    std::shared_ptr<FieldArrayTemplateBase<InT, Base>> array_in;
+    std::unique_ptr<Array<OutT>> array_out;
+    Release last_release;
+  };
+
+  /* ------------------------------------------------------------------------ */
+  template <class T, class Function, class Base = FieldArrayBase>
+  class FieldFunctionArray
+      : public FieldComputeArray<
+            T, details::function_return_scalar_t<T, Function>, Base> {
+    using OutT = details::function_return_scalar_t<T, Function>;
+
+    using parent = FieldComputeArray<T, OutT, Base>;
+
+  public:
+    template <class... Args>
+    FieldFunctionArray(
+        const std::shared_ptr<FieldArrayTemplateBase<T, Base>> & array_in,
+        const SupportBase & support, Function && function, Args &&... args)
+        : parent(array_in, support, std::forward<decltype(args)>(args)...),
+          function(std::forward<decltype(function)>(function)) {}
+
+    template <class... Args>
+    FieldFunctionArray(const Array<T> & array_in, const SupportBase & support,
+                       Function && function, Args &&... args)
+        : parent(array_in, support, std::forward<decltype(args)>(args)...),
+          function(std::forward<decltype(function)>(function)) {}
+
+    [[nodiscard]] Int getNbComponent() const override {
+      if constexpr (details::has_getNbComponent_member<Function>) {
+        return function.getNbComponent(this->array_in->getNbComponent());
+      } else {
+        return this->array_in->getNbComponent();
+      }
+    }
+
+    void compute() override {
+      auto nb_component_in = this->array_in->getNbComponent();
+      auto nb_component_out = this->array_out->getNbComponent();
+      for (auto && [out, in] :
+           zip(make_view(*this->array_out, nb_component_out),
+               make_view(this->array_in->getArray(), nb_component_in))) {
+        auto && res = function(in);
+        out = res;
+      }
+    }
 
   private:
     Function function;
-    std::shared_ptr<FieldArrayTemplateBase<T, Base>> array_in;
-    std::unique_ptr<Array<OutT>> array_out;
-    Release last_release;
   };
 
 } // namespace dumper

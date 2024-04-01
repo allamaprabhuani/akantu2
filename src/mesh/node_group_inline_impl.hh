@@ -71,6 +71,7 @@ inline Int NodeGroup::size() const { return node_group.size(); }
 /* -------------------------------------------------------------------------- */
 struct FilterFunctor;
 
+/* -------------------------------------------------------------------------- */
 template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
   AKANTU_DEBUG_IN();
 
@@ -88,5 +89,13 @@ template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+inline auto NodeGroup::getNbGlobalNodes() const -> Idx {
+  return nb_global_nodes == -1 ? node_group.size() : nb_global_nodes;
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto NodeGroup::getNbNodes() const -> Idx { return node_group.size(); }
 
 } // namespace akantu

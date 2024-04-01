@@ -148,7 +148,20 @@ public:
     return elements.getRelease();
   }
 
-  [[nodiscard]] inline Int getNbNodes() const;
+  Idx getElementsOffsets(const ElementType & type,
+                         const GhostType & ghost_type) const {
+    return offsets(type, ghost_type);
+  }
+
+  Idx getNbGlobalElements(const ElementType & type,
+                          const GhostType & ghost_type) const {
+    return global_sizes(type, ghost_type);
+  }
+
+  decltype(auto) getNbNodes() const { return node_group.getNbNodes(); }
+
+  AKANTU_GET_MACRO_AUTO(ElementsOffsets, offsets);
+  AKANTU_GET_MACRO_AUTO(NbGlobalElements, global_sizes);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -171,6 +184,11 @@ private:
 
   /// empty arry for the iterator to work when an element type not present
   Array<Idx> empty_elements;
+
+  /// Offsets and global_sizes
+  ElementTypeMap<Idx> offsets, global_sizes;
+
+  friend class Mesh;
 };
 
 /// standard output stream operator

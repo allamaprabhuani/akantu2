@@ -77,9 +77,6 @@ inline void ElementGroup::addElement(ElementType elem_type, Idx elem_id,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Int ElementGroup::getNbNodes() const { return node_group.size(); }
-
-/* -------------------------------------------------------------------------- */
 inline auto ElementGroup::begin(ElementType type, GhostType ghost_type) const {
   if (elements.exists(type, ghost_type)) {
     return elements(type, ghost_type).begin();

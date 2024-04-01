@@ -94,6 +94,15 @@ enum ElementType {
   _max_element_type
 };
 
+struct ElementType_def {
+  using type = ElementType;
+  static const type _begin_ = _not_defined;
+  static const type _end_ = _max_element_type;
+};
+
+using element_type_enum_t = safe_enum<ElementType_def>;
+constexpr inline element_type_enum_t element_types{_max_element_type};
+
 /* -------------------------------------------------------------------------- */
 /* Element Kinds                                                              */
 /* -------------------------------------------------------------------------- */

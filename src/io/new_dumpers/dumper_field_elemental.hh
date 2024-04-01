@@ -97,6 +97,11 @@ namespace dumper {
       return *fields.at({type, ghost_type});
     }
 
+    [[nodiscard]] virtual bool contains(ElementType type,
+                                        GhostType ghost_type = _not_ghost) {
+      return fields.find({type, ghost_type}) != fields.end();
+    }
+
     [[nodiscard]] virtual ElementTypesIteratorHelper
     elementTypes(const GhostType & ghost_type) const {
       return this->support_element.elementTypes(ghost_type);
@@ -104,6 +109,7 @@ namespace dumper {
 
     [[nodiscard]] virtual std::pair<Int, Int>
     size(const GhostType & ghost_type) const = 0;
+
     [[nodiscard]] virtual Int
     getNbComponent(const ElementType & type,
                    const GhostType & ghost_type) const = 0;
@@ -258,8 +264,7 @@ namespace dumper {
   protected:
     void createByTypesFields() override {
       for (auto ghost_type : ghost_types) {
-        for (auto && type : aka::as_type<SupportElements>(this->support_element)
-                                .elementTypes(ghost_type)) {
+        for (auto && type : this->support_element.elementTypes(ghost_type)) {
           auto name = std::to_string(type);
           if (ghost_type != _not_ghost) {
             name += ":" + std::to_string(ghost_type);
@@ -270,9 +275,6 @@ namespace dumper {
               map_array_in->arrayTyped(type, ghost_type).getSharedPointer(),
               this->getSupport(), this->function, type, ghost_type);
           field->addProperty("name", name);
-          if (field->hasProperty("data_location")) {
-            field->removeProperty("data_location");
-          }
           this->fields.emplace(std::pair(type, ghost_type), std::move(field));
         }
       }
@@ -318,9 +320,11 @@ namespace dumper {
       parent::update();
     }
 
-  private:
-    bool unchanged() { return this->getRelease() == last_release; }
+    [[nodiscard]] virtual bool unchanged() const {
+      return this->getRelease() == last_release;
+    }
 
+  private:
     void createByTypesFields() override {
       update_nb_integration_points();
       parent::createByTypesFields();
@@ -333,16 +337,19 @@ namespace dumper {
 
       if constexpr (details::has_set_nb_integration_points_member<Function>) {
         ElementTypeMap<Int> nb_integration_points_per_elem;
-        auto && support = aka::as_type<SupportElements>(this->getSupport());
-        auto && connectivities = support.getConnectivities();
         for (auto ghost_type : ghost_types) {
           for (auto type : this->map_array_in->elementTypes(ghost_type)) {
-            auto nb_elements = connectivities.array(type, ghost_type).size();
+            auto nb_elements =
+                this->support_element.getNbElements(type, ghost_type);
             auto nb_integration_points =
                 this->map_array_in->array(type, ghost_type).size();
 
-            nb_integration_points_per_elem(type, ghost_type) =
-                nb_integration_points / nb_elements;
+            if (nb_integration_points == 0 or nb_elements == 0) {
+              nb_integration_points_per_elem(type, ghost_type) = 0;
+            } else {
+              nb_integration_points_per_elem(type, ghost_type) =
+                  nb_integration_points / nb_elements;
+            }
           }
         }
         this->function.setNbIntegtrationPoints(nb_integration_points_per_elem);

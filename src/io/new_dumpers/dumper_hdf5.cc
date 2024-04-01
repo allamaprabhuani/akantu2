@@ -58,15 +58,17 @@ void DumperHDF5::dumpInternal() {
      -        /connectivities
      -          /[_types_]
      -          /...
-     -      /[data_el]
-     -        /_types_
+     -      /data
+     -        /[data_el]
+     -          /_types_
+     -          /...
+     -        /[data_node]
      -        /...
-     -      /[data_node]
-     -      /...
      -      /groups
      -        /[group_name]
      -          /topology
-     -        /[data_el]
+     -        /data
+     -          /[data_el]
    */
   using dumper::HDF5::File;
 
@@ -105,9 +107,10 @@ void DumperHDF5::dumpInternal() {
 
   h5->dump();
 
-  H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
+  //  H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
 
   aka::as_type<File>(h5.get())->close();
+  H5Pclose(fapl_id);
 }
 
 } // namespace akantu

@@ -267,6 +267,57 @@ namespace dumper {
         return false;
       }
 
+      auto unchangedSet(Support<ElementGroup> & support, ElementType type,
+                        GhostType ghost_type = _not_ghost) {
+        bool unchanged_ =
+            unchanged(support.getElements().array(type, ghost_type));
+
+        for (auto && [_, field] : support.getFields()) {
+          if (not field->is_elemental_map_field() or
+              not field->is_visualization()) {
+            continue;
+          }
+
+          auto && field_elmap = aka::as_type<FieldElementMapArrayBase>(*field);
+
+          if (not field_elmap.contains(type, ghost_type)) {
+            continue;
+          }
+          unchanged_ &= unchanged(field_elmap.array(type, ghost_type));
+        }
+        return unchanged_;
+      }
+
+      auto unchangedMesh(Support<Mesh> & support) {
+        bool unchanged_ = unchanged(support.getNodes());
+
+        for (auto && type : support.elementTypes()) {
+          // Topology
+          unchanged_ &= unchanged(support.getConnectivities().array(type));
+          for (auto && [_, field] : support.getFields()) {
+            if (not field->is_visualization()) {
+              continue;
+            }
+
+            if (field->is_nodal_field()) {
+              unchanged_ &= unchanged(*field);
+            } else if (field->is_elemental_map_field()) {
+              unchanged_ &= unchanged(
+                  aka::as_type<FieldElementMapArrayBase>(*field).array(type));
+            }
+          }
+
+          for (auto && [_, sub_support] : support.getSubSupports()) {
+            auto & set = aka::as_type<Support<ElementGroup>>(*sub_support);
+            if (not set.contains(type)) {
+              continue;
+            }
+            unchanged_ &= unchangedSet(set, type);
+          }
+        }
+        return unchanged_;
+      }
+
       /* -------------------------------------------------------------------- */
       [[nodiscard]] std::string
       attributeLocation(const FieldBase & field) const {
@@ -375,7 +426,7 @@ namespace dumper {
           xi_include(field);
         } else if (field.hasProperty("hdf5_path")) {
           auto && dims =
-              std::to_string(field.getProperty<int>("size")) + " " +
+              std::to_string(field.getProperty<int>("global_size")) + " " +
               std::to_string(field.getProperty<int>("nb_components"));
           auto && hdf5_path =
               fs::relative(
@@ -411,7 +462,7 @@ namespace dumper {
         if (connectivities.hasProperty("xdmf_element")) {
           xi_include(connectivities, true);
         } else {
-          auto nb_elements = connectivities.size();
+          auto nb_elements = connectivities.getProperty<Int>("global_size");
           /* clang-format off */
           *this << Tag("Topology")
               ("TopologyType", xdmf_type(type))
@@ -444,22 +495,11 @@ namespace dumper {
           return;
         }
 
-        Int nb_fields{};
-        bool fields_unchanged = true;
-        for (auto && [_, field] : support.getFields()) {
-          if (field->is_elemental_field()) {
-            nb_fields++;
-            fields_unchanged &= unchanged(*field);
-          }
-        }
-        if (nb_fields == 0) {
-          return;
-        }
+        auto unchanged_ = unchangedSet(support, type, ghost_type);
 
         auto && elements = support.getElements().array(type, ghost_type);
 
-        if (elements.hasProperty("xdmf_element") and unchanged(elements) and
-            fields_unchanged) {
+        if (elements.hasProperty("xdmf_element") and unchanged_) {
           xi_include(elements, true);
           return;
         }
@@ -473,11 +513,10 @@ namespace dumper {
         dump(elements);
 
         for (auto && [_, field] : support.getFields()) {
-          if (not field->is_elemental_field()) {
-            continue;
-          }
-
-          if (not field->is_visualization()) {
+          if (not field->is_elemental_map_field() or
+              not field->is_visualization() or
+              not aka::as_type<FieldElementMapArrayBase>(*field).contains(
+                  type, ghost_type)) {
             continue;
           }
           dumpAttribute(*field, type, ghost_type);
@@ -489,8 +528,8 @@ namespace dumper {
         auto && mesh_name = support.getName();
         auto && nodes = support.getNodes();
 
-        if (support.hasProperty("xdmf_element") and
-            support.getFields().empty()) {
+        auto unchanged_ = unchangedMesh(support);
+        if (support.hasProperty("xdmf_element") and unchanged_) {
           xi_include(support);
         } else {
           support.addProperty("xdmf_path", currentXMFPath());
@@ -516,7 +555,7 @@ namespace dumper {
 
               if (field->is_nodal_field()) {
                 this->dumpAttribute(*field);
-              } else if (field->is_elemental_field()) {
+              } else if (field->is_elemental_map_field()) {
                 this->dumpAttribute(*field, type);
               }
             }

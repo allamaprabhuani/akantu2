@@ -158,6 +158,99 @@ namespace dumper {
       ~Entity() { close(); }
     };
 
+    /* ---------------------------------------------------------------------- */
+    // TODO: make a compute field that transfer an arry in to and array out with
+    // FieldFunction being a special case
+    template <class T>
+    class HDF5NodeFieldTemplateIterator
+        : public FieldComputeArray<T, T, FieldNodalArrayBase> {
+      using parent = FieldComputeArray<T, T, FieldNodalArrayBase>;
+
+    public:
+      HDF5NodeFieldTemplateIterator(
+          const std::shared_ptr<
+              FieldArrayTemplateBase<T, FieldNodalArrayBase>> & array_in,
+          const SupportBase & support)
+          : parent(array_in, support) {
+        for (auto prop : this->array_in->getPropertiesList()) {
+          this->addProperty(prop, this->array_in->getPropertyVariant(prop));
+        }
+      }
+
+      ~HDF5NodeFieldTemplateIterator() {
+        for (auto prop : this->getPropertiesList()) {
+          this->array_in->addProperty(prop, this->getPropertyVariant(prop));
+        }
+      }
+
+      [[nodiscard]] bool unchanged() const override {
+        return parent::unchanged() and
+               (not this->array_in->hasProperty("hdf5_description_release") or
+                this->array_in->template getProperty<Release>(
+                    "hdf5_description_release") == description_release);
+      }
+
+      [[nodiscard]] Int size() const override {
+        return dynamic_cast<const SupportElements &>(
+                   this->array_in->getSupport())
+            .getNbLocalNodes();
+      }
+
+      void compute() override {
+        this->array_in->update();
+        auto && slabs =
+            this->array_in->getSupport()
+                .template getProperty<PropertiesManager::slabs_type>(
+                    "hdf5_nodes_slabs");
+        auto nb_component = this->getNbComponent();
+
+        auto out_it = make_view(*this->array_out, nb_component).begin();
+        auto begin_in_it =
+            make_view(this->array_in->getArray(), nb_component).begin();
+        for (auto && [lid, gid, length] : slabs) {
+          auto in_it = begin_in_it + lid;
+          for (auto _ [[maybe_unused]] : arange(length)) {
+            *out_it = *in_it;
+            ++out_it;
+            ++in_it;
+          }
+        }
+
+        if (this->array_in->hasProperty("hdf5_description_release")) {
+          description_release = this->array_in->template getProperty<Release>(
+              "hdf5_description_release");
+        }
+      }
+
+    protected:
+      Release description_release;
+    };
+
+    auto make_hdf5_field(FieldNodalArrayBase & field)
+        -> std::unique_ptr<FieldNodalArrayBase> {
+      std::unique_ptr<FieldNodalArrayBase> out_field;
+      if (field.type() == TIDX(Int{})) {
+        out_field = std::make_unique<HDF5NodeFieldTemplateIterator<Int>>(
+            dynamic_cast<FieldArrayTemplateBase<Int, FieldNodalArrayBase> &>(
+                field)
+                .getSharedPointer(),
+            field.getSupport());
+      } else if (field.type() == TIDX(Real{})) {
+        out_field = std::make_unique<HDF5NodeFieldTemplateIterator<Real>>(
+            dynamic_cast<FieldArrayTemplateBase<Real, FieldNodalArrayBase> &>(
+                field)
+                .getSharedPointer(),
+            field.getSupport());
+      } else {
+        AKANTU_EXCEPTION("Not implemented for type: "
+                         << debug::demangle(field.type().name()));
+      }
+
+      out_field->addProperty("name", field.getProperty<ID>("name"));
+      return out_field;
+    }
+
+    /* ---------------------------------------------------------------------- */
     class File : public FileBase {
     public:
       File(SupportBase & support, const fs::path & path,
@@ -178,10 +271,16 @@ namespace dumper {
         entities.push_back(std::move(file));
 
         /* Turn off error handling */
-        H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
+        // H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
       }
 
-      void close() { entities[0]->close(); }
+      ~File() { close(); }
+
+      void close() {
+        for (auto && entity : entities) {
+          entity->close();
+        }
+      }
 
       void open(const fs::path & path, hid_t fapl_id = H5P_DEFAULT) {
         entities[0]->open(path, H5F_ACC_RDWR, fapl_id);
@@ -195,8 +294,7 @@ namespace dumper {
             std::make_unique<Entity>(group.path, EntityType::_group);
         new_group->path /= path;
 
-        auto status =
-            H5Oexists_by_name(group.id, new_group->path.c_str(), H5P_DEFAULT);
+        auto status = H5Lexists(group.id, new_group->path.c_str(), H5P_DEFAULT);
         if (status <= 0) {
           AKANTU_DEBUG_INFO("DumperHDF5: creating group " << path);
           new_group->id = H5Gcreate(group.id, new_group->path.c_str(),
@@ -238,24 +336,122 @@ namespace dumper {
                     t.template getProperty<Release>("hdf5_release"));
       }
 
+      /* ------------------------------------------------------------------ */
+      decltype(auto) getSlabs(Support<Mesh> & support) {
+        PropertiesManager::slabs_type slabs;
+        const auto & mesh = support.getMesh();
+        // Information needed for nodes
+        hsize_t nb_nodes = support.getNbNodes();
+        hsize_t node = 0;
+        while (node < nb_nodes) {
+          auto first_node = node;
+          auto global_counter = mesh.getNodeGlobalId(node);
+          hsize_t first_global_node = global_counter;
+          while (node < nb_nodes and
+                 global_counter == mesh.getNodeGlobalId(node) and
+                 mesh.isLocalOrMasterNode(node)) {
+            ++node;
+            ++global_counter;
+          }
+
+          if (first_node != node) {
+            slabs.push_back({first_node, first_global_node, node - first_node});
+          }
+
+          while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
+            ++node;
+          }
+        }
+
+        for (auto && [local_offset, global_offset, length] : slabs) {
+          std::cout << Communicator::getWorldCommunicator().whoAmI()
+                    << " - local: " << local_offset
+                    << " - global: " << global_offset << " - length: " << length
+                    << std::endl;
+        }
+
+        std::sort(slabs.begin(), slabs.end(),
+                  [](const auto & a, const auto & b) {
+                    return std::get<1>(a) < std::get<1>(b);
+                  });
+
+        return slabs;
+      }
+
+      /* ------------------------------------------------------------------ */
+      decltype(auto) getSlabs(Support<ElementGroup> & support) {
+        PropertiesManager::slabs_type slabs;
+        const auto & mesh = support.getMesh();
+        // Information needed for nodes
+        hsize_t nb_nodes = support.getNbNodes();
+        hsize_t node = 0;
+        while (node < nb_nodes) {
+          auto first_node = node;
+          while (node < nb_nodes and mesh.isLocalOrMasterNode(node)) {
+            ++node;
+          }
+
+          if (first_node != node) {
+            auto offset = support.getNodesOffsets();
+            slabs.push_back(
+                {first_node, offset + first_node, node - first_node});
+          }
+
+          while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
+            ++node;
+          }
+        }
+
+        return slabs;
+      }
+
+      /* -------------------------------------------------------------------- */
+      void createDataDescriptions(SupportElements & support) {
+        auto & support_base = dynamic_cast<SupportBase &>(support);
+
+        // Information needed for elements
+        if (not support_base.hasProperty("hdf5_description_release") or
+            support_base.getProperty<Release>("hdf5_description_release") !=
+                support_base.getRelease()) {
+          support.updateOffsets();
+        }
+
+        PropertiesManager::slabs_type slabs;
+        switch (support_base.getType()) {
+        case SupportType::_mesh:
+          slabs = getSlabs(aka::as_type<Support<Mesh>>(support));
+          break;
+        case SupportType::_element_group:
+          slabs = getSlabs(aka::as_type<Support<ElementGroup>>(support));
+          break;
+        }
+
+        support_base.addProperty("hdf5_nodes_slabs", slabs);
+        support_base.addProperty("hdf5_description_release",
+                                 support_base.getRelease());
+      }
+
+      /* -------------------------------------------------------------------- */
       void createElementalDataspace(FieldBase & field) {
         auto && field_element = aka::as_type<FieldElementalArrayBase>(field);
 
-        auto && global_sizes =
-            field.getSupport().getProperty<ElementTypeMap<hsize_t>>(
-                "hdf5_element_global_sizes");
-        std::array<hsize_t, 2> dims{
-            hsize_t(global_sizes(field_element.getElementType())),
+        auto && support =
+            dynamic_cast<const SupportElements &>(field.getSupport());
+        auto element_type = field_element.getElementType();
+        auto ghost_type = field_element.getGhostType();
+
+        hsize_t nb_global_elements =
+            support.getNbGlobalElements(element_type, ghost_type);
+        std::array<hsize_t, 2> data_dims{
+            field.getProperty<hsize_t>("size"),
             field.getProperty<hsize_t>("nb_components")};
 
-        std::array<hsize_t, 2> data_dims{field.getProperty<hsize_t>("size"),
-                                         dims[1]};
+        std::array<hsize_t, 2> dims{nb_global_elements, data_dims[1]};
+        field.addProperty("global_size", nb_global_elements);
 
-        auto && offsets =
-            field.getSupport().getProperty<ElementTypeMap<hsize_t>>(
-                "hdf5_element_offsets");
-        std::array<hsize_t, 2> offset{offsets(field_element.getElementType()),
-                                      0};
+        hsize_t element_offset =
+            support.getElementsOffsets(element_type, ghost_type);
+        std::array<hsize_t, 2> offset{element_offset, 0};
 
         auto memoryspace_id =
             H5Screate_simple(data_dims.size(), data_dims.data(), nullptr);
@@ -272,21 +468,22 @@ namespace dumper {
       }
 
       void createNodalDataspace(FieldBase & field) {
-        std::array<hsize_t, 2> dims{
+        auto && support =
+            dynamic_cast<const SupportElements &>(field.getSupport());
+
+        hsize_t nb_global_nodes = support.getNbGlobalNodes();
+
+        std::array<hsize_t, 2> data_dims{
             field.getProperty<hsize_t>("size"),
             field.getProperty<hsize_t>("nb_components")};
-        std::array<hsize_t, 2> data_dims{
-            field.getSupport().getProperty<hsize_t>("hdf5_node_global_sizes"),
-            dims[1]};
+        std::array<hsize_t, 2> dims{nb_global_nodes, data_dims[1]};
+
+        field.addProperty("global_size", nb_global_nodes);
 
         auto memoryspace_id =
-            H5Screate_simple(dims.size(), dims.data(), nullptr);
-        auto dataspace_id =
             H5Screate_simple(data_dims.size(), data_dims.data(), nullptr);
+        auto dataspace_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
         auto filespace_id = H5Scopy(dataspace_id);
-
-        H5Sselect_none(memoryspace_id);
-        H5Sselect_none(filespace_id);
 
         auto && slabs =
             field.getSupport().getProperty<PropertiesManager::slabs_type>(
@@ -294,15 +491,29 @@ namespace dumper {
         std::array<hsize_t, 2> slab_dims{0, dims[1]};
         std::array<hsize_t, 2> offsets{0, 0};
 
+        if (slabs.empty()) {
+          // H5Sselect_none(memoryspace_id);
+          H5Sselect_none(filespace_id);
+        }
+
+        H5S_seloper_t select_op = H5S_SELECT_SET;
         for (auto && [local_offset, global_offset, length] : slabs) {
-          offsets[0] = local_offset;
+          // offsets[0] = local_offset;
           slab_dims[0] = length;
-          H5Sselect_hyperslab(memoryspace_id, H5S_SELECT_OR, offsets.data(),
-                              nullptr, slab_dims.data(), nullptr);
+          // H5Sselect_hyperslab(memoryspace_id, select_op, offsets.data(),
+          //                     nullptr, slab_dims.data(), nullptr);
+
+          // AKANTU_DEBUG_ASSERT(offsets[0] + slab_dims[0] <= data_dims[0],
+          //                     "The selected hyperslab does not fit in
+          //                     memory");
 
           offsets[0] = global_offset;
-          H5Sselect_hyperslab(filespace_id, H5S_SELECT_OR, offsets.data(),
-                              nullptr, slab_dims.data(), nullptr);
+          AKANTU_DEBUG_ASSERT(offsets[0] + slab_dims[0] <= dims[0],
+                              "The selected hyperslab does not fit in file");
+          H5Sselect_hyperslab(filespace_id, select_op, offsets.data(), nullptr,
+                              slab_dims.data(), nullptr);
+
+          select_op = H5S_SELECT_OR;
         }
 
         field.addProperty<hid_t>("hdf5_memoryspace", memoryspace_id);
@@ -336,23 +547,11 @@ namespace dumper {
             std::make_unique<Entity>(group.path, EntityType::_dataset);
         data_set->path /= field.getName();
 
-        if (not field.hasProperty("hdf5_dataspace") or
-            not field.hasProperty("hdf5_description_release") or
-            field.getProperty<Release>("hdf5_description_release") !=
-                field.getSupport().getProperty<Release>(
-                    "hdf5_description_release")) {
-          createDataspace(field);
+        createDataspace(field);
 
-          field.addProperty("hdf5_description_release",
-                            field.getSupport().getProperty<Release>(
-                                "hdf5_description_release"));
-        }
-
-        auto status =
-            H5Oexists_by_name(group.id, data_set->path.c_str(), H5P_DEFAULT);
+        auto status = H5Lexists(group.id, data_set->path.c_str(), H5P_DEFAULT);
 
         if (status <= 0) {
-
           AKANTU_DEBUG_INFO("DumperHDF5: creating data-set "
                             << field.getName() << " in "
                             << group.path.generic_string());
@@ -371,56 +570,12 @@ namespace dumper {
         return data_set;
       }
 
-      void createDataDescriptions(Support<Mesh> & support) {
-        // Information needed for elements
-        std::vector<hsize_t> offsets_v, global_sizes_v;
-        for (auto type : support.elementTypes()) {
-          global_sizes_v.push_back(support.getNbElements(type));
-        }
-        global_sizes_v.push_back(support.getNbLocalNodes());
-        support.getCommunicator().exclusiveScan(global_sizes_v, offsets_v);
-        support.getCommunicator().allReduce(global_sizes_v);
-
-        ElementTypeMap<hsize_t> offsets, global_sizes;
-        for (auto && [i, type] : enumerate(support.elementTypes())) {
-          offsets(type) = offsets_v[i];
-          global_sizes(type) = global_sizes_v[i];
-        }
-
-        const auto & mesh = support.getMesh();
-
-        // Information needed for nodes
-        PropertiesManager::slabs_type slabs;
-        hsize_t nb_nodes = support.getNbNodes();
-        hsize_t node = 0;
-        while (node < nb_nodes) {
-          auto first_node = node;
-          auto global_counter = mesh.getNodeGlobalId(node);
-          hsize_t first_global_node = global_counter;
-          while (node < nb_nodes and
-                 global_counter == mesh.getNodeGlobalId(node) and
-                 mesh.isLocalOrMasterNode(node)) {
-            ++node;
-            ++global_counter;
-          }
-
-          if (first_node != node) {
-            slabs.push_back({first_node, first_global_node, node - first_node});
-          }
-
-          while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
-            ++node;
-          }
-        }
-
-        support.addProperty("hdf5_element_offsets", offsets);
-        support.addProperty("hdf5_element_global_sizes", global_sizes);
-        support.addProperty("hdf5_node_global_sizes", global_sizes_v.back());
-        support.addProperty("hdf5_nodes_slabs", slabs);
-        support.addProperty("hdf5_description_release", support.getRelease());
+    protected:
+      void dump(FieldNodalArrayBase & field) override {
+        auto hdf5_field = make_hdf5_field(field);
+        dump(dynamic_cast<FieldArrayBase &>(*hdf5_field));
       }
 
-    protected:
       void dump(FieldArrayBase & field) override {
         field.addProperty("size", field.size());
         field.addProperty("nb_components", field.getNbComponent());
@@ -432,18 +587,27 @@ namespace dumper {
         //        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
         H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
 #else
-        auto dxpl_id = H5P_DEFAULT
+        auto dxpl_id = H5P_DEFAULT;
 #endif
 
+        auto memspace_id = field.getProperty<hid_t>("hdf5_memoryspace");
+        auto filespace_id = field.getProperty<hid_t>("hdf5_filespace");
+        auto dataspace_id = field.getProperty<hid_t>("hdf5_dataspace");
+
+        field.update();
+
         AKANTU_DEBUG_INFO("HDF5: writing dataset " << dataset->path);
-        H5Dwrite(dataset->id, datatype_id_in(field.type()),
-                 field.getProperty<hid_t>("hdf5_memoryspace"),
-                 field.getProperty<hid_t>("hdf5_filespace"), dxpl_id,
-                 field.data());
+        H5Dwrite(dataset->id, datatype_id_in(field.type()), memspace_id,
+                 filespace_id, dxpl_id,
+                 field.size() == 0 ? nullptr : field.data());
 
 #if defined(AKANTU_USE_MPI)
         H5Pclose(dxpl_id);
 #endif
+
+        H5Sclose(memspace_id);
+        H5Sclose(filespace_id);
+        H5Sclose(dataspace_id);
 
         field.addProperty("hdf5_release", field.getRelease());
       }
@@ -496,20 +660,20 @@ namespace dumper {
           support.addProperty("hdf5_release", support.getRelease());
         }
 
-        // auto && data_grp = Group(loc_id, path_ + "/data");
+        openGroup("groups");
+        for (auto && [_, support] : support.getSubSupports()) {
+          createDataDescriptions(aka::as_type<SupportElements>(*support));
+          dump(*support);
+        }
 
-        // openGroup("groups");
+        // close groups
+        entities.pop_back();
 
-        // for (auto && [_, support] : support.getSubSupports()) {
-        //   dump(*support);
-        // }
-
-        // // close groups
-        // entities.pop_back();
-
-        // for (auto && [_, field] : support.getFields()) {
-        //   FileBase::dump(*field);
-        // }
+        openGroup("data");
+        for (auto && [_, field] : support.getFields()) {
+          FileBase::dump(*field);
+        }
+        entities.pop_back();
 
         // close mesh
         entities.pop_back();
@@ -536,9 +700,11 @@ namespace dumper {
           support.addProperty("hdf5_release", support.getRelease());
         }
 
+        openGroup("data");
         for (auto && [_, field] : support.getFields()) {
           FileBase::dump(*field);
         }
+        entities.pop_back();
 
         entities.pop_back();
       }

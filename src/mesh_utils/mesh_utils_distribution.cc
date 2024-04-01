@@ -98,9 +98,9 @@ namespace MeshUtilsDistribution {
 
     MeshUtils::fillElementToSubElementsData(mesh);
 
-    mesh_accessor.setDistributed();
+    mesh.synchronizeGroupTypes();
 
-    AKANTU_DEBUG_OUT();
+    mesh_accessor.setDistributed();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -143,6 +143,8 @@ namespace MeshUtilsDistribution {
     node_proc_infos.synchronize();
 
     MeshUtils::fillElementToSubElementsData(mesh);
+
+    mesh.synchronizeGroupTypes();
 
     mesh_accessor.setDistributed();
   }

@@ -908,7 +908,6 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
     }
   }
 
-  // mesh.updateTypesOffsets(_not_ghost);
   if (file.version < 4000) {
     this->constructPhysicalNames("tag_0", mesh);
     if (file.has_physical_names) {

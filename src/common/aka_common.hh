@@ -516,7 +516,7 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  [[nodiscard]] inline auto get##name() const -> type { return variable; }
+  [[nodiscard]] inline auto get##name() const->type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   [[nodiscard]] inline decltype(auto) get##name() const { return (variable); }
@@ -525,7 +525,7 @@ namespace {
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  [[nodiscard]] inline auto get##name() -> type { return variable; }
+  [[nodiscard]] inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   [[nodiscard]] inline const auto & get##name() const {                        \

@@ -50,6 +50,15 @@ namespace dumper {
     /* ---------------------------------------------------------------------- */
     virtual void dump(FieldArrayBase & field) = 0;
     virtual void dump(FieldElementMapArrayBase & field) = 0;
+
+    virtual void dump(FieldNodalArrayBase & field) {
+      dump(aka::as_type<FieldArrayBase>(field));
+    }
+
+    virtual void dump(FieldElementalArrayBase & field) {
+      dump(aka::as_type<FieldArrayBase>(field));
+    }
+
     /* ---------------------------------------------------------------------- */
     virtual void dump(Support<Mesh> & support) = 0;
     virtual void dump(Support<ElementGroup> & /*support*/) {

@@ -91,5 +91,8 @@ void Dumper::setBaseName(const std::string & basename) {
 }
 
 /* -------------------------------------------------------------------------- */
+bool dumper::toVTKConnectivity::write_reorder_initialized = false;
+std::map<ElementType, Vector<Idx>> dumper::toVTKConnectivity::write_reorder;
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

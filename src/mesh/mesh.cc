@@ -399,6 +399,8 @@ void Mesh::makeReady() {
   for (auto & node_set : nodes_to_elements) {
     node_set = std::make_unique<std::set<Element>>();
   }
+
+  updateOffsets();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -576,6 +578,9 @@ void Mesh::distributeImpl(
 
   MeshIsDistributedEvent event(AKANTU_CURRENT_FUNCTION);
   this->sendEvent(event);
+
+  ++release;
+  updateOffsets();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -716,6 +721,84 @@ void Mesh::eraseElements(const Array<Element> & elements) {
 
   this->ghosts_counters.onElementsRemoved(new_numbering);
   this->sendEvent(event);
+}
+
+/* -------------------------------------------------------------------------- */
+void Mesh::updateOffsets() {
+  if (release == offset_release) {
+    return;
+  }
+
+  std::vector<Idx> offsets_v, global_sizes_v;
+
+  for (auto ghost_type : ghost_types) {
+    for (auto type : this->elementTypes(
+             _not_ghost)) { // to treat cases where ghosts should be present in
+                            // the mesh but not locally
+      if (connectivities.exists(type, ghost_type)) {
+        global_sizes_v.push_back(connectivities(type, ghost_type).size());
+      } else {
+        global_sizes_v.push_back(0);
+      }
+      offsets_v.push_back(0);
+    }
+  }
+
+  // Adding infos for groups in order to limit the number of collective
+  // communications
+  auto group_values_offset = global_sizes_v.size();
+  for (auto && group : mesh.iterateElementGroups()) {
+    const auto & elements = group.getElements();
+    for (auto ghost_type : ghost_types) {
+      for (auto type : group.elementTypes(_not_ghost)) {
+        if (elements.exists(type, ghost_type))
+          global_sizes_v.push_back(elements(type, ghost_type).size());
+        else {
+          global_sizes_v.push_back(0);
+        }
+        offsets_v.push_back(0);
+      }
+    }
+    global_sizes_v.push_back(group.node_group.getNbLocalNodes());
+    offsets_v.push_back(0);
+  }
+
+  global_sizes_v.push_back(this->getNbLocalNodes());
+  offsets_v.push_back(0);
+
+  if (mesh.is_distributed) {
+    communicator->exclusiveScan(global_sizes_v, offsets_v);
+    communicator->allReduce(global_sizes_v);
+  }
+
+  for (auto ghost_type : ghost_types) {
+    for (auto && [i, type] : enumerate(this->elementTypes(_not_ghost))) {
+      offsets(type, ghost_type) = offsets_v[i];
+      global_sizes(type, ghost_type) = global_sizes_v[i];
+    }
+  }
+
+  auto i = group_values_offset;
+  for (auto && group : mesh.iterateElementGroups()) {
+    auto & offsets = group.offsets;
+    auto & global_sizes = group.global_sizes;
+
+    for (auto ghost_type : ghost_types) {
+      for (auto type : group.elementTypes(_not_ghost)) {
+        if (global_sizes_v[i] != 0) {
+          offsets(type, ghost_type) = offsets_v[i];
+          global_sizes(type, ghost_type) = global_sizes_v[i];
+        }
+        ++i;
+      }
+    }
+
+    group.node_group.offsets = offsets_v[i];
+    group.node_group.nb_global_nodes = global_sizes_v[i];
+    ++i;
+  }
+
+  offset_release = mesh.getRelease();
 }
 
 } // namespace akantu

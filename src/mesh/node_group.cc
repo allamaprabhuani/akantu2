@@ -29,9 +29,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-NodeGroup::NodeGroup(const std::string & name, const Mesh & /*mesh*/,
+NodeGroup::NodeGroup(const std::string & name, const Mesh & mesh,
                      const std::string & id)
-    : name(name), node_group(0, 1, std::string(id + ":nodes")) {
+    : name(name), node_group(0, 1, std::string(id + ":nodes")), mesh(mesh) {
   //  this->registerDumper<DumperParaview>("paraview_" + name, name, true);
   // auto field = std::make_shared<dumpers::NodalField<Real, true>>(
   //      mesh.getNodes(), 0, 0, &this->getNodes());
@@ -53,8 +53,6 @@ void NodeGroup::optimize() {
 
 /* -------------------------------------------------------------------------- */
 void NodeGroup::append(const NodeGroup & other_group) {
-  AKANTU_DEBUG_IN();
-
   auto nb_nodes = node_group.size();
 
   /// append new nodes to current list
@@ -63,8 +61,6 @@ void NodeGroup::append(const NodeGroup & other_group) {
             node_group.begin() + nb_nodes);
 
   optimize();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -75,6 +71,15 @@ void NodeGroup::printself(std::ostream & stream, int indent) const {
   stream << space << " + name: " << name << std::endl;
   node_group.printself(stream, indent + 1);
   stream << space << "]" << std::endl;
+}
+
+/* -------------------------------------------------------------------------- */
+auto NodeGroup::getNbLocalNodes() const -> Idx {
+  Int count = 0;
+  for (auto node : node_group) {
+    count += this->mesh.isLocalOrMasterNode(node);
+  }
+  return count;
 }
 
 } // namespace akantu

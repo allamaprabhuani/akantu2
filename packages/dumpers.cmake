@@ -38,6 +38,8 @@ package_declare_sources(dumpers
   io/new_dumpers/dumper.hh
   io/new_dumpers/dumper.cc
   io/new_dumpers/dumper_field.hh
+  io/new_dumpers/dumper_field_elemental.hh
+  io/new_dumpers/dumper_field_nodal.hh
   io/new_dumpers/dumper_variable.hh
   io/new_dumpers/support.hh
   io/new_dumpers/support_tmpl.hh
