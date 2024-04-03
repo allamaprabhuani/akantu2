@@ -70,7 +70,7 @@
   }                                                                            \
   AKANTU_ENUM_HASH(type_name)                                                  \
   namespace std {                                                              \
-  inline auto to_string(const ::akantu::type_name & type) -> string {          \
+  inline auto to_string(const ::akantu::type_name & type) -> std::string {     \
     using namespace akantu;                                                    \
     static unordered_map<::akantu::type_name, string> convert{                 \
         BOOST_PP_SEQ_FOR_EACH_I(                                               \

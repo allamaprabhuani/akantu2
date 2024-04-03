@@ -39,6 +39,7 @@ namespace akantu {
 class DumperHDF5 : public Dumper {
 public:
   explicit DumperHDF5(dumper::SupportBase & support);
+
 protected:
   void dumpInternal() override;
 

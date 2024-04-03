@@ -30,133 +30,20 @@
 #include "aka_iterators.hh"
 #include "dumper_field.hh"
 #include "dumper_file_base.hh"
+#include "hdf5_entities.hh"
 #include "support.hh"
 /* -------------------------------------------------------------------------- */
 #include <array>
 #include <filesystem>
-#include <hdf5.h>
 #include <sstream>
 #include <typeindex>
 #include <unordered_map>
 /* -------------------------------------------------------------------------- */
 
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define ENDIANNESS(x) (x##LE)
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define ENDIANNESS(x) (x##BE)
-#else
-#error "Does not know from which end to open the eggs"
-#endif
-
 namespace akantu {
 namespace dumper {
-  namespace {
-    template <class T> constexpr std::type_index TIDX(T x) {
-      return std::type_index(typeid(x));
-    }
-
-    hid_t datatype_id_out(const std::type_index & type_idx) {
-      const static std::unordered_map<std::type_index, hid_t> type_ids{
-          {TIDX(int{}), sizeof(int) == 4 ? ENDIANNESS(H5T_STD_I32)
-                                         : ENDIANNESS(H5T_STD_I64)},
-          {TIDX(unsigned{}), sizeof(int) == 4 ? ENDIANNESS(H5T_STD_U32)
-                                              : ENDIANNESS(H5T_STD_U64)},
-          {TIDX(int32_t{}), ENDIANNESS(H5T_STD_I32)},
-          {TIDX(int64_t{}), ENDIANNESS(H5T_STD_I64)},
-          {TIDX(uint32_t{}), ENDIANNESS(H5T_STD_U32)},
-          {TIDX(uint64_t{}), ENDIANNESS(H5T_STD_U64)},
-          {TIDX(bool{}), ENDIANNESS(H5T_STD_U8)},
-          {TIDX(float{}), ENDIANNESS(H5T_IEEE_F32)},
-          {TIDX(double{}), ENDIANNESS(H5T_IEEE_F64)}};
-
-      return type_ids.at(type_idx);
-    }
-
-    hid_t datatype_id_in(const std::type_index & type_idx) {
-      const static std::unordered_map<std::type_index, hid_t> type_ids{
-          {TIDX(int{}), H5T_NATIVE_INT},
-          {TIDX(unsigned{}), H5T_NATIVE_UINT},
-          {TIDX(int32_t{}), H5T_NATIVE_INT32},
-          {TIDX(int64_t{}), H5T_NATIVE_INT64},
-          {TIDX(uint32_t{}), H5T_NATIVE_UINT32},
-          {TIDX(uint64_t{}), H5T_NATIVE_UINT64},
-          {TIDX(bool{}), H5T_NATIVE_CHAR},
-          {TIDX(float{}), H5T_NATIVE_FLOAT},
-          {TIDX(double{}), H5T_NATIVE_DOUBLE},
-      };
-
-      return type_ids.at(type_idx);
-    }
-  } // namespace
-
   namespace HDF5 {
     namespace fs = std::filesystem;
-
-    enum class EntityType { _group, _dataset, _file, _dataspace, _link };
-
-    struct Entity {
-      hid_t id{};
-      fs::path path;
-      EntityType type;
-      bool is_open{false};
-
-      Entity(const fs::path & path, EntityType type) : path(path), type(type) {}
-
-      Entity(const Entity & other) = delete;
-      Entity(Entity && other) = delete;
-      Entity & operator=(const Entity & other) = delete;
-      Entity & operator=(Entity && other) = delete;
-
-      void close() {
-        if (not is_open) {
-          return;
-        }
-        static const std::unordered_map<EntityType, std::function<void(hid_t)>>
-            close_func{{EntityType::_group, H5Gclose},
-                       {EntityType::_file, H5Fclose},
-                       {EntityType::_dataset, H5Dclose},
-                       {EntityType::_dataspace, H5Sclose}};
-        if (auto it = close_func.find(type); it != close_func.end()) {
-          it->second(id);
-        }
-
-        is_open = false;
-      }
-
-      void open(const fs::path & path, unsigned mode = H5F_ACC_RDWR,
-                hid_t apl_id = H5P_DEFAULT) {
-        if (is_open) {
-          return;
-        }
-        switch (type) {
-        case EntityType::_file:
-          this->id = H5Fopen(path.c_str(), mode, apl_id);
-          break;
-        default:
-          AKANTU_TO_IMPLEMENT();
-        }
-        is_open = true;
-      }
-
-      void open(hid_t group_id, hid_t apl_id = H5P_DEFAULT) {
-        if (is_open) {
-          return;
-        }
-        switch (type) {
-        case EntityType::_group:
-          this->id = H5Gopen(group_id, path.c_str(), apl_id);
-          break;
-        case EntityType::_dataset:
-          this->id = H5Dopen(group_id, path.c_str(), apl_id);
-          break;
-        default:
-          AKANTU_TO_IMPLEMENT();
-        }
-        is_open = true;
-      }
-
-      ~Entity() { close(); }
-    };
 
     /* ---------------------------------------------------------------------- */
     // TODO: make a compute field that transfer an arry in to and array out with
@@ -251,485 +138,484 @@ namespace dumper {
     }
 
     /* ---------------------------------------------------------------------- */
-    class File : public FileBase {
-    public:
-      File(SupportBase & support, const fs::path & path,
+    static herr_t hdf5_error_handler(hid_t estack_id, void * client_data);
+  } // namespace HDF5
+
+  namespace fs = std::filesystem;
+  /* ------------------------------------------------------------------------ */
+  class H5File : public FileBase {
+  protected:
+    fs::path filepath_;
+
+  public:
+    H5File(SupportBase & support, const fs::path & path,
            hid_t fapl_id = H5P_DEFAULT)
-          : FileBase(support) {
-        auto path_wof = path;
-        path_wof.remove_filename();
-        if (not fs::exists(path_wof)) {
-          fs::create_directories(path_wof);
+        : FileBase(support), filepath_(path) {
+      auto path_wof = path;
+      path_wof.remove_filename();
+      if (not fs::exists(path_wof)) {
+        fs::create_directories(path_wof);
+      }
+
+      H5Eset_auto(H5E_DEFAULT, HDF5::hdf5_error_handler, this);
+
+      auto file = std::make_unique<HDF5::File>(path);
+      file->create(H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
+
+      support.addProperty("hdf5_file", path.string());
+
+      entities.push_back(std::move(file));
+    }
+
+    ~H5File() { close(); }
+
+    void close() {
+      AKANTU_DEBUG_ASSERT(entities.size() == 1,
+                          "Not all object where closed, or too many");
+
+      entities[0]->close();
+    }
+
+    void open(hid_t fapl_id = H5P_DEFAULT) {
+      aka::as_type<HDF5::File>(*entities[0]).open(H5F_ACC_RDWR, fapl_id);
+    }
+
+    auto filepath() const { return filepath_; }
+
+  protected:
+    auto & openGroup(const std::string & path) {
+      auto & group = *entities.back();
+
+      auto && new_group = std::make_unique<HDF5::Group>(path, group);
+      new_group->createOrOpen();
+
+      entities.push_back(std::move(new_group));
+      return *entities.back();
+    }
+
+    auto & createSymlink(const std::string & path, const std::string & link) {
+      auto & group = *entities.back();
+
+      auto && new_link =
+          std::make_unique<HDF5::Entity<HDF5::EntityType::_link>>(group.path /
+                                                                  path);
+
+      auto status [[maybe_unused]] =
+          H5Lcreate_soft(link.c_str(), group.id, new_link->path.c_str(),
+                         H5P_DEFAULT, H5P_DEFAULT);
+
+      AKANTU_DEBUG_ASSERT(status >= 0, "Could not create HDF5 link "
+                                           << new_link->path.c_str() << " -> "
+                                           << link.c_str()
+                                           << ", status=" << status);
+
+      entities.push_back(std::move(new_link));
+      return *entities.back();
+    }
+
+  private:
+    template <class T> bool unchanged(const T & t) {
+      return (t.hasProperty("hdf5_release") and
+              t.getRelease() ==
+                  t.template getProperty<Release>("hdf5_release"));
+    }
+
+    /* ------------------------------------------------------------------ */
+    decltype(auto) getSlabs(Support<Mesh> & support) {
+      PropertiesManager::slabs_type slabs;
+      const auto & mesh = support.getMesh();
+      // Information needed for nodes
+      hsize_t nb_nodes = support.getNbNodes();
+      hsize_t node = 0;
+      while (node < nb_nodes) {
+        auto first_node = node;
+        auto global_counter = mesh.getNodeGlobalId(node);
+        hsize_t first_global_node = global_counter;
+        while (node < nb_nodes and
+               global_counter == mesh.getNodeGlobalId(node) and
+               mesh.isLocalOrMasterNode(node)) {
+          ++node;
+          ++global_counter;
         }
 
-        auto file = std::make_unique<Entity>("/", EntityType::_file);
-        file->id = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
-        file->is_open = true;
-
-        support.addProperty("hdf5_file", path.string());
-
-        entities.push_back(std::move(file));
-
-        /* Turn off error handling */
-        // H5Eset_auto(H5E_DEFAULT, nullptr, nullptr);
-      }
-
-      ~File() { close(); }
-
-      void close() {
-        for (auto && entity : entities) {
-          entity->close();
-        }
-      }
-
-      void open(const fs::path & path, hid_t fapl_id = H5P_DEFAULT) {
-        entities[0]->open(path, H5F_ACC_RDWR, fapl_id);
-      }
-
-    protected:
-      auto & openGroup(const std::string & path) {
-        auto & group = *entities.back();
-
-        auto && new_group =
-            std::make_unique<Entity>(group.path, EntityType::_group);
-        new_group->path /= path;
-
-        auto status = H5Lexists(group.id, new_group->path.c_str(), H5P_DEFAULT);
-        if (status <= 0) {
-          AKANTU_DEBUG_INFO("DumperHDF5: creating group " << path);
-          new_group->id = H5Gcreate(group.id, new_group->path.c_str(),
-                                    H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-          new_group->is_open = true;
-        } else {
-          AKANTU_DEBUG_INFO("DumperHDF5: opening group " << path << " in "
-                                                         << group.path);
-          new_group->open(group.id);
-        }
-        entities.push_back(std::move(new_group));
-        return *entities.back();
-      }
-
-      auto & createSymlink(const std::string & path, const std::string & link) {
-        auto & group = *entities.back();
-
-        auto && new_link =
-            std::make_unique<Entity>(group.path, EntityType::_link);
-        new_link->path /= path;
-
-        auto status [[maybe_unused]] =
-            H5Lcreate_soft(link.c_str(), group.id, new_link->path.c_str(),
-                           H5P_DEFAULT, H5P_DEFAULT);
-
-        AKANTU_DEBUG_ASSERT(status >= 0, "Could not create HDF5 link "
-                                             << new_link->path.c_str() << " -> "
-                                             << link.c_str()
-                                             << ", status=" << status);
-
-        entities.push_back(std::move(new_link));
-        return *entities.back();
-      }
-
-    private:
-      template <class T> bool unchanged(const T & t) {
-        return (t.hasProperty("hdf5_release") and
-                t.getRelease() ==
-                    t.template getProperty<Release>("hdf5_release"));
-      }
-
-      /* ------------------------------------------------------------------ */
-      decltype(auto) getSlabs(Support<Mesh> & support) {
-        PropertiesManager::slabs_type slabs;
-        const auto & mesh = support.getMesh();
-        // Information needed for nodes
-        hsize_t nb_nodes = support.getNbNodes();
-        hsize_t node = 0;
-        while (node < nb_nodes) {
-          auto first_node = node;
-          auto global_counter = mesh.getNodeGlobalId(node);
-          hsize_t first_global_node = global_counter;
-          while (node < nb_nodes and
-                 global_counter == mesh.getNodeGlobalId(node) and
-                 mesh.isLocalOrMasterNode(node)) {
-            ++node;
-            ++global_counter;
-          }
-
-          if (first_node != node) {
-            slabs.push_back({first_node, first_global_node, node - first_node});
-          }
-
-          while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
-            ++node;
-          }
+        if (first_node != node) {
+          slabs.push_back({first_node, first_global_node, node - first_node});
         }
 
-        for (auto && [local_offset, global_offset, length] : slabs) {
-          std::cout << Communicator::getWorldCommunicator().whoAmI()
-                    << " - local: " << local_offset
-                    << " - global: " << global_offset << " - length: " << length
-                    << std::endl;
-        }
-
-        std::sort(slabs.begin(), slabs.end(),
-                  [](const auto & a, const auto & b) {
-                    return std::get<1>(a) < std::get<1>(b);
-                  });
-
-        return slabs;
-      }
-
-      /* ------------------------------------------------------------------ */
-      decltype(auto) getSlabs(Support<ElementGroup> & support) {
-        PropertiesManager::slabs_type slabs;
-        const auto & mesh = support.getMesh();
-        // Information needed for nodes
-        hsize_t nb_nodes = support.getNbNodes();
-        hsize_t node = 0;
-        while (node < nb_nodes) {
-          auto first_node = node;
-          while (node < nb_nodes and mesh.isLocalOrMasterNode(node)) {
-            ++node;
-          }
-
-          if (first_node != node) {
-            auto offset = support.getNodesOffsets();
-            slabs.push_back(
-                {first_node, offset + first_node, node - first_node});
-          }
-
-          while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
-            ++node;
-          }
-        }
-
-        return slabs;
-      }
-
-      /* -------------------------------------------------------------------- */
-      void createDataDescriptions(SupportElements & support) {
-        auto & support_base = dynamic_cast<SupportBase &>(support);
-
-        // Information needed for elements
-        if (not support_base.hasProperty("hdf5_description_release") or
-            support_base.getProperty<Release>("hdf5_description_release") !=
-                support_base.getRelease()) {
-          support.updateOffsets();
-        }
-
-        PropertiesManager::slabs_type slabs;
-        switch (support_base.getType()) {
-        case SupportType::_mesh:
-          slabs = getSlabs(aka::as_type<Support<Mesh>>(support));
-          break;
-        case SupportType::_element_group:
-          slabs = getSlabs(aka::as_type<Support<ElementGroup>>(support));
-          break;
-        }
-
-        support_base.addProperty("hdf5_nodes_slabs", slabs);
-        support_base.addProperty("hdf5_description_release",
-                                 support_base.getRelease());
-      }
-
-      /* -------------------------------------------------------------------- */
-      void createElementalDataspace(FieldBase & field) {
-        auto && field_element = aka::as_type<FieldElementalArrayBase>(field);
-
-        auto && support =
-            dynamic_cast<const SupportElements &>(field.getSupport());
-        auto element_type = field_element.getElementType();
-        auto ghost_type = field_element.getGhostType();
-
-        hsize_t nb_global_elements =
-            support.getNbGlobalElements(element_type, ghost_type);
-        std::array<hsize_t, 2> data_dims{
-            field.getProperty<hsize_t>("size"),
-            field.getProperty<hsize_t>("nb_components")};
-
-        std::array<hsize_t, 2> dims{nb_global_elements, data_dims[1]};
-        field.addProperty("global_size", nb_global_elements);
-
-        hsize_t element_offset =
-            support.getElementsOffsets(element_type, ghost_type);
-        std::array<hsize_t, 2> offset{element_offset, 0};
-
-        auto memoryspace_id =
-            H5Screate_simple(data_dims.size(), data_dims.data(), nullptr);
-
-        auto dataspace_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
-
-        auto filespace_id = H5Scopy(dataspace_id);
-        H5Sselect_hyperslab(filespace_id, H5S_SELECT_SET, offset.data(),
-                            nullptr, data_dims.data(), nullptr);
-
-        field.addProperty<hid_t>("hdf5_memoryspace", memoryspace_id);
-        field.addProperty<hid_t>("hdf5_filespace", filespace_id);
-        field.addProperty<hid_t>("hdf5_dataspace", dataspace_id);
-      }
-
-      void createNodalDataspace(FieldBase & field) {
-        auto && support =
-            dynamic_cast<const SupportElements &>(field.getSupport());
-
-        hsize_t nb_global_nodes = support.getNbGlobalNodes();
-
-        std::array<hsize_t, 2> data_dims{
-            field.getProperty<hsize_t>("size"),
-            field.getProperty<hsize_t>("nb_components")};
-        std::array<hsize_t, 2> dims{nb_global_nodes, data_dims[1]};
-
-        field.addProperty("global_size", nb_global_nodes);
-
-        auto memoryspace_id =
-            H5Screate_simple(data_dims.size(), data_dims.data(), nullptr);
-        auto dataspace_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
-        auto filespace_id = H5Scopy(dataspace_id);
-
-        auto && slabs =
-            field.getSupport().getProperty<PropertiesManager::slabs_type>(
-                "hdf5_nodes_slabs");
-        std::array<hsize_t, 2> slab_dims{0, dims[1]};
-        std::array<hsize_t, 2> offsets{0, 0};
-
-        if (slabs.empty()) {
-          // H5Sselect_none(memoryspace_id);
-          H5Sselect_none(filespace_id);
-        }
-
-        H5S_seloper_t select_op = H5S_SELECT_SET;
-        for (auto && [local_offset, global_offset, length] : slabs) {
-          // offsets[0] = local_offset;
-          slab_dims[0] = length;
-          // H5Sselect_hyperslab(memoryspace_id, select_op, offsets.data(),
-          //                     nullptr, slab_dims.data(), nullptr);
-
-          // AKANTU_DEBUG_ASSERT(offsets[0] + slab_dims[0] <= data_dims[0],
-          //                     "The selected hyperslab does not fit in
-          //                     memory");
-
-          offsets[0] = global_offset;
-          AKANTU_DEBUG_ASSERT(offsets[0] + slab_dims[0] <= dims[0],
-                              "The selected hyperslab does not fit in file");
-          H5Sselect_hyperslab(filespace_id, select_op, offsets.data(), nullptr,
-                              slab_dims.data(), nullptr);
-
-          select_op = H5S_SELECT_OR;
-        }
-
-        field.addProperty<hid_t>("hdf5_memoryspace", memoryspace_id);
-        field.addProperty<hid_t>("hdf5_filespace", filespace_id);
-        field.addProperty<hid_t>("hdf5_dataspace", dataspace_id);
-      }
-
-      void createDataspace(FieldBase & field) {
-        field.addProperty<hid_t>("hdf5_filespace", H5I_INVALID_HID);
-
-        using dumper::FieldType;
-        switch (field.getFieldType()) {
-        case FieldType::_node_array:
-          createNodalDataspace(field);
-          break;
-        case FieldType::_element_array:
-          createElementalDataspace(field);
-          break;
-        case FieldType::_element_map_array: /* FALLTHRU */
-        case FieldType::_internal_field:    /* FALLTHRU */
-        case FieldType::_not_defined:       /* FALLTHRU */
-        default:
-          AKANTU_EXCEPTION("The field type is not properly defined");
-          break;
+        while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
+          ++node;
         }
       }
 
-      auto createDataSet(FieldBase & field) {
-        auto & group = *entities.back();
-        auto data_set =
-            std::make_unique<Entity>(group.path, EntityType::_dataset);
-        data_set->path /= field.getName();
+      for (auto && [local_offset, global_offset, length] : slabs) {
+        std::cout << Communicator::getWorldCommunicator().whoAmI()
+                  << " - local: " << local_offset
+                  << " - global: " << global_offset << " - length: " << length
+                  << std::endl;
+      }
 
-        createDataspace(field);
+      std::sort(slabs.begin(), slabs.end(), [](const auto & a, const auto & b) {
+        return std::get<1>(a) < std::get<1>(b);
+      });
 
-        auto status = H5Lexists(group.id, data_set->path.c_str(), H5P_DEFAULT);
+      return slabs;
+    }
 
-        if (status <= 0) {
-          AKANTU_DEBUG_INFO("DumperHDF5: creating data-set "
-                            << field.getName() << " in "
-                            << group.path.generic_string());
-          data_set->id = H5Dcreate(group.id, data_set->path.c_str(),
-                                   datatype_id_out(field.type()),
-                                   field.getProperty<hid_t>("hdf5_dataspace"),
-                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-          data_set->is_open = true;
-        } else {
-          AKANTU_DEBUG_INFO("HDF5: opening existing data-set "
-                            << data_set->path);
-          data_set->open(group.id);
+    /* ------------------------------------------------------------------ */
+    decltype(auto) getSlabs(Support<ElementGroup> & support) {
+      PropertiesManager::slabs_type slabs;
+      const auto & mesh = support.getMesh();
+      // Information needed for nodes
+      hsize_t nb_nodes = support.getNbNodes();
+      hsize_t node = 0;
+      while (node < nb_nodes) {
+        auto first_node = node;
+        while (node < nb_nodes and mesh.isLocalOrMasterNode(node)) {
+          ++node;
         }
 
-        field.addProperty("hdf5_path", data_set->path.generic_string());
-        return data_set;
+        if (first_node != node) {
+          auto offset = support.getNodesOffsets();
+          slabs.push_back({first_node, offset + first_node, node - first_node});
+        }
+
+        while (node < nb_nodes and not mesh.isLocalOrMasterNode(node)) {
+          ++node;
+        }
       }
 
-    protected:
-      void dump(FieldNodalArrayBase & field) override {
-        auto hdf5_field = make_hdf5_field(field);
-        dump(dynamic_cast<FieldArrayBase &>(*hdf5_field));
+      return slabs;
+    }
+
+    /* -------------------------------------------------------------------- */
+    void createDataDescriptions(SupportElements & support) {
+      auto & support_base = dynamic_cast<SupportBase &>(support);
+
+      // Information needed for elements
+      if (not support_base.hasProperty("hdf5_description_release") or
+          support_base.getProperty<Release>("hdf5_description_release") !=
+              support_base.getRelease()) {
+        support.updateOffsets();
       }
 
-      void dump(FieldArrayBase & field) override {
-        field.addProperty("size", field.size());
-        field.addProperty("nb_components", field.getNbComponent());
+      PropertiesManager::slabs_type slabs;
+      switch (support_base.getType()) {
+      case SupportType::_mesh:
+        slabs = getSlabs(aka::as_type<Support<Mesh>>(support));
+        break;
+      case SupportType::_element_group:
+        slabs = getSlabs(aka::as_type<Support<ElementGroup>>(support));
+        break;
+      }
 
-        auto dataset = createDataSet(field);
+      support_base.addProperty("hdf5_nodes_slabs", slabs);
+      support_base.addProperty("hdf5_description_release",
+                               support_base.getRelease());
+    }
 
+    /* -------------------------------------------------------------------- */
+    decltype(auto) createElementalDataspace(FieldBase & field,
+                                            HDF5::Dataset & dataset) {
+      auto && field_element = aka::as_type<FieldElementalArrayBase>(field);
+
+      auto && support =
+          dynamic_cast<const SupportElements &>(field.getSupport());
+      auto element_type = field_element.getElementType();
+      auto ghost_type = field_element.getGhostType();
+
+      hsize_t nb_global_elements =
+          support.getNbGlobalElements(element_type, ghost_type);
+      std::array<hsize_t, 2> data_dims{
+          field.getProperty<hsize_t>("size"),
+          field.getProperty<hsize_t>("nb_components")};
+
+      std::array<hsize_t, 2> dims{nb_global_elements, data_dims[1]};
+      field.addProperty("global_size", nb_global_elements);
+
+      hsize_t element_offset =
+          support.getElementsOffsets(element_type, ghost_type);
+      std::array<hsize_t, 2> offset{element_offset, 0};
+
+      dataset.memoryspace = std::make_unique<HDF5::Dataspace>(data_dims);
+      dataset.dataspace = std::make_unique<HDF5::Dataspace>(dims);
+      dataset.filespace = std::make_unique<HDF5::Dataspace>(*dataset.dataspace);
+
+      H5Sselect_hyperslab(dataset.filespace->id, H5S_SELECT_SET, offset.data(),
+                          nullptr, data_dims.data(), nullptr);
+    }
+
+    void createNodalDataspace(FieldBase & field, HDF5::Dataset & dataset) {
+      auto && support =
+          dynamic_cast<const SupportElements &>(field.getSupport());
+
+      hsize_t nb_global_nodes = support.getNbGlobalNodes();
+
+      std::array<hsize_t, 2> data_dims{
+          field.getProperty<hsize_t>("size"),
+          field.getProperty<hsize_t>("nb_components")};
+      std::array<hsize_t, 2> dims{nb_global_nodes, data_dims[1]};
+
+      field.addProperty("global_size", nb_global_nodes);
+
+      dataset.memoryspace = std::make_unique<HDF5::Dataspace>(data_dims);
+      dataset.dataspace = std::make_unique<HDF5::Dataspace>(dims);
+      dataset.filespace = std::make_unique<HDF5::Dataspace>(*dataset.dataspace);
+
+      auto && slabs =
+          field.getSupport().getProperty<PropertiesManager::slabs_type>(
+              "hdf5_nodes_slabs");
+      std::array<hsize_t, 2> slab_dims{0, dims[1]};
+      std::array<hsize_t, 2> offsets{0, 0};
+
+      if (slabs.empty()) {
+        H5Sselect_none(dataset.filespace->id);
+      }
+
+      H5S_seloper_t select_op = H5S_SELECT_SET;
+      for (auto && [local_offset, global_offset, length] : slabs) {
+        slab_dims[0] = length;
+
+        offsets[0] = global_offset;
+        AKANTU_DEBUG_ASSERT(offsets[0] + slab_dims[0] <= dims[0],
+                            "The selected hyperslab does not fit in file");
+        H5Sselect_hyperslab(dataset.filespace->id, select_op, offsets.data(),
+                            nullptr, slab_dims.data(), nullptr);
+
+        select_op = H5S_SELECT_OR;
+      }
+    }
+
+    void createDataspace(FieldBase & field, HDF5::Dataset & dataset) {
+      field.addProperty<hid_t>("hdf5_filespace", H5I_INVALID_HID);
+
+      using dumper::FieldType;
+      switch (field.getFieldType()) {
+      case FieldType::_node_array:
+        createNodalDataspace(field, dataset);
+        break;
+      case FieldType::_element_array:
+        createElementalDataspace(field, dataset);
+        break;
+      default:
+        AKANTU_EXCEPTION("The field type is not properly defined");
+        break;
+      }
+    }
+
+    auto & createDataSet(FieldBase & field) {
+      auto & group = aka::as_type<HDF5::Group>(*entities.back());
+      auto data_set =
+          std::make_unique<HDF5::Dataset>(field.getName(), group, field.type());
+
+      createDataspace(field, *data_set);
+
+      data_set->createOrOpen();
+
+      field.addProperty("hdf5_path", data_set->path.generic_string());
+
+      entities.push_back(std::move(data_set));
+      return aka::as_type<HDF5::Dataset>(*entities.back());
+    }
+
+    auto getDataTransferPropertyList() {
+      auto dxpl = std::make_unique<HDF5::PropertyList>();
 #if defined(AKANTU_USE_MPI)
-        auto dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        //        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-#else
-        auto dxpl_id = H5P_DEFAULT;
+      dxpl->create(H5P_DATASET_XFER);
+      //        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+      dxpl->setDxplMPIIO(H5FD_MPIO_INDEPENDENT);
 #endif
+      return dxpl;
+    }
 
-        auto memspace_id = field.getProperty<hid_t>("hdf5_memoryspace");
-        auto filespace_id = field.getProperty<hid_t>("hdf5_filespace");
-        auto dataspace_id = field.getProperty<hid_t>("hdf5_dataspace");
+  protected:
+    void dump(FieldNodalArrayBase & field) override {
+      auto hdf5_field = HDF5::make_hdf5_field(field);
+      dump(dynamic_cast<FieldArrayBase &>(*hdf5_field));
+    }
 
-        field.update();
+    void dump(FieldArrayBase & field) override {
+      field.addProperty("size", field.size());
+      field.addProperty("nb_components", field.getNbComponent());
 
-        AKANTU_DEBUG_INFO("HDF5: writing dataset " << dataset->path);
-        H5Dwrite(dataset->id, datatype_id_in(field.type()), memspace_id,
-                 filespace_id, dxpl_id,
-                 field.size() == 0 ? nullptr : field.data());
+      auto & dataset = createDataSet(field);
+      auto dxpl = getDataTransferPropertyList();
 
-#if defined(AKANTU_USE_MPI)
-        H5Pclose(dxpl_id);
-#endif
+      field.update();
 
-        H5Sclose(memspace_id);
-        H5Sclose(filespace_id);
-        H5Sclose(dataspace_id);
+      dataset.write(field.size() == 0 ? nullptr : field.data(), *dxpl);
 
-        field.addProperty("hdf5_release", field.getRelease());
+      field.addProperty("hdf5_release", field.getRelease());
+
+      entities.pop_back(); // dataset
+    }
+
+    void dump(FieldElementMapArrayBase & field) override {
+      if (unchanged(field)) {
+        createSymlink(field.getName(),
+                      field.getProperty<std::string>("hdf5_path"));
+        entities.pop_back();
+        return;
       }
 
-      void dump(FieldElementMapArrayBase & field) override {
-        if (unchanged(field)) {
-          createSymlink(field.getName(),
-                        field.getProperty<std::string>("hdf5_path"));
-          entities.pop_back();
-          return;
-        }
+      auto && group = openGroup(field.getName());
+      field.addProperty("hdf5_path", group.path.generic_string());
 
-        auto && group = openGroup(field.getName());
-        field.addProperty("hdf5_path", group.path.generic_string());
-
-        for (auto && type : field.elementTypes(_not_ghost)) {
-          auto & array = field.array(type);
-          if (not array.hasProperty("name")) {
-            array.addProperty("name",
-                              field.getName() + ":" + std::to_string(type));
-          }
-          dump(array);
+      for (auto && type : field.elementTypes(_not_ghost)) {
+        auto & array = field.array(type);
+        if (not array.hasProperty("name")) {
+          array.addProperty("name",
+                            field.getName() + ":" + std::to_string(type));
         }
-        field.addProperty("hdf5_release", field.getRelease());
+        dump(array);
+      }
+      field.addProperty("hdf5_release", field.getRelease());
+      entities.pop_back();
+    }
+
+    void dump(Support<Mesh> & support) override {
+      openGroup(support.getName());
+
+      if (unchanged(support)) {
+        createSymlink("topology",
+                      support.getProperty<std::string>("hdf5_path"));
         entities.pop_back();
+      } else {
+        createDataDescriptions(support);
+
+        auto & topology = openGroup("topology");
+        support.addProperty("hdf5_path", topology.path.generic_string());
+
+        openGroup("nodes");
+        auto && nodes = support.getNodes();
+        dump(nodes);
+        entities.pop_back();
+
+        auto && connectivities = support.getConnectivities();
+        dump(connectivities);
+        entities.pop_back();
+
+        support.addProperty("hdf5_release", support.getRelease());
       }
 
-      void dump(Support<Mesh> & support) override {
-        openGroup(support.getName());
-
-        if (unchanged(support)) {
-          createSymlink("topology",
-                        support.getProperty<std::string>("hdf5_path"));
-          entities.pop_back();
-        } else {
-          createDataDescriptions(support);
-
-          auto & topology = openGroup("topology");
-          support.addProperty("hdf5_path", topology.path.generic_string());
-
-          openGroup("nodes");
-          auto && nodes = support.getNodes();
-          dump(nodes);
-          entities.pop_back();
-
-          auto && connectivities = support.getConnectivities();
-          dump(connectivities);
-          entities.pop_back();
-
-          support.addProperty("hdf5_release", support.getRelease());
-        }
-
-        openGroup("groups");
-        for (auto && [_, support] : support.getSubSupports()) {
-          createDataDescriptions(aka::as_type<SupportElements>(*support));
-          dump(*support);
-        }
-
-        // close groups
-        entities.pop_back();
-
-        openGroup("data");
-        for (auto && [_, field] : support.getFields()) {
-          FileBase::dump(*field);
-        }
-        entities.pop_back();
-
-        // close mesh
-        entities.pop_back();
+      openGroup("groups");
+      for (auto && [_, support] : support.getSubSupports()) {
+        createDataDescriptions(aka::as_type<SupportElements>(*support));
+        dump(*support);
       }
 
-      void dump(Support<ElementGroup> & support) override {
-        const auto & parent_support = support.getParentSupport();
-        openGroup(support.getName());
+      // close groups
+      entities.pop_back();
 
-        if (unchanged(support)) {
-          createSymlink("topology",
-                        support.getProperty<std::string>("hdf5_path"));
-          entities.pop_back();
-        } else {
-          support.addProperty(
-              "hdf5_file",
-              parent_support.getProperty<std::string>("hdf5_file"));
+      openGroup("data");
+      for (auto && [_, field] : support.getFields()) {
+        FileBase::dump(*field);
+      }
+      entities.pop_back();
 
-          auto & topology = openGroup("topology");
-          support.addProperty("hdf5_path", topology.path.generic_string());
-          dump(support.getElements());
-          dump(support.getConnectivities());
-          entities.pop_back();
-          support.addProperty("hdf5_release", support.getRelease());
-        }
+      // close mesh
+      entities.pop_back();
+    }
 
-        openGroup("data");
-        for (auto && [_, field] : support.getFields()) {
-          FileBase::dump(*field);
-        }
+    void dump(Support<ElementGroup> & support) override {
+      const auto & parent_support = support.getParentSupport();
+      openGroup(support.getName());
+
+      if (unchanged(support)) {
+        createSymlink("topology",
+                      support.getProperty<std::string>("hdf5_path"));
         entities.pop_back();
+      } else {
+        support.addProperty(
+            "hdf5_file", parent_support.getProperty<std::string>("hdf5_file"));
 
+        auto & topology = openGroup("topology");
+        support.addProperty("hdf5_path", topology.path.generic_string());
+        dump(support.getElements());
+        dump(support.getConnectivities());
         entities.pop_back();
+        support.addProperty("hdf5_release", support.getRelease());
       }
 
-      void dump(SupportBase & support) override { FileBase::dump(support); }
+      openGroup("data");
+      for (auto && [_, field] : support.getFields()) {
+        FileBase::dump(*field);
+      }
+      entities.pop_back();
 
-      void dump() override {
-        openGroup("steps");
+      entities.pop_back();
+    }
 
-        if (support.hasProperty("time")) {
-          openGroup(std::to_string(support.getProperty<double>("time")));
-        }
+    void dump(SupportBase & support) override { FileBase::dump(support); }
 
-        FileBase::dump(support);
+    void dump() override {
+      openGroup("steps");
 
-        if (support.hasProperty("time")) {
-          entities.pop_back();
-        }
-        entities.pop_back();
+      if (support.hasProperty("time")) {
+        openGroup(std::to_string(support.getProperty<double>("time")));
       }
 
-    private:
-      std::vector<std::unique_ptr<Entity>> entities;
+      FileBase::dump(support);
+
+      if (support.hasProperty("time")) {
+        entities.pop_back();
+      }
+      entities.pop_back();
+    }
+
+  private:
+    std::vector<std::unique_ptr<HDF5::EntityBase>> entities;
+  };
+
+  namespace HDF5 {
+    static herr_t hdf5_error_walk(unsigned int n, const H5E_error2_t * err_desc,
+                                  void * client_data) {
+      const int MSG_SIZE = 256;
+      auto & messages =
+          *reinterpret_cast<std::vector<std::string> *>(client_data);
+      char maj[MSG_SIZE];
+      char min[MSG_SIZE];
+      char cls[MSG_SIZE];
+
+      if (H5Eget_class_name(err_desc->cls_id, cls, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      if (H5Eget_msg(err_desc->maj_num, NULL, maj, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      if (H5Eget_msg(err_desc->min_num, NULL, min, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      messages.push_back(
+          std::string(cls) + " [error: " + std::to_string(int(n)) + "]" +
+          " - " + std::string(maj) + " (" + std::string(min) + ")" +
+          (err_desc->func_name ? (std::string(err_desc->func_name) + " [" +
+                                  std::string(err_desc->file_name) + ":" +
+                                  std::to_string(err_desc->line) + "]")
+                               : ""));
+      return 0;
     };
 
+    static herr_t hdf5_error_handler(hid_t estack_id, void * client_data) {
+      auto & file = *reinterpret_cast<H5File *>(client_data);
+
+      std::vector<std::string> messages;
+      H5Ewalk(estack_id, H5E_WALK_DOWNWARD, hdf5_error_walk, &messages);
+
+      std::string errors;
+      for (auto && [n, msg] : enumerate(messages)) {
+        errors += "\n";
+        errors += std::string(" ", AKANTU_INDENT) + msg;
+      }
+
+      AKANTU_EXCEPTION("HDF5 errors while accessing file "
+                       << file.filepath().generic_string() << ": " << errors);
+
+      return 0;
+    }
   } // namespace HDF5
+
 } // namespace dumper
 } // namespace akantu
