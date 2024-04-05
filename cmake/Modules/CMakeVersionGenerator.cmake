@@ -168,8 +168,8 @@ function(_get_metadata_from_ci)
     return()
   endif()
 
-  if(DEFINED ENV{CI_MERGE_REQUEST_ID})
-    set(_ci_version_metadata ".mr$ENV{CI_MERGE_REQUEST_ID}" PARENT_SCOPE)
+  if(DEFINED ENV{CI_MERGE_REQUEST_IID})
+    set(_ci_version_metadata ".mr$ENV{CI_MERGE_REQUEST_IID}" PARENT_SCOPE)
   endif()
 endfunction()
 
