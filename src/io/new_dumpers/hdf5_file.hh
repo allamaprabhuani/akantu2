@@ -32,6 +32,7 @@
 #include "dumper_file_base.hh"
 #include "hdf5_entities.hh"
 #include "support.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <array>
 #include <filesystem>
@@ -41,6 +42,8 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
+extern std::vector<std::string_view> akantu_dirty_patch;
+
 namespace dumper {
   namespace HDF5 {
     namespace fs = std::filesystem;
@@ -149,23 +152,7 @@ namespace dumper {
 
   public:
     H5File(SupportBase & support, const fs::path & path,
-           hid_t fapl_id = H5P_DEFAULT)
-        : FileBase(support), filepath_(path) {
-      auto path_wof = path;
-      path_wof.remove_filename();
-      if (not fs::exists(path_wof)) {
-        fs::create_directories(path_wof);
-      }
-
-      H5Eset_auto(H5E_DEFAULT, HDF5::hdf5_error_handler, this);
-
-      auto file = std::make_unique<HDF5::File>(path);
-      file->create(H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
-
-      support.addProperty("hdf5_file", path.string());
-
-      entities.push_back(std::move(file));
-    }
+           hid_t fapl_id = H5P_DEFAULT);
 
     ~H5File() { close(); }
 
@@ -183,6 +170,12 @@ namespace dumper {
     auto filepath() const { return filepath_; }
 
   protected:
+    template <class T> void writeAttribute(std::string_view name, const T & t) {
+      auto & group = *entities.back();
+      HDF5::Attribute attr(name, group);
+      attr.write(t);
+    }
+
     auto & openGroup(const std::string & path) {
       auto & group = *entities.back();
 
@@ -565,6 +558,32 @@ namespace dumper {
   private:
     std::vector<std::unique_ptr<HDF5::EntityBase>> entities;
   };
+
+  H5File::H5File(SupportBase & support, const fs::path & path, hid_t fapl_id)
+      : FileBase(support), filepath_(path) {
+    auto path_wof = path;
+    path_wof.remove_filename();
+    if (not fs::exists(path_wof)) {
+      fs::create_directories(path_wof);
+    }
+
+    H5Eset_auto(H5E_DEFAULT, HDF5::hdf5_error_handler, this);
+
+    auto file = std::make_unique<HDF5::File>(path);
+    file->create(H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
+    entities.push_back(std::move(file));
+
+    support.addProperty("hdf5_file", path.string());
+
+    openGroup("metadata");
+    writeAttribute("library", "akantu");
+    writeAttribute("version_akantu", getVersion());
+    writeAttribute("akantu_patch", akantu_dirty_patch);
+    writeAttribute("version_file", 1);
+    writeAttribute("seed", debug::_global_seed);
+    writeAttribute("nb_proc", support.getCommunicator().getNbProc());
+    entities.pop_back();
+  }
 
   namespace HDF5 {
     static herr_t hdf5_error_walk(unsigned int n, const H5E_error2_t * err_desc,

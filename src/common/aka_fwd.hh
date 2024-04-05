@@ -51,6 +51,10 @@ extern cppargparse::ArgumentParser static_argparser; // NOLINT
 class Mesh;
 class SparseMatrix;
 
+namespace debug {
+  extern size_t _global_seed;
+}
+
 } // namespace akantu
 
 namespace aka {

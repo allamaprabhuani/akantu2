@@ -86,17 +86,17 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
     readInputFile(infile);
   }
 
-  long int seed;
   char * env_seed = std::getenv("AKA_SEED");
   if (env_seed != nullptr) {
-    seed = std::atol(env_seed);
+    debug::_global_seed = std::atol(env_seed);
   } else if (static_argparser.has("aka_seed")) {
-    seed = static_argparser["aka_seed"];
+    debug::_global_seed = static_argparser["aka_seed"];
   } else {
-    seed =
+    debug::_global_seed =
         static_parser.getParameter("seed", time(nullptr), _ppsc_current_scope);
   }
 
+  long int seed = debug::_global_seed;
   seed *= (comm.whoAmI() + 1);
   RandomGenerator<Idx>::seed(seed);
 

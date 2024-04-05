@@ -55,6 +55,7 @@ namespace debug {
 
   Debugger debugger;
 
+  size_t _global_seed = 0;
 } // namespace debug
 
 /* -------------------------------------------------------------------------- */

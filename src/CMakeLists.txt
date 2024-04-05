@@ -56,6 +56,24 @@ set(AKANTU_INCLUDE_DIRS
 #===========================================================================
 # configurations
 #===========================================================================
+find_package(Git)
+set(AKANTU_DIRTY_PATCH)
+if (Git_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} diff @
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/git_patch
+    ERROR_QUIET
+  )
+  file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/git_patch _res)
+  set(_res_escaped)
+  foreach(str ${_res})
+    list(APPEND _res_escaped "R\"(${str})\"")
+  endforeach()
+  string(REPLACE ";" ", " _res_escaped "${_res_escaped}")
+  set(AKANTU_DIRTY_PATCH "${_res_escaped}")
+endif()
+
 configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
@@ -126,6 +144,9 @@ target_include_directories(akantu
 # small trick for build includes in public
 set_property(TARGET akantu APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
   $<BUILD_INTERFACE:${AKANTU_INCLUDE_DIRS}>)
+
+set_property(TARGET akantu PROPERTY JOB_POOL_COMPILE akantu_compile)
+set_property(TARGET akantu PROPERTY JOB_POOL_LINK akantu_link)
 
 target_include_directories(akantu SYSTEM
   PUBLIC ${AKANTU_INTERFACE_EXTERNAL_INCLUDE_DIR}

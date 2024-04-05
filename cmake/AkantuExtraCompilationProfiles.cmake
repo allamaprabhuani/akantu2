@@ -119,3 +119,12 @@ mark_as_advanced(AKANTU_SPLIT_DWARF)
 if (CCACHE_EXECUTABLE AND AKANTU_USE_CCACHE)
   set(AKANTU_COMPILER_LAUNCHER "${CCACHE_EXECUTABLE}")
 endif()
+
+include(ProcessorCount)
+ProcessorCount(N)
+
+set_property(GLOBAL PROPERTY JOB_POOLS
+  akantu_compile=${N}
+  akantu_link=1
+  akantu_link_test=${N}
+  akantu_compile_heavy=2)

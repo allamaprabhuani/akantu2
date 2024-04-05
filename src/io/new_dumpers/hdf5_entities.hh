@@ -38,7 +38,15 @@ namespace dumper {
             {TIDX(uint64_t{}), ENDIANNESS(H5T_STD_U64)},
             {TIDX(bool{}), ENDIANNESS(H5T_STD_U8)},
             {TIDX(float{}), ENDIANNESS(H5T_IEEE_F32)},
-            {TIDX(double{}), ENDIANNESS(H5T_IEEE_F64)}};
+            {TIDX(double{}), ENDIANNESS(H5T_IEEE_F64)},
+            {TIDX(static_cast<const char *>(nullptr)), H5T_C_S1}};
+
+        if (TIDX(static_cast<const char *>(nullptr)) == type_idx) {
+          auto type_id = H5Tcopy(H5T_C_S1);
+          H5Tset_size(type_id, H5T_VARIABLE);
+          H5Tset_cset(type_id, H5T_CSET_ASCII);
+          return type_id;
+        }
 
         return type_ids.at(type_idx);
       }
@@ -54,14 +62,23 @@ namespace dumper {
             {TIDX(bool{}), H5T_NATIVE_CHAR},
             {TIDX(float{}), H5T_NATIVE_FLOAT},
             {TIDX(double{}), H5T_NATIVE_DOUBLE},
+            {TIDX(static_cast<const char *>(nullptr)), H5T_C_S1},
         };
+
+        if (TIDX(static_cast<const char *>(nullptr)) == type_idx) {
+          auto type_id = H5Tcopy(H5T_C_S1);
+          H5Tset_size(type_id, H5T_VARIABLE);
+          H5Tset_cset(type_id, H5T_CSET_ASCII);
+          return type_id;
+        }
 
         return type_ids.at(type_idx);
       }
     } // namespace
 
     namespace fs = std::filesystem;
-#define AKANTU_ENTITY_TYPES (group)(dataset)(file)(dataspace)(link)(property)
+#define AKANTU_ENTITY_TYPES                                                    \
+  (group)(dataset)(file)(dataspace)(link)(property)(attribute)
 
     AKANTU_CLASS_ENUM_DECLARE(EntityType, AKANTU_ENTITY_TYPES)
   } // namespace HDF5
@@ -113,6 +130,7 @@ namespace dumper {
                        {EntityType::_file, H5Fclose},
                        {EntityType::_dataset, H5Dclose},
                        {EntityType::_dataspace, H5Sclose},
+                       {EntityType::_attribute, H5Aclose},
                        {EntityType::_property, H5Pclose}};
         if (auto it = close_func.find(type); it != close_func.end()) {
           it->second(id);
@@ -200,7 +218,8 @@ namespace dumper {
         const std::unordered_map<H5I_type_t, ID> names{
             {H5I_DATATYPE, "datatype"}, {H5I_DATASPACE, "dataspace"},
             {H5I_DATASET, "dataset"},   {H5I_GROUP, "group"},
-            {H5I_FILE, "file"},         {H5I_BADID, "bad_id"}};
+            {H5I_FILE, "file"},         {H5I_ATTR, "attribute"},
+            {H5I_BADID, "bad_id"}};
 
         for (auto && oid : open_ids) {
           auto type = H5Iget_type(oid);
@@ -310,6 +329,75 @@ namespace dumper {
         AKANTU_DEBUG_INFO("HDF5: Writing dataset " << this->path);
         H5Dwrite(this->id, datatype_id_file(datatype), memoryspace->id,
                  filespace->id, dxpl_id, data);
+      }
+    };
+
+    /* ---------------------------------------------------------------------- */
+    struct Attribute : public Entity<EntityType::_attribute> {
+      const EntityBase & location;
+      ID name;
+      Attribute(std::string_view name, const EntityBase & location)
+          : Entity<EntityType::_attribute>(location.path), location(location),
+            name(name) {}
+
+      void open(hid_t aapl_id = H5P_DEFAULT) {
+        if (H5Aexists(location.id, name.data()) == 0) {
+          AKANTU_EXCEPTION("HDF5: Attribute: "
+                           << name << " does not exists at location "
+                           << location.path.generic_string());
+        }
+
+        this->id = H5Aopen(location.id, name.data(), aapl_id);
+      }
+
+      void create(hid_t type_id, hid_t space_id, hid_t acpl_id = H5P_DEFAULT,
+                  hid_t aapl_id = H5P_DEFAULT) {
+        if (H5Aexists(location.id, name.c_str()) > 0) {
+          H5Adelete(location.id, name.c_str());
+        }
+
+        this->id = H5Acreate(location.id, name.c_str(), type_id, space_id,
+                             acpl_id, aapl_id);
+      }
+
+      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      void write(const T & t, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        auto type_id = datatype_id_file(TIDX(t));
+        auto space_id = H5Screate(H5S_SCALAR);
+
+        create(type_id, space_id, acpl_id, aapl_id);
+
+        H5Awrite(this->id, type_id, &t);
+      }
+
+      void write(std::string_view value, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        const char * str = value.data();
+        write(str, acpl_id, aapl_id);
+      }
+
+      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      void write(const std::vector<T> & t, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        auto type_id = datatype_id_file(TIDX(T{}));
+        std::array<hsize_t, 1> dims{t.size()};
+        auto space_id = H5Screate_simple(1, dims.data(), dims.data());
+
+        create(type_id, space_id, acpl_id, aapl_id);
+
+        H5Awrite(this->id, type_id, t.data());
+      }
+
+      void write(const std::vector<std::string_view> & ts,
+                 hid_t acpl_id = H5P_DEFAULT, hid_t aapl_id = H5P_DEFAULT) {
+        std::vector<const char *> strs(ts.size());
+
+        for (auto && [str, t] : zip(strs, ts)) {
+          str = t.data();
+        }
+
+        write(strs, acpl_id, aapl_id);
       }
     };
   } // namespace HDF5

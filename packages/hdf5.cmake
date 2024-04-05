@@ -19,6 +19,7 @@ package_declare_sources(HDF5
   io/new_dumpers/dumper_xdmf.hh
 
   io/new_dumpers/hdf5_file.hh
+  io/new_dumpers/hdf5_entities.hh
   io/new_dumpers/xdmf_file.hh
   io/new_dumpers/xml_helper.hh
   )
