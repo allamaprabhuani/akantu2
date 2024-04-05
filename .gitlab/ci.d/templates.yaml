@@ -25,6 +25,7 @@
         compare_to: 'master'
         paths:
           - "**/*.{cc, hh, txt, cmake, py}"
+          - "third-party/akantu-iterators/**/*.{cc, hh, txt, cmake, py}"
           - .gitlab-ci.yml
           - .gitlab/ci.d/**
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
