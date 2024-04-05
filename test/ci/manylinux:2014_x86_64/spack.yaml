@@ -27,7 +27,7 @@ spack:
     - openblas +pic threads=none
     - eigen
     - mumps ~mpi ~complex ~float
-    - hdf5 +mpi +szip +threadsafe +hl
+    - hdf5 ~mpi +szip +threadsafe +hl
   view: /softs/view
   concretizer:
     unify: true
