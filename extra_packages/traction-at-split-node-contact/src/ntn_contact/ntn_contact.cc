@@ -348,7 +348,7 @@ void NTNContact::updateLumpedBoundary() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- 
 void NTNContact::applyContactPressure() {
   auto nb_ntn_pairs = getNbContactNodes();
   auto dim = this->model.getSpatialDimension();
@@ -368,6 +368,28 @@ void NTNContact::applyContactPressure() {
   }
 }
 
+*/
+
+/* -------------------------------------------------------------------------- */
+void NTNContact::assembleGlobalContactPressure(){
+  auto nb_ntn_pairs = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
+
+  auto & global_contact_pressure = const_cast<Array<Real> &>(this->getGlobalContactPressure());
+  
+  for (Int n = 0; n < nb_ntn_pairs; ++n) {
+    auto slave = this->slaves(n);
+    auto master = this->masters(n);
+
+    for (Int d = 0; d < dim; ++d) {
+      global_contact_pressure(master,d) = this->lumped_boundary_masters(n) * this->contact_pressure(n,d);
+      global_contact_pressure(slave, d) = -
+	this->lumped_boundary_slaves(n) * this->contact_pressure(n, d);
+    }
+  }
+
+}
+  
 /* -------------------------------------------------------------------------- */
 void NTNContact::computeRelativeTangentialField(
     const Array<Real> & field, Array<Real> & rel_tang_field) const {

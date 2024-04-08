@@ -52,6 +52,11 @@ NTNBaseFriction::NTNBaseFriction(NTNBaseContact & contact, const ID & id)
   this->registerExternalDumper(contact.getDumper().shared_from_this(),
                                contact.getDefaultDumperName(), true);
 
+  const auto & mesh = this->contact.getModel().getMesh();  
+  auto nb_global_nodes = mesh.getNbNodes();  
+
+  Array<Real> global_friction_traction(nb_global_nodes,contact.getModel().getSpatialDimension());
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -181,7 +186,7 @@ void NTNBaseFriction::computeStickTraction() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseFriction::applyFrictionTraction() {
+/*void NTNBaseFriction::applyFrictionTraction() {
   auto & model = this->contact.getModel();
   auto & residual = model.getInternalForce();
   auto dim = model.getSpatialDimension();
@@ -199,7 +204,29 @@ void NTNBaseFriction::applyFrictionTraction() {
     }
   }
 }
+*/
+  
+/* -------------------------------------------------------------------------- */
+void NTNBaseFriction::assembleGlobalFrictionTraction() {
 
+  auto & model = this->contact.getModel();
+  auto dim = model.getSpatialDimension();
+
+  auto & global_friction_traction = const_cast<Array<Real> &>(this->getGlobalFrictionTraction());
+  
+  const auto & slaves = this->contact.getSlaves();
+  const auto & lumped_boundary_slaves = this->contact.getLumpedBoundarySlaves();
+
+  auto nb_contact_nodes = this->contact.getNbContactNodes();
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = slaves(n);
+
+    for (Int d = 0; d < dim; ++d) {
+      global_friction_traction(slave, d) = -lumped_boundary_slaves(n) * this->friction_traction(n, d);
+    }
+  }
+}
+  
 /* -------------------------------------------------------------------------- */
 void NTNBaseFriction::registerSynchronizedArray(SynchronizedArrayBase & array) {
   this->frictional_strength.registerDependingArray(array);

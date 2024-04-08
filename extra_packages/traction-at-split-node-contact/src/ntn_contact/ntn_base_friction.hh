@@ -65,11 +65,14 @@ public:
   /// compute friction traction
   virtual void computeFrictionTraction();
 
+  /// compute friction traction
+  virtual void assembleGlobalFrictionTraction();
+  
   /// compute stick traction (friction traction needed to stick the nodes)
   virtual void computeStickTraction();
 
-  /// apply the friction force
-  virtual void applyFrictionTraction();
+  /// assemble the friction force
+  virtual void assembleFrictionTraction();
 
   /// compute slip
   virtual void updateSlip();
@@ -115,6 +118,10 @@ public:
                    const SynchronizedArray<Real> &)
   AKANTU_GET_MACRO(FrictionTraction, friction_traction,
                    const SynchronizedArray<Real> &)
+  /// get the NTNBaseFriction::friction_traction array (friction_traction)
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(GlobalFrictionTraction, global_friction_traction)
+  /// get the  NTNBaseFriction::friction_traction array (friction_traction)
+  AKANTU_GET_MACRO_DEREF_PTR(GlobalFrictionTraction, global_friction_traction)
   AKANTU_GET_MACRO(Slip, slip, const SynchronizedArray<Real> &)
   AKANTU_GET_MACRO(CumulativeSlip, cumulative_slip,
                    const SynchronizedArray<Real> &)
@@ -142,6 +149,8 @@ protected:
   SynchronizedArray<Real> frictional_strength;
   // friction force
   SynchronizedArray<Real> friction_traction;
+  // friction force
+  std::unique_ptr<Array<Real>> global_friction_traction;
   // slip
   SynchronizedArray<Real> slip;
   SynchronizedArray<Real> cumulative_slip;

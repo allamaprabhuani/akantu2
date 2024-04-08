@@ -40,6 +40,8 @@ package_declare_sources(traction_at_split_node_contact
   ntn_contact/ntn_initiation_function.cc
 
   tasn_contact.hh
+  tasn_contact_solvercallback.cc
+  tasn_contact_solvercallback.hh
 
   # headers
   common/synchronized_array.hh

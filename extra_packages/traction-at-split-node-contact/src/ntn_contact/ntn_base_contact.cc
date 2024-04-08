@@ -107,6 +107,9 @@ NTNBaseContact::NTNBaseContact(SolidMechanicsModel & model, const ID & id)
   this->synch_registry = std::make_unique<SynchronizerRegistry>();
   this->synch_registry->registerDataAccessor(*this);
 
+  auto nb_global_nodes = mesh.getNbNodes();  
+  Array<Real> global_contact_pressure(nb_global_nodes,spatial_dimension);
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -425,7 +428,8 @@ void NTNBaseContact::computeContactPressure() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NTNBaseContact::applyContactPressure() {
+
+/* void NTNBaseContact::applyContactPressure() {
   auto nb_contact_nodes = getNbContactNodes();
   auto dim = this->model.getSpatialDimension();
 
@@ -442,7 +446,28 @@ void NTNBaseContact::applyContactPressure() {
     }
   }
 }
+*/
+  
+/* -------------------------------------------------------------------------- */
+void NTNBaseContact::assembleGlobalContactPressure(){
+  auto nb_contact_nodes = getNbContactNodes();
+  auto dim = this->model.getSpatialDimension();
 
+  auto & global_contact_pressure = const_cast<Array<Real> &>(this->getGlobalContactPressure());
+
+  for (Int n = 0; n < nb_contact_nodes; ++n) {
+    auto slave = this->slaves(n);
+
+    for (Int d = 0; d < dim; ++d) {
+      // residual(master,d) += this->lumped_boundary(n,0) *
+      // this->contact_pressure(n,d);
+      global_contact_pressure(slave, d) = -
+	this->lumped_boundary_slaves(n) * this->contact_pressure(n, d);
+    }
+  }
+
+}
+  
 /* -------------------------------------------------------------------------- */
 Int NTNBaseContact::getNodeIndex(Idx node) const {
   return this->slaves.find(node);

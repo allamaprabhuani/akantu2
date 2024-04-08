@@ -49,8 +49,14 @@ TasnContactSolverCallback::TasnContactSolverCallback(
     // This should add a value directly to the internal forces... but not to the residual?
     // This means that maybe we should assemble to the residual the difference between previous value sof the internal forces and the new one after applying the friction traction?
     friction.computeFrictionTraction();
-    contact.applyContactPressure();
-    friction.applyFrictionTraction();    
+
+    auto & contact_pressure = contact.getGlobalContactPressure();
+    auto & friction_traction = friction.getGlobalFrictionTraction();
+
+    // The two functions contact.applyContactPressure and friction.applyFrictionTraction() are replaced by assembling the forces to the residual directly
+    
+    solid.getDOFManager().assembleToResidual("displacement", contact_pressure, 1);
+    solid.getDOFManager().assembleToResidual("displacement", friction_traction, 1);
     
   }
   
