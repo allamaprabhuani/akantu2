@@ -93,13 +93,6 @@ public:
             GhostType ghost_type = _not_ghost,
             const Array<Idx> & filter_elements = empty_filter) const = 0;
 
-  /// integrate f for all integration points of type "type" but don't sum over
-  /// all integration points
-  virtual void integrateOnIntegrationPoints(
-      const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
-      ElementType type, GhostType ghost_type = _not_ghost,
-      const Array<Idx> & filter_elements = empty_filter) const = 0;
-
   /// integrate one element scalar value on all elements of type "type"
   [[nodiscard]] Real integrate(const Ref<const VectorXr> f,
                                const Element & element) const {

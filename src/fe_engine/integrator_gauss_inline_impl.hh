@@ -409,14 +409,10 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 
   auto nb_points = jacobians.size() / nb_element;
 
-  for (auto && data : zip(make_view(in_f, nb_degree_of_freedom, nb_points),
-                          make_view(intf, nb_degree_of_freedom),
-                          make_view(jacobians, nb_points))) {
-    // MatrixProxy<Real> f()
-    auto && f = std::get<0>(data);
-    auto && int_f = std::get<1>(data);
-    auto && J = std::get<2>(data);
-
+  for (auto && [f, int_f, J] :
+       zip(make_view(in_f, nb_degree_of_freedom, nb_points),
+           make_view(intf, nb_degree_of_freedom),
+           make_view(jacobians, nb_points))) {
     int_f = f * J;
   }
 }
@@ -491,61 +487,6 @@ Real IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 
   auto res = Math::reduce(intfv);
   return res;
-}
-
-/* -------------------------------------------------------------------------- */
-template <ElementKind kind, class IntegrationOrderFunctor>
-void IntegratorGauss<kind, IntegrationOrderFunctor>::
-    integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
-                                 Int nb_degree_of_freedom,
-                                 const Array<Real> & jacobians,
-                                 Int nb_element) const {
-  auto nb_points = jacobians.size() / nb_element;
-
-  intf.resize(nb_element * nb_points);
-
-  auto J_it = jacobians.begin();
-  auto f_it = in_f.begin(nb_degree_of_freedom);
-  auto inte_it = intf.begin(nb_degree_of_freedom);
-
-  for (Idx el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
-    const auto & J = *J_it;
-    const auto & f = *f_it;
-    auto & inte_f = *inte_it;
-
-    inte_f = f;
-    inte_f *= J;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <ElementKind kind, class IntegrationOrderFunctor>
-template <ElementType type>
-void IntegratorGauss<kind, IntegrationOrderFunctor>::
-    integrateOnIntegrationPoints(const Array<Real> & in_f, Array<Real> & intf,
-                                 Int nb_degree_of_freedom, GhostType ghost_type,
-                                 const Array<Int> & filter_elements) const {
-  AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
-                      "No jacobians for the type "
-                          << jacobians.printType(type, ghost_type));
-
-  const auto & jac_loc = this->jacobians(type, ghost_type);
-
-  if (filter_elements != empty_filter) {
-
-    auto nb_element = filter_elements.size();
-    auto filtered_J =
-        std::make_shared<Array<Real>>(0, jac_loc.getNbComponent());
-    FEEngine::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type,
-                                  filter_elements);
-
-    this->integrateOnIntegrationPoints(in_f, intf, nb_degree_of_freedom,
-                                       *filtered_J, nb_element);
-  } else {
-    auto nb_element = mesh.getNbElement(type, ghost_type);
-    this->integrateOnIntegrationPoints(in_f, intf, nb_degree_of_freedom,
-                                       jac_loc, nb_element);
-  }
 }
 
 /* -------------------------------------------------------------------------- */
