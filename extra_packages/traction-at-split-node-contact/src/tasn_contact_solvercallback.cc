@@ -45,11 +45,12 @@ TasnContactSolverCallback::TasnContactSolverCallback(
 
     contact.computeContactPressure();
     friction.updateSlip();
-
-    // This should add a value directly to the internal forces... but not to the residual?
-    // This means that maybe we should assemble to the residual the difference between previous value sof the internal forces and the new one after applying the friction traction?
     friction.computeFrictionTraction();
 
+    // Assemble the global array for the contact pressure and the friction traction
+    contact.assembleGlobalContactPressure();
+    friction.assembleGlobalFrictionTraction();
+    
     auto & contact_pressure = contact.getGlobalContactPressure();
     auto & friction_traction = friction.getGlobalFrictionTraction();
 
