@@ -90,6 +90,8 @@ void register_heat_transfer_model(py::module & mod) {
            py::arg("solver_id") = "")
       .def("getTimeStep", &HeatTransferModel::getTimeStep,
            py::arg("solver_id") = "")
+      .def("computeTempOnQpoints", &HeatTransferModel::computeTempOnQpoints,
+           py::arg("ghost_type") = _not_ghost)
       .def_function(getStableTimeStep)
       .def_function(getCapacity)
       .def_function(getDensity)

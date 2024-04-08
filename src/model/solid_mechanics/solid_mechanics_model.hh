@@ -430,6 +430,9 @@ public:
   /// get a particular material (by material name)
   inline const Material & getMaterial(const Element & element) const;
 
+  /// check if material exist
+  inline bool hasMaterial(const std::string & name) const;
+
   /// get a particular material id from is name
   inline UInt getMaterialIndex(const std::string & name) const;
 

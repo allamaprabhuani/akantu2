@@ -171,6 +171,7 @@ void register_solid_mechanics_model(py::module & mod) {
               -> decltype(auto) { return self.getMaterial(element); },
           py::arg("element"), py::return_value_policy::reference)
 
+      .def("hasMaterial", &SolidMechanicsModel::hasMaterial)
       .def("getNbMaterials", &SolidMechanicsModel::getNbMaterials)
       .def("getMaterialIndex", &SolidMechanicsModel::getMaterialIndex)
       .def("setMaterialSelector",

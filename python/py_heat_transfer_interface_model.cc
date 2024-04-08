@@ -84,9 +84,9 @@ void register_heat_transfer_interface_model(py::module & mod) {
           py::arg("_analysis_method"))
       .def("setTimeStep", &HeatTransferInterfaceModel::setTimeStep,
            py::arg("time_step"), py::arg("solver_id") = "")
-      .def("computeTempOnQpoints",
-           &HeatTransferInterfaceModel::computeTempOnQpoints,
-           py::arg("ghost_type") = _not_ghost)
+      // .def("computeTempOnQpoints",
+      //      &HeatTransferInterfaceModel::computeTempOnQpoints,
+      //      py::arg("ghost_type") = _not_ghost)
       .def("getLongitudinalConductivityOnQpoints",
            &HeatTransferInterfaceModel::getLongitudinalConductivityOnQpoints,
            py::arg("el_type"), py::arg("ghost_type") = _not_ghost,

@@ -113,6 +113,17 @@ SolidMechanicsModel::getMaterial(const std::string & name) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline bool SolidMechanicsModel::hasMaterial(const std::string & name) const {
+  std::map<std::string, UInt>::const_iterator it =
+      materials_names_to_id.find(name);
+  if (it == materials_names_to_id.end()) {
+    return false;
+  }
+
+  return true;
+}
+
+/* -------------------------------------------------------------------------- */
 } // namespace akantu
 
 #endif /* AKANTU_SOLID_MECHANICS_MODEL_INLINE_IMPL_HH_ */
