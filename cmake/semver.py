@@ -14,7 +14,9 @@ import subprocess
 
 def run_git_command(args):
     """Run git commands and capture outputs."""
-    git_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
+    git_dir = os.path.realpath(
+        os.path.join(os.path.dirname(__file__),
+                     os.pardir))
 
     cmd = ["git"] + args
     p = subprocess.Popen(
@@ -137,7 +139,8 @@ def get_ci_version():
         return None
 
     ci_akantu_install_prefix = os.environ["CI_AKANTU_INSTALL_PREFIX"]
-    akantu_dir = os.path.join(ci_akantu_install_prefix, "lib", "cmake", "Akantu")
+    akantu_dir = os.path.join(ci_akantu_install_prefix,
+                              "lib", "cmake", "Akantu")
     cmake_config = os.path.join(akantu_dir, "AkantuConfig.cmake")
 
     if not os.path.exists(cmake_config):
@@ -162,7 +165,9 @@ def get_ci_version():
 def get_mr_info():
     pieces = {}
     if "CI_MERGE_REQUEST_IID" in os.environ:
-        pieces = {"build": "mr" + os.environ["CI_MERGE_REQUEST_IID"]}
+        pieces = {
+            "build": "mr" + os.environ["CI_MERGE_REQUEST_IID"]
+        }
     return pieces
 
 
@@ -170,7 +175,8 @@ def get_version_file():
     """Get the version directly from the VERSION file."""
     version_path = os.path.join(
         os.path.realpath(
-            os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+            os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         os.path.pardir))
         ),
         "VERSION",
     )
