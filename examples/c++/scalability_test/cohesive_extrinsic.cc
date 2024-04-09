@@ -120,8 +120,8 @@ int main(int argc, char * argv[]) {
 
   const UInt spatial_dimension = 3;
 
-  auto prank = Communicator::getStaticCommunicator().whoAmI();
-  auto psize = Communicator::getStaticCommunicator().getNbProc();
+  auto prank = Communicator::getWorldCommunicator().whoAmI();
+  auto psize = Communicator::getWorldCommunicator().getNbProc();
   Chrono chrono(prank, psize);
 
   const auto & usersect = getUserParser();
