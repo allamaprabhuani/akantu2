@@ -305,15 +305,15 @@ int main(int argc, char * argv[]) {
   seconds loop_time = clk::now() - start_time;
   auto nb_cohesive_elements =
       mesh.getNbElement(spatial_dimension, _not_ghost, _ek_cohesive);
-  Communicator::getStaticCommunicator().allReduce(nb_cohesive_elements);
+  Communicator::getWorldCommunicator().allReduce(nb_cohesive_elements);
   Ed = model.getEnergy("dissipated");
   if (prank == 0) {
     std::cout << std::endl;
     std::cout << "Cohesive info: dissipated energy: " << Ed
               << " - nb_cohesive_element: " << nb_cohesive_elements
               << std::endl;
-    std::cout << "Nb proc: "
-              << Communicator::getStaticCommunicator().getNbProc() << std::endl;
+    std::cout << "Nb proc: " << Communicator::getWorldCommunicator().getNbProc()
+              << std::endl;
     std::cout << "Full time: " << (init_time + loop_time).count() << std::endl;
     std::cout << "Init time: " << init_time.count() << std::endl;
     std::cout << "Step time: " << loop_time.count()
