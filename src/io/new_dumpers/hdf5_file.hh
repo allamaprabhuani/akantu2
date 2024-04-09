@@ -541,7 +541,7 @@ namespace dumper {
       openGroup("steps");
 
       if (support.hasProperty("time")) {
-        openGroup(std::to_string(support.getProperty<Int>("count")));
+        openGroup(std::to_string(support.getProperty<Int>("dump_count")));
         writeAttribute("time", support.getProperty<double>("time"));
       }
 
@@ -551,6 +551,12 @@ namespace dumper {
         entities.pop_back();
       }
       entities.pop_back();
+
+      if (support.hasProperty("time")) {
+        openGroup("metadata");
+        writeAttribute("last_step", support.getProperty<Int>("dump_count"));
+        entities.pop_back();
+      }
     }
 
   private:

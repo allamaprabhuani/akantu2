@@ -253,9 +253,7 @@ inline bool ContactDetector::isValidSelfContact(
     return element.kind() == _ek_regular;
   };
 
-  for (auto && element : filter_if(slave_elements, [](auto && element) {
-         return element.kind() == _ek_regular;
-       })) {
+  for (auto && element : filter_if(slave_elements, predicate)) {
     auto && connectivity = this->mesh.getConnectivity(element);
 
     auto coords = mesh.extractNodalValuesFromElement(positions, element);
