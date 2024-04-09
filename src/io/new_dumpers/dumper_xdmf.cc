@@ -81,7 +81,7 @@ DumperXdmf::DumperXdmf(dumper::SupportBase & support) : DumperHDF5(support) {}
 void DumperXdmf::dumpInternal() {
   if (time_activated) {
     support.addProperty("dump_count", count);
-    support.addProperty("time", Real(count));
+    support.addProperty("time", time);
   }
 
   if (aka::is_of_type<dumper::Support<Mesh>>(support)) {

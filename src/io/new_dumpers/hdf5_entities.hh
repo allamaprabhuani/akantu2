@@ -139,20 +139,13 @@ namespace dumper {
         id = H5I_INVALID_HID;
       }
 
-      virtual ~Entity() { close(); }
+      ~Entity() override { close(); }
     };
 
     /* ---------------------------------------------------------------------- */
     struct PropertyList : public Entity<EntityType::_property> {
-      MPI_Info file_info_template{MPI_INFO_NULL};
       PropertyList(hid_t cls_id) { create(cls_id); }
       PropertyList() { this->id = H5P_DEFAULT; }
-
-      ~PropertyList() {
-        if (file_info_template != MPI_INFO_NULL) {
-          MPI_Info_free(&file_info_template);
-        }
-      }
 
       void create(hid_t cls_id) {
         if (id != H5I_INVALID_HID) {
@@ -164,6 +157,20 @@ namespace dumper {
       void setDxplMPIIO(H5FD_mpio_xfer_t xfer_mode) {
         H5Pset_dxpl_mpio(this->id, xfer_mode);
       }
+    };
+
+    /* ---------------------------------------------------------------------- */
+    struct FileAccessPropertyList : public PropertyList {
+      MPI_Info file_info_template{MPI_INFO_NULL};
+
+      FileAccessPropertyList() : PropertyList(H5P_FILE_ACCESS) {}
+
+      ~FileAccessPropertyList() override {
+        if (file_info_template != MPI_INFO_NULL) {
+          MPI_Info_free(&file_info_template);
+        }
+      }
+
       void setFaplMPIIO(const Communicator & communicator,
                         const std::map<ID, ID> & infos) {
         if (not infos.empty()) {
@@ -182,7 +189,8 @@ namespace dumper {
         H5Pset_coll_metadata_write(this->id, true);
       }
 
-      void setLibverBounds(H5F_libver_t low, H5F_libver_t high) {
+      void setLibverBounds(H5F_libver_t low = H5F_LIBVER_LATEST,
+                           H5F_libver_t high = H5F_LIBVER_LATEST) {
         H5Pset_libver_bounds(this->id, low, high);
       }
     };
@@ -190,18 +198,19 @@ namespace dumper {
     /* ---------------------------------------------------------------------- */
     struct File : public Entity<EntityType::_file> {
       fs::path filename;
+      FileAccessPropertyList access_pl;
+
       File(const fs::path & filename)
           : Entity<EntityType::_file>("/"), filename(filename) {}
 
-      void open(unsigned mode = H5F_ACC_RDWR, hid_t fapl_id = H5P_DEFAULT) {
+      void open(unsigned mode = H5F_ACC_RDWR) {
         AKANTU_DEBUG_ASSERT(id == H5I_INVALID_HID, "HDF5: File already opened");
-        id = H5Fopen(filename.c_str(), mode, fapl_id);
+        id = H5Fopen(filename.c_str(), mode, access_pl.id);
       }
 
-      void create(unsigned mode = H5F_ACC_RDWR, hid_t fcpl_id = H5P_DEFAULT,
-                  hid_t fapl_id = H5P_DEFAULT) {
+      void create(unsigned mode = H5F_ACC_RDWR, hid_t fcpl_id = H5P_DEFAULT) {
         AKANTU_DEBUG_ASSERT(id == H5I_INVALID_HID, "HDF5: File already opened");
-        id = H5Fcreate(filename.c_str(), mode, fcpl_id, fapl_id);
+        id = H5Fcreate(filename.c_str(), mode, fcpl_id, access_pl.id);
       }
 
       void close() override {
@@ -231,6 +240,8 @@ namespace dumper {
 #endif
         Entity<EntityType::_file>::close();
       }
+
+      auto & getAccessPropertyList() { return access_pl; }
     };
 
     /* ---------------------------------------------------------------------- */

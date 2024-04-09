@@ -77,6 +77,7 @@ void Dumper::dump() {
   dumpInternal();
   if (time_activated) {
     ++count;
+    time += time_step;
   }
 }
 

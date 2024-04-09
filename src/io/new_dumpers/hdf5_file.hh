@@ -151,8 +151,7 @@ namespace dumper {
     fs::path filepath_;
 
   public:
-    H5File(SupportBase & support, const fs::path & path,
-           hid_t fapl_id = H5P_DEFAULT);
+    H5File(SupportBase & support, const fs::path & path);
 
     ~H5File() { close(); }
 
@@ -163,9 +162,7 @@ namespace dumper {
       entities[0]->close();
     }
 
-    void open(hid_t fapl_id = H5P_DEFAULT) {
-      aka::as_type<HDF5::File>(*entities[0]).open(H5F_ACC_RDWR, fapl_id);
-    }
+    void open() { aka::as_type<HDF5::File>(*entities[0]).open(H5F_ACC_RDWR); }
 
     auto filepath() const { return filepath_; }
 
@@ -544,7 +541,8 @@ namespace dumper {
       openGroup("steps");
 
       if (support.hasProperty("time")) {
-        openGroup(std::to_string(support.getProperty<double>("time")));
+        openGroup(std::to_string(support.getProperty<Int>("count")));
+        writeAttribute("time", support.getProperty<double>("time"));
       }
 
       FileBase::dump(support);
@@ -559,7 +557,7 @@ namespace dumper {
     std::vector<std::unique_ptr<HDF5::EntityBase>> entities;
   };
 
-  H5File::H5File(SupportBase & support, const fs::path & path, hid_t fapl_id)
+  H5File::H5File(SupportBase & support, const fs::path & path)
       : FileBase(support), filepath_(path) {
     auto path_wof = path;
     path_wof.remove_filename();
@@ -570,7 +568,19 @@ namespace dumper {
     H5Eset_auto(H5E_DEFAULT, HDF5::hdf5_error_handler, this);
 
     auto file = std::make_unique<HDF5::File>(path);
-    file->create(H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
+
+    auto & fapl = file->getAccessPropertyList();
+#if defined(AKANTU_USE_MPI)
+    fapl.setFaplMPIIO(support.getCommunicator(),
+                      {{"access_style", "write_once"},
+                       {"collective_buffering", "true"},
+                       {"cb_block_size", "1048576"},
+                       {"cb_buffer_size", "4194304"}});
+#endif
+
+    fapl.setLibverBounds();
+
+    file->create(H5F_ACC_TRUNC, H5P_DEFAULT);
     entities.push_back(std::move(file));
 
     support.addProperty("hdf5_file", path.string());
@@ -578,7 +588,9 @@ namespace dumper {
     openGroup("metadata");
     writeAttribute("library", "akantu");
     writeAttribute("version_akantu", getVersion());
-    writeAttribute("akantu_patch", akantu_dirty_patch);
+    if (not akantu_dirty_patch.empty()) {
+      writeAttribute("akantu_patch", akantu_dirty_patch);
+    }
     writeAttribute("version_file", 1);
     writeAttribute("seed", debug::_global_seed);
     writeAttribute("nb_proc", support.getCommunicator().getNbProc());

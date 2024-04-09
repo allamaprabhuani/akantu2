@@ -69,24 +69,13 @@ void DumperHDF5::dumpInternal() {
    */
   using dumper::H5File;
 
-  dumper::HDF5::PropertyList fapl(H5P_FILE_ACCESS);
-#if defined(AKANTU_USE_MPI)
-  fapl.setFaplMPIIO(support.getCommunicator(),
-                    {{"access_style", "write_once"},
-                     {"collective_buffering", "true"},
-                     {"cb_block_size", "1048576"},
-                     {"cb_buffer_size", "4194304"}});
-#endif
-
-  fapl.setLibverBounds(H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
-
   auto path = fs::path(directory);
   path /= filename + ".h5";
 
   if (not h5) {
-    h5 = std::make_unique<H5File>(support, path, fapl);
+    h5 = std::make_unique<H5File>(support, path);
   } else {
-    aka::as_type<H5File>(*h5).open(fapl);
+    aka::as_type<H5File>(*h5).open();
   }
 
   h5->dump();

@@ -36,11 +36,12 @@
 #include <string>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DUMPER_HH__
-#define __AKANTU_DUMPER_HH__
+#ifndef AKANTU_DUMPER_HH
+#define AKANTU_DUMPER_HH
 
 namespace akantu {
 
+// TODO: rename class hierarchy since they also handle read
 class Dumper {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -53,9 +54,11 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// request dump: this calls IOHelper dump routine
+  /// request dump: this calls the internal dumper implementation
   void dump();
-  // virtual void dump(Real current_time, UInt step);
+
+  /// request dump: this calls the internal dumper implementation
+  void read();
 
   /// set the directory where to generate the dumped files
   virtual void setDirectory(const std::string & directory);
@@ -64,12 +67,24 @@ public:
 
 protected:
   virtual void dumpInternal() = 0;
+
+  virtual void readInternal() { AKANTU_TO_IMPLEMENT(); }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// set the timestep of the iohelper::Dumper
-  void setTimeStep(Real time_step);
+  /// Set the absolute time of the next dump
+  void setTime(Real time) {
+    this->time = time;
+    this->time_activated = true;
+  }
+
+  /// Set the amount to increase the time at each dump
+  void setTimeStep(Real time_step) {
+    this->time_step = time_step;
+    this->time_activated = true;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -89,10 +104,13 @@ protected:
   /// is time tracking activated in the dumper
   bool time_activated{true};
 
+  Real time{0.};
+  Real time_step{0.};
+
   Int prank{0};
   Int psize{1};
 };
 
 } // namespace akantu
 
-#endif /* __AKANTU_DUMPER_HH__ */
+#endif /* AKANTU_DUMPER_HH */

@@ -1,0 +1,30 @@
+find_package(Git)
+
+set(CURRENT_SRCDIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(CURRENT_WORKDIR "@CMAKE_CURRENT_BINARY_DIR@")
+
+set(AKANTU_DIRTY_PATCH)
+if (Git_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} diff @
+    WORKING_DIRECTORY ${CURRENT_WORKDIR}
+    OUTPUT_FILE ${CURRENT_WORKDIR}/git_patch
+    ERROR_QUIET
+  )
+  file(STRINGS ${CURRENT_WORKDIR}/git_patch _res)
+  set(_res_escaped)
+  foreach(str ${_res})
+    list(APPEND _res_escaped "R\"(${str})\"")
+  endforeach()
+  string(REPLACE ";" ",\n  " _res_escaped "${_res_escaped}")
+  set(AKANTU_DIRTY_PATCH "${_res_escaped}")
+endif()
+
+set(AKANTU_MAJOR_VERSION "@AKANTU_MAJOR_VERSION@")
+set(AKANTU_MINOR_VERSION "@AKANTU_MINOR_VERSION@")
+set(AKANTU_PATCH_VERSION "@AKANTU_PATCH_VERSION@")
+set(AKANTU_PRERELEASE_VERSION "@AKANTU_PRERELEASE_VERSION@")
+set(AKANTU_LOCAL_VERSION "@AKANTU_LOCAL_VERSION@")
+
+configure_file(${CURRENT_SRCDIR}/common/aka_config.cc.in
+  "${CURRENT_WORKDIR}/aka_config.cc" @ONLY)

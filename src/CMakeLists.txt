@@ -57,31 +57,47 @@ set(AKANTU_INCLUDE_DIRS
 # configurations
 #===========================================================================
 find_package(Git)
-set(AKANTU_DIRTY_PATCH)
+
+set(_list_all_git_files)
 if (Git_FOUND)
   execute_process(
-    COMMAND ${GIT_EXECUTABLE} diff @
+    COMMAND ${GIT_EXECUTABLE} ls-files
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/git_patch
+    OUTPUT_VARIABLE _file_list
     ERROR_QUIET
   )
-  file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/git_patch _res)
-  set(_res_escaped)
-  foreach(str ${_res})
-    list(APPEND _res_escaped "R\"(${str})\"")
+
+  separate_arguments(_file_list)
+  foreach(_file ${_file_list})
+    if(NOT _file MATCHES ":") # Workaround for ci files
+      list(APPEND _list_all_git_files "${PROJECT_SOURCE_DIR}/${_file}")
+    endif()
   endforeach()
-  string(REPLACE ";" ", " _res_escaped "${_res_escaped}")
-  set(AKANTU_DIRTY_PATCH "${_res_escaped}")
 endif()
+
+list(LENGTH _list_all_git_files _nb_files)
+if(_nb_files EQUAL 0)
+  set(_list_all_git_files ${AKANTU_LIBRARY_SRCS} ${AKANTU_LIBRARY_PUBLIC_HDRS})
+endif()
+
+configure_file(${PROJECT_SOURCE_DIR}/cmake/generate_aka_config.cc.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/generate_aka_config.cc.cmake" @ONLY)
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc
+  COMMAND ${CMAKE_COMMAND} -P
+     ${CMAKE_CURRENT_BINARY_DIR}/generate_aka_config.cc.cmake
+  DEPENDS ${_list_all_git_files}
+  COMMENT "Generating aka_config.cc"
+  VERBATIM)
+
+add_custom_target(generate_aka_config ALL
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc)
 
 configure_file(common/aka_config.hh.in
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_PUBLIC_HDRS
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh")
-
-configure_file(common/aka_config.cc.in
-  "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc" @ONLY)
 
 list(APPEND AKANTU_LIBRARY_SRCS
   "${CMAKE_CURRENT_BINARY_DIR}/aka_config.cc")
