@@ -78,10 +78,20 @@ Real SolverVectorDistributed::dot(const SolverVector & y) const {
 /* -------------------------------------------------------------------------- */
 Real SolverVectorDistributed::normFreeDOFs() const {
 
-  auto sum = this->SolverVectorDefault::normFreeDOFs();
+  this->dof_manager.updateGlobalBlockedDofs();
+  const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
+
+  Real sum = 0.;
+  for (auto [d, c, a] : enumerate(blocked_dofs, this->vector)) {
+    bool is_local_node = this->dof_manager.isLocalOrMasterDOF(d);
+    bool is_blocked_dof = c;
+    if ((!is_blocked_dof) && is_local_node) {
+      sum += a * a;
+    }
+  }
   auto & synchronizer = dof_manager.getSynchronizer();
   synchronizer.getCommunicator().allReduce(sum, SynchronizerOperation::_sum);
-  return sum;
+  return std::sqrt(sum);
 }
 /* -------------------------------------------------------------------------- */
 void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
