@@ -41,7 +41,7 @@ namespace akantu { // namespace akantu
 inline Int PhaseField::getNbData(const Array<Element> & elements,
                                  const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_pfm_damage) {
-    return (spatial_dimension + 1) * Int(sizeof(Real)) *
+    return (spatial_dimension + 2) * Int(sizeof(Real)) *
            this->getHandler().getNbIntegrationPoints(elements);
   }
   return 0;
@@ -55,6 +55,7 @@ inline void PhaseField::packData(CommunicationBuffer & buffer,
   if (tag == SynchronizationTag::_pfm_damage) {
     packInternalFieldHelper(driving_force, buffer, elements);
     packInternalFieldHelper(driving_energy, buffer, elements);
+    packInternalFieldHelper(damage_on_qpoints, buffer, elements);
   }
 }
 
@@ -65,6 +66,7 @@ inline void PhaseField::unpackData(CommunicationBuffer & buffer,
   if (tag == SynchronizationTag::_pfm_damage) {
     unpackInternalFieldHelper(driving_force, buffer, elements);
     unpackInternalFieldHelper(driving_energy, buffer, elements);
+    unpackInternalFieldHelper(damage_on_qpoints, buffer, elements);
   }
 }
 } // namespace akantu

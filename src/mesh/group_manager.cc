@@ -264,7 +264,7 @@ public:
 
     /// generate pairs global array
     auto local_pair_index =
-        std::accumulate(nb_pairs.begin(), nb_pairs.end() + rank, 0);
+        std::accumulate(nb_pairs.begin(), nb_pairs.begin() + rank, 0);
 
     Array<Int> total_pairs(total_nb_pairs, 2);
 
