@@ -63,13 +63,13 @@ if (Git_FOUND)
   execute_process(
     COMMAND ${GIT_EXECUTABLE} ls-files
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    OUTPUT_VARIABLE _file_list
+    OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/_file_list_deps
     ERROR_QUIET
   )
 
-  separate_arguments(_file_list)
+  file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/_file_list_deps _file_list)
   foreach(_file ${_file_list})
-    if(NOT _file MATCHES ":") # Workaround for ci files
+    if(NOT _file MATCHES ":")
       list(APPEND _list_all_git_files "${PROJECT_SOURCE_DIR}/${_file}")
     endif()
   endforeach()
