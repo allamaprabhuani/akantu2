@@ -268,7 +268,9 @@ void register_fe_engine(py::module & mod) {
       .def("getShapesDerivatives", &FEEngine::getShapesDerivatives,
            py::arg("type"), py::arg("ghost_type") = _not_ghost,
            py::arg("id") = 0, py::return_value_policy::reference)
-      .def("getMesh", [](FEEngine & fem) -> Mesh & { return fem.getMesh(); });
+      .def(
+          "getMesh", [](FEEngine & fem) -> Mesh & { return fem.getMesh(); },
+          py::return_value_policy::reference);
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
