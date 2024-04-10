@@ -24,14 +24,14 @@
       --destination "registry.gitlab.com/akantu/akantu/${IMAGE_NAME}"
       --cache=true
       --cache-dir=${CI_PROJECT_DIR}/.kaniko_cache
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        compare_to: 'master'
-        paths:
-          - test/ci/${IMAGE_NAME}/*
-      when: manual
-      allow_failure: true
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#      changes:
+#        compare_to: 'master'
+#        paths:
+#          - test/ci/${IMAGE_NAME}/*
+#      when: manual
+#      allow_failure: true
 
 # ------------------------------------------------------------------------------
 .cache_build:
