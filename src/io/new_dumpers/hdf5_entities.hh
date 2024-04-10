@@ -22,7 +22,7 @@ namespace akantu {
 namespace dumper {
   namespace HDF5 {
     namespace {
-      template <class T> constexpr std::type_index TIDX(T x) {
+      template <class T> std::type_index TIDX(T x) {
         return std::type_index(typeid(x));
       }
 

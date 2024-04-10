@@ -77,7 +77,9 @@ namespace dumper {
     }
 
     [[nodiscard]] Int getNbNodes() const override { return mesh.getNbNodes(); }
-    [[nodiscard]] Int getNbLocalNodes() const { return mesh.getNbLocalNodes(); }
+    [[nodiscard]] Int getNbLocalNodes() const override {
+      return mesh.getNbLocalNodes();
+    }
     [[nodiscard]] Int getNbGlobalNodes() const override {
       return mesh.getNbGlobalNodes();
     }

@@ -15,7 +15,8 @@ namespace dumper {
         : type(type), ghost_type(ghost_type), function(function) {}
 
     [[nodiscard]] Int getNbComponent(Int nb_component) const {
-      if constexpr (details::has_getNbComponent_member<ElementFunction>) {
+      if constexpr (details::has_getNbComponent_member_per_type<
+                        ElementFunction>) {
         return function.getNbComponent(nb_component, type, ghost_type);
       } else {
         return nb_component;
@@ -23,7 +24,7 @@ namespace dumper {
     }
 
     [[nodiscard]] Int size(Int old_size) const {
-      if constexpr (details::has_size_member<ElementFunction>) {
+      if constexpr (details::has_size_member_per_type<ElementFunction>) {
         return function.size(old_size, type, ghost_type);
       } else {
         return old_size;

@@ -12,6 +12,8 @@ namespace dumper {
   namespace details {
     // primary template handles types that do not support pre-increment:
     template <class, class = void> constexpr bool has_getNbComponent_member{};
+    template <class, class = void>
+    constexpr bool has_getNbComponent_member_per_type{};
 
     // specialization recognizes types that do support pre-increment:
     template <class T>
@@ -19,12 +21,13 @@ namespace dumper {
         T, std::void_t<decltype(std::declval<T &>().getNbComponent(1))>> = true;
 
     template <class T>
-    constexpr bool has_getNbComponent_member<
+    constexpr bool has_getNbComponent_member_per_type<
         T, std::void_t<decltype(std::declval<T &>().getNbComponent(
                1, _not_defined, _casper))>> = true;
 
     /* ---------------------------------------------------------------------- */
     template <class, class = void> constexpr bool has_size_member{};
+    template <class, class = void> constexpr bool has_size_member_per_type{};
 
     template <class T>
     constexpr bool
@@ -32,9 +35,9 @@ namespace dumper {
             true;
 
     template <class T>
-    constexpr bool
-        has_size_member<T, std::void_t<decltype(std::declval<T &>().size(
-                               1, _not_defined, _casper))>> = true;
+    constexpr bool has_size_member_per_type<
+        T, std::void_t<decltype(std::declval<T &>().size(1, _not_defined,
+                                                         _casper))>> = true;
 
     /* ---------------------------------------------------------------------- */
     template <class, class = void>
