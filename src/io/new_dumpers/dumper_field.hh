@@ -172,7 +172,7 @@ namespace dumper {
       return this->array_in->getNbComponent();
     }
 
-    [[nodiscard]] const void * data() {
+    [[nodiscard]] const void * data() override {
       update();
       return array_out->data();
     }

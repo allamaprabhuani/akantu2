@@ -4,11 +4,14 @@ package_declare(HDF5 EXTERNAL
 
 # HDF5_IS_PARALLEL check in parallel if this is activated
 package_on_enabled_script(HDF5
-  "get_property(_vars DIRECTORY PROPERTY VARIABLES)
-  foreach(_var ${_vars})
-      message(\"${_var}: ${${_var}}\")
-  endforeach()"
+  "set(AKANTU_HDF5_IS_PARALLEL CACHE INTERNAL \${HDF5_IS_PARALLEL})"
 )
+
+if(AKANTU_HDF5_IS_PARALLEL)
+  package_add_dependencies(hdf5 PRIVATE parallel)
+else()
+  package_remove_dependencies(hdf5 parallel)
+endif()
 
 package_declare_sources(HDF5
   io/new_dumpers/dumper_file_base.hh

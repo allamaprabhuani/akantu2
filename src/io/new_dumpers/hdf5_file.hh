@@ -633,7 +633,7 @@ namespace dumper {
                                   std::to_string(err_desc->line) + "]")
                                : ""));
       return 0;
-    };
+    }
 
     static herr_t hdf5_error_handler(hid_t estack_id, void * client_data) {
       auto & file = *reinterpret_cast<H5File *>(client_data);

@@ -245,7 +245,7 @@ namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE {
                             Predicate>(FWD(container_begin), FWD(container_end),
                                        FWD(predicate));
   }
-}; // namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace iterators AKA_ITERATOR_EXPORT_NAMESPACE
 
 namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
   template <class filter_t, class Container> class FilterAdaptor {
@@ -313,7 +313,7 @@ namespace containers AKA_ITERATOR_EXPORT_NAMESPACE {
     Predicate predicate;
   };
 
-}; // namespace containers AKA_ITERATOR_EXPORT_NAMESPACE
+} // namespace containers AKA_ITERATOR_EXPORT_NAMESPACE
 
 template <class filter_t, class Container>
 auto filter(filter_t && filter, Container && container) -> decltype(auto) {

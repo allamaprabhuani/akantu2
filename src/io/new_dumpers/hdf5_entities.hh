@@ -154,17 +154,21 @@ namespace dumper {
         id = H5Pcreate(cls_id);
       }
 
+#if defined(AKANTU_USE_MPI)
       void setDxplMPIIO(H5FD_mpio_xfer_t xfer_mode) {
         H5Pset_dxpl_mpio(this->id, xfer_mode);
       }
+#endif
     };
 
     /* ---------------------------------------------------------------------- */
     struct FileAccessPropertyList : public PropertyList {
+#if defined(AKANTU_USE_MPI)
       MPI_Info file_info_template{MPI_INFO_NULL};
-
+#endif
       FileAccessPropertyList() : PropertyList(H5P_FILE_ACCESS) {}
 
+#if defined(AKANTU_USE_MPI)
       ~FileAccessPropertyList() override {
         if (file_info_template != MPI_INFO_NULL) {
           MPI_Info_free(&file_info_template);
@@ -188,6 +192,7 @@ namespace dumper {
         H5Pset_all_coll_metadata_ops(this->id, true);
         H5Pset_coll_metadata_write(this->id, true);
       }
+#endif
 
       void setLibverBounds(H5F_libver_t low = H5F_LIBVER_LATEST,
                            H5F_libver_t high = H5F_LIBVER_LATEST) {

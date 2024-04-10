@@ -127,7 +127,7 @@ namespace dumper {
               std::enable_if_t<std::is_integral_v<T> and
                                not std::is_same_v<T, bool>> * = nullptr>
     void addProperty(const std::string & property, const T & value) {
-      properties[property] = size_t(value);
+      properties[property] = integral_type(value);
     }
 
     template <class T,
