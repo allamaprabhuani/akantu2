@@ -1,18 +1,23 @@
 .docker_build:
-  image: "docker:26.0.0"
-  stage: .pre
-  services:
-    - docker:20.10.21-dind
-  variables:
-    # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  image:
+    name: gcr.io/kaniko-project/executor:v1.19.2-debug
+    entrypoint: [""]
   script:
-    - cd test/ci/${IMAGE_NAME}/
-    - docker build --no-cache -t registry.gitlab.com/akantu/akantu/${IMAGE_NAME} .
-    - docker push registry.gitlab.com/akantu/akantu/${IMAGE_NAME}
+    - |
+      cat > /kaniko/.docker/config.json << EOF
+      {
+        "auths": {
+          "${CI_REGISTRY}": {
+            "auth": "$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')"
+          }
+        }
+      }
+      EOF
+    - /kaniko/executor
+      --context "dir://${CI_PROJECT_DIR}/test/ci/${IMAGE_NAME}/"
+      --dockerfile "Dockerfile"
+      --destination "registry.gitlab.com/akantu/akantu/${IMAGE_NAME}"
+      --cache=true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
