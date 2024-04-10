@@ -1,4 +1,9 @@
 .docker_build:
+  cache:
+    - key: kaniko_cache
+      policy: pull-push
+      paths:
+        - .kaniko_cache
   image:
     name: gcr.io/kaniko-project/executor:v1.19.2-debug
     entrypoint: [""]
@@ -18,6 +23,7 @@
       --dockerfile "Dockerfile"
       --destination "registry.gitlab.com/akantu/akantu/${IMAGE_NAME}"
       --cache=true
+      --cache-dir=${CI_PROJECT_DIR}/.kaniko_cache
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:

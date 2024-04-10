@@ -23,6 +23,7 @@ spack:
       ~numpy ~pic ~program_options ~python ~random ~regex ~serialization ~shared ~signals
       ~singlethreaded ~system ~taggedlayout ~test ~thread ~timer ~wave
     - eigen
+    - hdf5 ~mpi +szip +threadsafe +hl
   packages:
     openssl:
       externals:
