@@ -1,5 +1,5 @@
 .docker_build:
-  image: "docker:20.10.21"
+  image: "docker:26.0.0"
   stage: .pre
   services:
     - docker:20.10.21-dind
