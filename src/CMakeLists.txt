@@ -65,14 +65,17 @@ if (Git_FOUND)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/_file_list_deps
     ERROR_QUIET
+    RESULTS_VARIABLE _res
   )
 
-  file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/_file_list_deps _file_list)
-  foreach(_file ${_file_list})
-    if(NOT _file MATCHES ":")
-      list(APPEND _list_all_git_files "${PROJECT_SOURCE_DIR}/${_file}")
-    endif()
-  endforeach()
+  if(_res EQUAL 0)
+    file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/_file_list_deps _file_list)
+    foreach(_file ${_file_list})
+      if(NOT _file MATCHES ":")
+        list(APPEND _list_all_git_files "${PROJECT_SOURCE_DIR}/${_file}")
+      endif()
+    endforeach()
+  endif()
 endif()
 
 list(LENGTH _list_all_git_files _nb_files)

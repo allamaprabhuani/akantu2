@@ -10,14 +10,18 @@ if (Git_FOUND)
     WORKING_DIRECTORY ${CURRENT_WORKDIR}
     OUTPUT_FILE ${CURRENT_WORKDIR}/git_patch
     ERROR_QUIET
+    RESULTS_VARIABLE _res
   )
-  file(STRINGS ${CURRENT_WORKDIR}/git_patch _res)
-  set(_res_escaped)
-  foreach(str ${_res})
-    list(APPEND _res_escaped "R\"foo(${str})foo\"")
-  endforeach()
-  string(REPLACE ";" ",\n  " _res_escaped "${_res_escaped}")
-  set(AKANTU_DIRTY_PATCH "${_res_escaped}")
+
+  if(_res EQUAL 0)
+    file(STRINGS ${CURRENT_WORKDIR}/git_patch _res)
+    set(_res_escaped)
+    foreach(str ${_res})
+      list(APPEND _res_escaped "R\"foo(${str})foo\"")
+    endforeach()
+    string(REPLACE ";" ",\n  " _res_escaped "${_res_escaped}")
+    set(AKANTU_DIRTY_PATCH "${_res_escaped}")
+  endif()
 endif()
 
 set(AKANTU_MAJOR_VERSION "@AKANTU_MAJOR_VERSION@")
