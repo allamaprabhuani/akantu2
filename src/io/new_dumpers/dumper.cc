@@ -82,6 +82,23 @@ void Dumper::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
+void Dumper::read() {
+  namespace fs = std::filesystem;
+
+  // OAreadInternal();
+
+  for (auto && [_, field] : support.getFields()) {
+    field->back_propagate();
+  }
+
+  for (auto && [_, sub_support] : support.getSubSupports()) {
+    for (auto && [_, field] : sub_support->getFields()) {
+      field->back_propagate();
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void Dumper::setDirectory(const std::string & directory) {
   this->directory = directory;
 }
@@ -95,5 +112,7 @@ void Dumper::setBaseName(const std::string & basename) {
 bool dumper::toVTKConnectivity::write_reorder_initialized = false;
 std::map<ElementType, Vector<Idx>> dumper::toVTKConnectivity::write_reorder;
 /* -------------------------------------------------------------------------- */
-
+bool dumper::toAkantuConnectivity::write_reorder_initialized = false;
+std::map<ElementType, Vector<Idx>> dumper::toAkantuConnectivity::write_reorder;
+/* -------------------------------------------------------------------------- */
 } // namespace akantu

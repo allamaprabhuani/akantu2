@@ -57,13 +57,27 @@ namespace dumper {
   namespace {
     std::string_view xdmf_type(const ElementType & type) {
       static const std::map<ElementType, std::string_view> element_map{
-          {_point_1, "Polyvertex"},      {_segment_2, "Polyline"},
-          {_segment_3, "Polyline"},      {_triangle_3, "Triangle"},
-          {_triangle_6, "Tri_6"},        {_quadrangle_4, "Quadrilateral"},
-          {_quadrangle_8, "Quad_8"},     {_tetrahedron_4, "Tetrahedron"},
-          {_tetrahedron_10, "Tet_10"},   {_hexahedron_20, "Hex_20"},
-          {_hexahedron_8, "Hexahedron"}, {_pentahedron_6, "Wedge"},
-          {_pentahedron_15, "Wedge_15"}};
+          {_point_1, "Polyvertex"},
+          {_segment_2, "Polyline"},
+          {_segment_3, "Polyline"},
+          {_triangle_3, "Triangle"},
+          {_triangle_6, "Tri_6"},
+          {_quadrangle_4, "Quadrilateral"},
+          {_quadrangle_8, "Quad_8"},
+          {_tetrahedron_4, "Tetrahedron"},
+          {_tetrahedron_10, "Tet_10"},
+          {_hexahedron_20, "Hex_20"},
+          {_hexahedron_8, "Hexahedron"},
+          {_pentahedron_6, "Wedge"},
+          {_pentahedron_15, "Wedge_15"},
+          {_cohesive_1d_2, "Polyline"},
+          {_cohesive_2d_4, "Quadrilateral"},
+          {_cohesive_2d_6, "Polygon"},
+          {_cohesive_3d_6, "Wedge"},
+          {_cohesive_3d_8, "Hexahedron"},
+          //{_cohesive_3d_12, "Polyhedron"},
+          //{_cohesive_3d_16, "Polyhedron"},
+      };
 
       return element_map.at(type);
     }

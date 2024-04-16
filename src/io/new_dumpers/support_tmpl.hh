@@ -56,7 +56,8 @@ namespace dumper {
 
       this->positions = make_field(mesh.getNodes(), *this);
       this->connectivities =
-          make_field(mesh.getConnectivities(), *this, toVTKConnectivity(mesh));
+          make_field(mesh.getConnectivities(), *this, toVTKConnectivity(mesh),
+                     toAkantuConnectivity(mesh));
 
       positions->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");

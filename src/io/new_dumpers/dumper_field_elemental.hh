@@ -42,39 +42,51 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
+  template <class T, class Function, class ReverseFunction>
   class FieldFunctionElementalArray
       : public FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>,
+                                  ElementTypeMapArrayFunctor<ReverseFunction>,
                                   FieldElementalArrayBase> {
+    using parent =
+        FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>,
+                           ElementTypeMapArrayFunctor<ReverseFunction>,
+                           FieldElementalArrayBase>;
+
   public:
     FieldFunctionElementalArray(
         const std::shared_ptr<
             FieldArrayTemplateBase<T, FieldElementalArrayBase>> & array_in,
-        const SupportBase & support, Function && function, // NOLINT
-        const ElementType & type, const GhostType & ghost_type)
-        : FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>,
-                             FieldElementalArrayBase>(
-              array_in, support,
-              ElementTypeMapArrayFunctor<Function>(
-                  type, ghost_type, std::forward<Function>(function)),
-              type, ghost_type) {
+        const SupportBase & support, Function && function,
+        ReverseFunction && reverse_function, const ElementType & type,
+        const GhostType & ghost_type)
+        : parent(array_in, support,
+                 ElementTypeMapArrayFunctor<Function>(
+                     type, ghost_type, std::forward<Function>(function)),
+                 ElementTypeMapArrayFunctor<ReverseFunction>(
+                     type, ghost_type,
+                     std::forward<ReverseFunction>(reverse_function)),
+                 type, ghost_type) {
       this->update();
     }
 
     FieldFunctionElementalArray(const Array<T> & array_in,
                                 const SupportBase & support,
-                                Function && function, // NOLINT
+                                Function && function,
+                                ReverseFunction && reverse_function,
                                 const ElementType & type,
                                 const GhostType & ghost_type)
-        : FieldFunctionArray<T, ElementTypeMapArrayFunctor<Function>>(
-              array_in, support,
-              ElementTypeMapArrayFunctor<Function>(
-                  type, ghost_type, std::forward<Function>(function)),
-              type, ghost_type) {
+        : parent(array_in, support,
+                 ElementTypeMapArrayFunctor<Function>(
+                     type, ghost_type, std::forward<Function>(function)),
+                 ElementTypeMapArrayFunctor<ReverseFunction>(
+                     type, ghost_type,
+                     std::forward<ReverseFunction>(reverse_function)),
+                 type, ghost_type) {
       this->update();
     }
   };
 
+  /* ------------------------------------------------------------------------ */
   /* ------------------------------------------------------------------------ */
   class FieldElementMapArrayBase : public FieldBase {
   public:
@@ -214,7 +226,7 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
+  template <class T, class Function, class ReverseFunction>
   class FieldFunctionElementMapArray
       : public FieldElementMapArrayTemplateBase<
             details::function_with_type_return_scalar_t<T, Function>> {
@@ -224,13 +236,14 @@ namespace dumper {
     FieldFunctionElementMapArray(
         const std::shared_ptr<FieldElementMapArrayTemplateBase<T>> &
             map_array_in,
-        const SupportBase & support,
-        Function && function, // NOLINT
+        const SupportBase & support, Function && function,
+        ReverseFunction && reverse_function,
         FieldType field_type = FieldType::_element_map_array,
         bool create_fields = true)
         : FieldElementMapArrayTemplateBase<OutT>(support, typeid(T),
                                                  field_type),
           function(std::forward<Function>(function)),
+          reverse_function(std::forward<ReverseFunction>(reverse_function)),
           map_array_in(map_array_in) {
       if (create_fields) {
         createByTypesFields();
@@ -242,19 +255,22 @@ namespace dumper {
                   std::decay_t<ElementTypeMapArray_>>> * = nullptr>
     FieldFunctionElementMapArray(
         ElementTypeMapArray_ && map_array_in, const SupportBase & support,
-        Function && function, // NOLINT
+        Function && function, ReverseFunction && reverse_function,
         FieldType field_type = FieldType::_element_map_array,
         bool create_fields = true)
         : FieldFunctionElementMapArray(
               make_field(std::forward<ElementTypeMapArray_>(map_array_in),
                          support),
-              support, std::forward<Function>(function), field_type,
+              support, std::forward<Function>(function),
+              std::forward<ReverseFunction>(reverse_function), field_type,
               create_fields) {}
 
     [[nodiscard]] decltype(auto) arrayTyped(ElementType type,
                                             GhostType ghost_type) const {
-      return (aka::as_type<FieldFunctionElementalArray<T, decltype(function)>>(
-          this->array(type, ghost_type)));
+      return (
+          aka::as_type<FieldFunctionElementalArray<T, decltype(function),
+                                                   decltype(reverse_function)>>(
+              this->array(type, ghost_type)));
     }
 
     [[nodiscard]] Release getRelease() const override {
@@ -270,10 +286,11 @@ namespace dumper {
             name += ":" + std::to_string(ghost_type);
           }
 
-          auto field = std::make_shared<
-              FieldFunctionElementalArray<T, const Function &>>(
+          auto field = std::make_shared<FieldFunctionElementalArray<
+              T, const Function &, const ReverseFunction &>>(
               map_array_in->arrayTyped(type, ghost_type).getSharedPointer(),
-              this->getSupport(), this->function, type, ghost_type);
+              this->getSupport(), this->function, this->reverse_function, type,
+              ghost_type);
           field->addProperty("name", name);
           this->fields.emplace(std::pair(type, ghost_type), std::move(field));
         }
@@ -282,6 +299,7 @@ namespace dumper {
 
   protected:
     Function function;
+    ReverseFunction reverse_function;
     std::shared_ptr<FieldElementMapArrayTemplateBase<T>> map_array_in;
   };
 
@@ -295,16 +313,18 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
+  template <class T, class Function, class ReverseFunction>
   class FieldFunctionInternalField
-      : public FieldFunctionElementMapArray<T, Function> {
-    using parent = FieldFunctionElementMapArray<T, Function>;
+      : public FieldFunctionElementMapArray<T, Function, ReverseFunction> {
+    using parent = FieldFunctionElementMapArray<T, Function, ReverseFunction>;
 
   public:
     FieldFunctionInternalField(InternalField<T> & map_array_in,
                                const SupportBase & support,
-                               Function && function) // NOLINT
+                               Function && function,
+                               ReverseFunction && reverse_function)
         : parent(map_array_in, support, std::forward<Function>(function),
+                 std::forward<ReverseFunction>(reverse_function),
                  FieldType::_internal_field, false) {
       createByTypesFields();
     }
@@ -370,24 +390,31 @@ namespace dumper {
   }
 
   /* ------------------------------------------------------------------------ */
-  template <class Function, class ElementTypeMapArray_,
+  template <class Function, class ReverseFunction = NoOpFunction,
+            class ElementTypeMapArray_,
             std::enable_if_t<dumper::details::is_element_type_map_array_v<
                 std::decay_t<ElementTypeMapArray_>>> * = nullptr>
   auto make_field(ElementTypeMapArray_ && array, const SupportBase & support,
-                  Function && function) {
+                  Function && function,
+                  ReverseFunction && reverse_function = NoOpFunction()) {
     using T = typename std::decay_t<ElementTypeMapArray_>::value_type;
-    return std::make_shared<FieldFunctionElementMapArray<T, Function>>(
+    return std::make_shared<
+        FieldFunctionElementMapArray<T, Function, ReverseFunction>>(
         std::forward<ElementTypeMapArray_>(array), support,
-        std::forward<Function>(function));
+        std::forward<Function>(function),
+        std::forward<ReverseFunction>(reverse_function));
   }
 
   /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
+  template <typename T, class Function, class ReverseFunction = NoOpFunction>
   auto
   make_field(const std::shared_ptr<FieldElementMapArrayTemplateBase<T>> & array,
-             const SupportBase & support, Function && function) {
-    return std::make_shared<FieldFunctionElementMapArray<T, Function>>(
-        array, support, std::forward<Function>(function));
+             const SupportBase & support, Function && function,
+             ReverseFunction && reverse_function = NoOpFunction()) {
+    return std::make_shared<
+        FieldFunctionElementMapArray<T, Function, ReverseFunction>>(
+        array, support, std::forward<Function>(function),
+        std::forward<ReverseFunction>(reverse_function));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -397,11 +424,14 @@ namespace dumper {
   }
 
   /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
+  template <typename T, class Function, class ReverseFunction = NoOpFunction>
   auto make_field(InternalField<T> & array, const SupportBase & support,
-                  Function && function) {
-    return std::make_shared<FieldFunctionInternalField<T, Function>>(
-        array, support, std::forward<Function>(function));
+                  Function && function,
+                  ReverseFunction && reverse_function = NoOpFunction()) {
+    return std::make_shared<
+        FieldFunctionInternalField<T, Function, ReverseFunction>>(
+        array, support, std::forward<Function>(function),
+        std::forward<ReverseFunction>(reverse_function));
   }
 
 } // namespace dumper

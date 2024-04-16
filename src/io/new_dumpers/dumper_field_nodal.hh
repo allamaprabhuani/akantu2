@@ -27,23 +27,29 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function>
+  template <class T, class Function, class ReverseFunction>
   class FieldFunctionNodalArray
-      : public FieldFunctionArray<T, Function, FieldNodalArrayBase> {
+      : public FieldFunctionArray<T, Function, ReverseFunction,
+                                  FieldNodalArrayBase> {
+    using parent =
+        FieldFunctionArray<T, Function, ReverseFunction, FieldNodalArrayBase>;
+
   public:
     FieldFunctionNodalArray(
         const std::shared_ptr<FieldArrayTemplateBase<T, FieldNodalArrayBase>> &
             array_in,
-        const SupportBase & support, Function && function) // NOLINT
-        : FieldFunctionArray<T, Function, FieldNodalArrayBase>(
-              array_in, support, std::forward<Function>(function)) {
+        const SupportBase & support, Function && function,
+        ReverseFunction && reverse_function) // NOLINT
+        : parent(array_in, support, std::forward<Function>(function),
+                 std::forward<ReverseFunction>(reverse_function)) {
       this->update();
     }
 
     FieldFunctionNodalArray(const Array<T> & array_in,
-                            const SupportBase & support, Function && function)
-        : FieldFunctionArray<T, Function, FieldNodalArrayBase>(
-              array_in, support, std::forward<Function>(function)) {
+                            const SupportBase & support, Function && function,
+                            ReverseFunction && reverse_function)
+        : parent(array_in, support, std::forward<Function>(function),
+                 std::forward<ReverseFunction>(reverse_function)) {
       this->update();
     }
   };
@@ -58,23 +64,29 @@ namespace dumper {
   }
 
   /* ------------------------------------------------------------------------ */
-  template <class Function, class Array_,
+  template <class Array_, class Function, class ReverseFunction = NoOpFunction,
             std::enable_if_t<
                 dumper::details::is_array_v<std::decay_t<Array_>>> * = nullptr>
   auto make_field(Array_ && array, const SupportBase & support,
-                  Function && function) {
+                  Function && function,
+                  ReverseFunction && reverse_function = NoOpFunction()) {
     using T = typename std::decay_t<Array_>::value_type;
-    return std::make_shared<FieldFunctionNodalArray<T, Function>>(
-        std::forward<Array_>(array), support, std::forward<Function>(function));
+    return std::make_shared<
+        FieldFunctionNodalArray<T, Function, ReverseFunction>>(
+        std::forward<Array_>(array), support, std::forward<Function>(function),
+        std::forward<ReverseFunction>(reverse_function));
   }
 
   /* ------------------------------------------------------------------------ */
-  template <typename T, class Function>
+  template <typename T, class Function, class ReverseFunction = NoOpFunction>
   auto make_field(const std::shared_ptr<
                       FieldArrayTemplateBase<T, FieldNodalArrayBase>> & array,
-                  const SupportBase & support, Function && function) {
-    return std::make_shared<FieldFunctionNodalArray<T, Function>>(
-        array, support, std::forward<Function>(function));
+                  const SupportBase & support, Function && function,
+                  ReverseFunction && reverse_function = NoOpFunction()) {
+    return std::make_shared<
+        FieldFunctionNodalArray<T, Function, ReverseFunction>>(
+        array, support, std::forward<Function>(function),
+        std::forward<ReverseFunction>(reverse_function));
   }
 
 } // namespace dumper

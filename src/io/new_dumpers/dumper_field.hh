@@ -81,7 +81,11 @@ namespace dumper {
              this->is_quadrature_points_field();
     }
 
+    // for compute fields to apply the computation
     virtual void update() {}
+
+    // for compute fields to apply the reverse computation
+    virtual void back_propagate() {}
 
   protected:
     void setFieldType(FieldType type) { field_type = type; }
@@ -143,7 +147,6 @@ namespace dumper {
       return array.getNbComponent();
     }
 
-    //[[nodiscard]] const Array<T> & getArray() const override { return array; }
     [[nodiscard]] const Array<T> & getArray() override { return array; }
 
   private:
@@ -215,27 +218,42 @@ namespace dumper {
   };
 
   /* ------------------------------------------------------------------------ */
-  template <class T, class Function, class Base = FieldArrayBase>
+  struct NoOpFunction {
+    template <class T> decltype(auto) operator()(const T & t) { return t; }
+    template <class T>
+    decltype(auto) operator()(const T & t, ElementType /*type*/,
+                              GhostType /*ghost_type*/) const {
+      return t;
+    }
+  };
+  /* ------------------------------------------------------------------------ */
+  template <class T, class Function, class ReverseFunction,
+            class Base = FieldArrayBase>
   class FieldFunctionArray
       : public FieldComputeArray<
             T, details::function_return_scalar_t<T, Function>, Base> {
     using OutT = details::function_return_scalar_t<T, Function>;
-
     using parent = FieldComputeArray<T, OutT, Base>;
 
   public:
     template <class... Args>
     FieldFunctionArray(
         const std::shared_ptr<FieldArrayTemplateBase<T, Base>> & array_in,
-        const SupportBase & support, Function && function, Args &&... args)
+        const SupportBase & support, Function && function,
+        ReverseFunction && reverse_function, Args &&... args)
         : parent(array_in, support, std::forward<decltype(args)>(args)...),
-          function(std::forward<decltype(function)>(function)) {}
+          function(std::forward<decltype(function)>(function)),
+          reverse_function(
+              std::forward<decltype(reverse_function)>(reverse_function)) {}
 
     template <class... Args>
     FieldFunctionArray(const Array<T> & array_in, const SupportBase & support,
-                       Function && function, Args &&... args)
+                       Function && function,
+                       ReverseFunction && reverse_function, Args &&... args)
         : parent(array_in, support, std::forward<decltype(args)>(args)...),
-          function(std::forward<decltype(function)>(function)) {}
+          function(std::forward<decltype(function)>(function)),
+          reverse_function(
+              std::forward<decltype(reverse_function)>(reverse_function)) {}
 
     [[nodiscard]] Int getNbComponent() const override {
       if constexpr (details::has_getNbComponent_member<Function>) {
@@ -258,6 +276,7 @@ namespace dumper {
 
   private:
     Function function;
+    ReverseFunction reverse_function;
   };
 
 } // namespace dumper
