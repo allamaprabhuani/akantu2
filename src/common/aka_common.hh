@@ -126,9 +126,7 @@ enum EventHandlerPriority {
 // clang-format on
 
 /// enum ModelType defines which type of physics is solved
-AKANTU_CLASS_ENUM_DECLARE(ModelType, AKANTU_MODEL_TYPES)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
-AKANTU_CLASS_ENUM_INPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
+AKANTU_CLASS_ENUM_DECLARE_W_IO(ModelType, AKANTU_MODEL_TYPES)
 #else
 enum class ModelType {
   model,
@@ -167,10 +165,7 @@ enum DOFSupportType { _dst_nodal, _dst_generic };
   (newton_raphson_contact)                                             \
   (auto)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(NonLinearSolverType, AKANTU_NON_LINEAR_SOLVER_TYPES)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(NonLinearSolverType,
-                                AKANTU_NON_LINEAR_SOLVER_TYPES)
-AKANTU_CLASS_ENUM_INPUT_STREAM(NonLinearSolverType,
+AKANTU_CLASS_ENUM_DECLARE_W_IO(NonLinearSolverType,
                                AKANTU_NON_LINEAR_SOLVER_TYPES)
 #else
 /// Type of non linear resolution available in akantu
@@ -197,10 +192,7 @@ enum class NonLinearSolverType {
   (dynamic_lumped)                                                     \
   (not_defined)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(TimeStepSolverType,
-                                AKANTU_TIME_STEP_SOLVER_TYPE)
-AKANTU_CLASS_ENUM_INPUT_STREAM(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE)
+AKANTU_CLASS_ENUM_DECLARE_W_IO(TimeStepSolverType, AKANTU_TIME_STEP_SOLVER_TYPE)
 #else
 /// Type of time stepping solver
 enum class TimeStepSolverType {
@@ -225,10 +217,7 @@ enum class TimeStepSolverType {
   (newmark_beta)                                                       \
   (generalized_trapezoidal)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(IntegrationSchemeType, AKANTU_INTEGRATION_SCHEME_TYPE)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(IntegrationSchemeType,
-                                AKANTU_INTEGRATION_SCHEME_TYPE)
-AKANTU_CLASS_ENUM_INPUT_STREAM(IntegrationSchemeType,
+AKANTU_CLASS_ENUM_DECLARE_W_IO(IntegrationSchemeType,
                                AKANTU_INTEGRATION_SCHEME_TYPE)
 #else
 /// Type of integration scheme
@@ -255,11 +244,7 @@ enum class IntegrationSchemeType {
   (solution)                                    \
   (residual_mass_wgh)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(SolveConvergenceCriteria,
-                          AKANTU_SOLVE_CONVERGENCE_CRITERIA)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(SolveConvergenceCriteria,
-                                AKANTU_SOLVE_CONVERGENCE_CRITERIA)
-AKANTU_CLASS_ENUM_INPUT_STREAM(SolveConvergenceCriteria,
+AKANTU_CLASS_ENUM_DECLARE_W_IO(SolveConvergenceCriteria,
                                AKANTU_SOLVE_CONVERGENCE_CRITERIA)
 #else
 /// enum SolveConvergenceCriteria different convergence criteria
@@ -287,9 +272,7 @@ enum DetectionType { _explicit, _implicit };
   (stick)                                         \
   (slip)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(ContactState, AKANTU_CONTACT_STATE)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
-AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState, AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_DECLARE_W_IO(ContactState, AKANTU_CONTACT_STATE)
 #else
 /// @enum no contact or stick or slip state
 enum class ContactState {
@@ -347,8 +330,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (cf_incr)                                     \
   (solver_solution)
 // clang-format on
-AKANTU_CLASS_ENUM_DECLARE(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
+AKANTU_CLASS_ENUM_DECLARE_W_IO(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
 #else
 /// @enum SynchronizationTag type of synchronizations
 enum class SynchronizationTag {

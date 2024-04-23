@@ -287,4 +287,34 @@ namespace dumper {
 #include "dumper_field_nodal.hh"
 /* -------------------------------------------------------------------------- */
 
+namespace akantu {
+namespace dumper {
+  inline auto & field_cast(FieldBase & field,
+                           field_type_not_defined_t /*unused*/) {
+    AKANTU_EXCEPTION("There are no good reason to call this function");
+    return field;
+  }
+
+  inline auto & field_cast(FieldBase & field, field_type_array_t /*unused*/) {
+    return aka::as_type<FieldArrayBase>(field);
+  }
+  inline auto & field_cast(FieldBase & field,
+                           field_type_element_array_t /*unused*/) {
+    return aka::as_type<FieldElementalArrayBase>(field);
+  }
+  inline auto & field_cast(FieldBase & field,
+                           field_type_node_array_t /*unused*/) {
+    return aka::as_type<FieldNodalArrayBase>(field);
+  }
+  inline auto & field_cast(FieldBase & field,
+                           field_type_element_map_array_t /*unused*/) {
+    return aka::as_type<FieldElementMapArrayBase>(field);
+  }
+  inline auto & field_cast(FieldBase & field,
+                           field_type_internal_field_t /*unused*/) {
+    return aka::as_type<FieldElementMapArrayBase>(field);
+  }
+} // namespace dumper
+} // namespace akantu
+
 #endif /* AKANTU_DUMPER_FIELD_HH_ */

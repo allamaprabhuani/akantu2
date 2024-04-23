@@ -91,16 +91,28 @@ namespace dumper {
 
   AKANTU_CLASS_ENUM_DECLARE(FieldType, AKANTU_FIELD_TYPES)
 
+} // namespace dumper
+
+AKANTU_CLASS_ENUM_INPUT_STREAM(dumper::FieldType, AKANTU_FIELD_TYPES)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(dumper::FieldType, AKANTU_FIELD_TYPES)
+
+namespace dumper {
+
   namespace {
     template <FieldType t>
     using field_type_t = std::integral_constant<FieldType, t>;
 
 // creating a type instead of a using helps to debug
 #define AKANTU_DECLARE_FIELD_TYPES(r, data, ty)                                \
-  using BOOST_PP_CAT(_field_type_, ty) =                                       \
+  using BOOST_PP_CAT(BOOST_PP_CAT(field_type_, ty), _t) =                      \
       field_type_t<BOOST_PP_CAT(FieldType::_, ty)>;
     BOOST_PP_SEQ_FOR_EACH(AKANTU_DECLARE_FIELD_TYPES, _, AKANTU_FIELD_TYPES)
   } // namespace
+
+#define OP_CAT(s, data, ty) field_type_t<BOOST_PP_CAT(FieldType::_, ty)>
+  using AllFieldTypes = std::tuple<BOOST_PP_SEQ_ENUM(
+      BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_FIELD_TYPES))>;
+#undef OP_CAT
 
   /* ------------------------------------------------------------------------ */
   class PropertiesManager {

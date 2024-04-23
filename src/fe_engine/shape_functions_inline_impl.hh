@@ -23,8 +23,8 @@
 #include "shape_functions.hh"
 /* -------------------------------------------------------------------------- */
 
-//#ifndef AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
-//#define AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
+// #ifndef AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
+// #define AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -45,8 +45,8 @@ ShapeFunctions::getShapesDerivatives(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 inline Int ShapeFunctions::getShapeSize(ElementType type) {
   return tuple_dispatch<AllElementTypes>(
-      [&](auto && enum_type) {
-        constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
+      [&](auto enum_type) {
+        constexpr ElementType type = enum_type;
         return ElementClass<type>::getShapeSize();
       },
       type);
@@ -317,4 +317,4 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 } // namespace akantu
 
-//#endif /* AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_ */
+// #endif /* AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_ */

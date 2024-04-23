@@ -28,8 +28,8 @@
 namespace akantu {
 namespace details {
   template <class InputIt, class UnaryPredicate>
-  constexpr InputIt my_find_if(InputIt first, InputIt last,
-                               UnaryPredicate && p) {
+  [[gnu::visibility("hidden")]] constexpr InputIt
+  my_find_if(InputIt first, InputIt last, UnaryPredicate && p) {
     for (; first != last; ++first) {
       if (std::forward<UnaryPredicate>(p)(*first)) {
         return first;
@@ -43,7 +43,8 @@ namespace details {
   struct ConstexprMap {
     std::array<std::pair<Key, Value>, Size> data;
 
-    [[nodiscard]] constexpr Value at(const Key & key) const {
+    [[gnu::visibility("hidden")]] [[nodiscard]] constexpr Value
+    at(const Key & key) const {
       const auto it =
           my_find_if(data.begin(), data.end(),
                      [&key](const auto & val) { return val.first == key; });
@@ -55,7 +56,8 @@ namespace details {
       }
     }
 
-    [[nodiscard]] constexpr auto find(const Key & key) const {
+    [[gnu::visibility("hidden")]] [[nodiscard]] constexpr auto
+    find(const Key & key) const {
       const auto it =
           my_find_if(data.begin(), data.end(),
                      [&key](const auto & val) { return val.first == key; });
@@ -63,8 +65,12 @@ namespace details {
       return it;
     }
 
-    [[nodiscard]] constexpr auto begin() const { return data.begin(); }
-    [[nodiscard]] constexpr auto end() const { return data.end(); }
+    [[gnu::visibility("hidden")]] [[nodiscard]] constexpr auto begin() const {
+      return data.begin();
+    }
+    [[gnu::visibility("hidden")]] [[nodiscard]] constexpr auto end() const {
+      return data.end();
+    }
   };
 
   // magic_switch from

@@ -67,28 +67,10 @@ namespace dumper {
 
     /* ---------------------------------------------------------------------- */
     virtual void dump(FieldBase & field) {
-      using dumper::FieldType;
-      switch (field.getFieldType()) {
-      case FieldType::_array:
-        dump(aka::as_type<FieldArrayBase>(field));
-        break;
-      case FieldType::_element_array:
-        dump(aka::as_type<FieldElementalArrayBase>(field));
-        break;
-      case FieldType::_node_array:
-        dump(aka::as_type<FieldNodalArrayBase>(field));
-        break;
-      case FieldType::_element_map_array:
-        dump(aka::as_type<FieldElementMapArrayBase>(field));
-        break;
-      case FieldType::_internal_field:
-        dump(aka::as_type<FieldElementMapArrayBase>(field));
-        break;
-      case FieldType::_not_defined: /* FALLTHRU */
-      default:
-        AKANTU_EXCEPTION("The field type is not properly defined");
-        break;
-      }
+      tuple_dispatch_with_default<AllFieldTypes>(
+          [&](auto field_type) { this->dump(field_cast(field, field_type)); },
+          field.getFieldType(),
+          [&](auto /*field_type*/) { AKANTU_TO_IMPLEMENT(); });
     }
 
   public:

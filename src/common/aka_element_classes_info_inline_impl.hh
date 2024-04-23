@@ -207,11 +207,10 @@ namespace details {
 #if !defined(AKANTU_CAN_COMPILE_CONSTEXPR_MAP)
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto)
-  static_switch_dispatch(const AllSpatialDimensions &, Function && function,
-                         const DynamicType & type,
-                         DefaultFunction && default_function,
-                         std::index_sequence<Is...> /*is*/) {
+  constexpr decltype(auto) [[gnu::visibility("hidden")]] static_switch_dispatch(
+      const AllSpatialDimensions &, Function && function,
+      const DynamicType & type, DefaultFunction && default_function,
+      std::index_sequence<Is...> /*is*/) {
     switch (type) {
     case 1: {
       return function(dim_1_t{});
@@ -233,7 +232,7 @@ namespace details {
   return default_function(type)
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto) static_switch_dispatch(
+  [[gnu::visibility("hidden")]] constexpr decltype(auto) static_switch_dispatch(
       const AllElementTypes &, Function && function, const DynamicType & type,
       DefaultFunction && default_function, std::index_sequence<Is...> /*is*/) {
 
@@ -244,7 +243,7 @@ namespace details {
 
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto)
+  [[gnu::visibility("hidden")]] constexpr decltype(auto)
   static_switch_dispatch(const ElementTypes_t<_ek_regular> &,
                          Function && function, const DynamicType & type,
                          DefaultFunction && default_function,
@@ -257,7 +256,7 @@ namespace details {
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto)
+  [[gnu::visibility("hidden")]] constexpr decltype(auto)
   static_switch_dispatch(const ElementTypes_t<_ek_structural> &,
                          Function && function, const DynamicType & type,
                          DefaultFunction && default_function,
@@ -272,7 +271,7 @@ namespace details {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto)
+  [[gnu::visibility("hidden")]] constexpr decltype(auto)
   static_switch_dispatch(const ElementTypes_t<_ek_cohesive> &,
                          Function && function, const DynamicType & type,
                          DefaultFunction && default_function,
@@ -284,7 +283,7 @@ namespace details {
 
   template <class Function, class DynamicType, class DefaultFunction,
             std::size_t... Is>
-  constexpr decltype(auto)
+  [[gnu::visibility("hidden")]] constexpr decltype(auto)
   static_switch_dispatch(const tuple::cat_t<ElementTypes_t<_ek_regular>,
                                             ElementTypes_t<_ek_cohesive>> &,
                          Function && function, const DynamicType & type,

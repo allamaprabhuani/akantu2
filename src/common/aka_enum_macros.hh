@@ -116,13 +116,23 @@
 #define AKANTU_CLASS_ENUM_OUTPUT_STREAM(type_name, list)                       \
   AKANTU_ENUM_OUTPUT_STREAM_(type_name, list, type_name::_)
 
-#define AKANTU_ENUM_OUTPUT_STREAM(type_name, list)                             \
-  AKANTU_ENUM_OUTPUT_STREAM_(type_name, list, )
-
 #define AKANTU_CLASS_ENUM_INPUT_STREAM(type_name, list)                        \
   AKANTU_ENUM_INPUT_STREAM_(type_name, list, type_name::_)
 
+#define AKANTU_ENUM_OUTPUT_STREAM(type_name, list)                             \
+  AKANTU_ENUM_OUTPUT_STREAM_(type_name, list, )
+
 #define AKANTU_ENUM_INPUT_STREAM(type_name, list)                              \
   AKANTU_ENUM_INPUT_STREAM_(type_name, list, )
+
+#define AKANTU_ENUM_DECLARE_W_IO(type_name, list)                              \
+  AKANTU_ENUM_DECLARE(type_name, list)                                         \
+  AKANTU_ENUM_OUTPUT_STREAM(type_name, list)                                   \
+  AKANTU_ENUM_INPUT_STREAM(type_name, list)
+
+#define AKANTU_CLASS_ENUM_DECLARE_W_IO(type_name, list)                        \
+  AKANTU_CLASS_ENUM_DECLARE(type_name, list)                                   \
+  AKANTU_CLASS_ENUM_OUTPUT_STREAM(type_name, list)                             \
+  AKANTU_CLASS_ENUM_INPUT_STREAM(type_name, list)
 
 #endif /* AKANTU_AKA_ENUM_MACROS_HH_ */
