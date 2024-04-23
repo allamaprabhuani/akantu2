@@ -85,7 +85,7 @@ void Dumper::dump() {
 void Dumper::read() {
   namespace fs = std::filesystem;
 
-  // OAreadInternal();
+  this->readInternal();
 
   for (auto && [_, field] : support.getFields()) {
     field->back_propagate();
@@ -110,9 +110,11 @@ void Dumper::setBaseName(const std::string & basename) {
 
 /* -------------------------------------------------------------------------- */
 bool dumper::toVTKConnectivity::write_reorder_initialized = false;
-std::map<ElementType, Vector<Idx>> dumper::toVTKConnectivity::write_reorder;
+std::map<ElementType, Eigen::PermutationMatrix<Eigen::Dynamic>>
+    dumper::toVTKConnectivity::write_reorder;
 /* -------------------------------------------------------------------------- */
 bool dumper::toAkantuConnectivity::write_reorder_initialized = false;
-std::map<ElementType, Vector<Idx>> dumper::toAkantuConnectivity::write_reorder;
+std::map<ElementType, Eigen::PermutationMatrix<Eigen::Dynamic>>
+    dumper::toAkantuConnectivity::write_reorder;
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

@@ -166,6 +166,23 @@ namespace dumper {
 
     auto filepath() const { return filepath_; }
 
+    bool isAkantuFile() {
+      auto && parent = *entities.back();
+      auto && group = std::make_unique<HDF5::Group>("metadata", parent);
+      if (not group->exists()) {
+        return false;
+      }
+
+      group->open();
+      auto && attribute = std::make_unique<HDF5::Attribute>("library", *group);
+      if (not attribute->exists()) {
+        return false;
+      }
+
+      auto value = attribute->read<std::string>();
+      return value == "akantu";
+    }
+
   protected:
     template <class T> void writeAttribute(std::string_view name, const T & t) {
       auto & group = *entities.back();
@@ -173,11 +190,15 @@ namespace dumper {
       attr.write(t);
     }
 
-    auto & openGroup(const std::string & path) {
-      auto & group = *entities.back();
+    auto & openGroup(const std::string & path, bool create_missing = true) {
+      auto & parent = *entities.back();
 
-      auto && new_group = std::make_unique<HDF5::Group>(path, group);
-      new_group->createOrOpen();
+      auto && new_group = std::make_unique<HDF5::Group>(path, parent);
+      if (create_missing) {
+        new_group->createOrOpen();
+      } else {
+        new_group->open();
+      }
 
       entities.push_back(std::move(new_group));
       return *entities.back();

@@ -3,8 +3,8 @@
 #include "support.hh"
 #include <type_traits>
 
-#ifndef AKANTU_DUMPER_INTERNAL_TYPES_H_
-#define AKANTU_DUMPER_INTERNAL_TYPES_H_
+#ifndef AKANTU_DUMPER_INTERNAL_TYPES_HH
+#define AKANTU_DUMPER_INTERNAL_TYPES_HH
 
 namespace akantu {
 namespace dumper {
@@ -98,4 +98,4 @@ namespace dumper {
 } // namespace dumper
 } // namespace akantu
 
-#endif // AKANTU_DUMPER_INTERNAL_TYPES_H_
+#endif // AKANTU_DUMPER_INTERNAL_TYPES_HH

@@ -27,8 +27,8 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "dumper_hdf5.hh"
 #include "dumper_file_base.hh"
+#include "dumper_hdf5.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_DUMPER_XDMF_HH__
@@ -42,7 +42,7 @@ public:
 
 protected:
   void dumpInternal() override;
-
+  void readInternal() override;
   std::unique_ptr<dumper::FileBase> xdmf;
 };
 

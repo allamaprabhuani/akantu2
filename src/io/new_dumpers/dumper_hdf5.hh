@@ -42,6 +42,7 @@ public:
 
 protected:
   void dumpInternal() override;
+  void readInternal() override;
 
   std::unique_ptr<dumper::FileBase> h5;
 };

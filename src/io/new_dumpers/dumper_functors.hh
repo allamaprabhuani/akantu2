@@ -3,8 +3,8 @@
 #include "dumper_internal_types.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_DUMPER_FUNCTORS_H_
-#define AKANTU_DUMPER_FUNCTORS_H_
+#ifndef AKANTU_DUMPER_FUNCTORS_HH
+#define AKANTU_DUMPER_FUNCTORS_HH
 
 namespace akantu {
 namespace dumper {
@@ -83,38 +83,38 @@ namespace dumper {
     toVTKConnectivity(const Mesh & mesh) : mesh(mesh) {
       if (not write_reorder_initialized) {
         for (auto type : element_types) {
-          Vector<Idx> reorder(Mesh::getNbNodesPerElement(type));
-          for (auto && [i, n] : enumerate(reorder)) {
-            n = i;
-          }
+          Eigen::PermutationMatrix<Eigen::Dynamic> P(
+              Mesh::getNbNodesPerElement(type));
+          P.setIdentity();
 
+          auto & perm = P.indices();
           switch (type) {
           case _cohesive_3d_12:
-            reorder << 0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11;
+            perm << 0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11;
             break;
           case _cohesive_2d_6:
-            reorder << 0, 2, 1, 4, 5, 3;
+            perm << 0, 2, 1, 4, 5, 3;
             break;
           case _cohesive_2d_4:
-            reorder << 0, 1, 3, 2;
+            perm << 0, 1, 3, 2;
             break;
           case _hexahedron_20:
-            reorder[12] = 16;
-            reorder[13] = 17;
-            reorder[14] = 18;
-            reorder[15] = 19;
-            reorder[16] = 12;
-            reorder[17] = 13;
-            reorder[18] = 14;
-            reorder[19] = 15;
+            perm[12] = 16;
+            perm[13] = 17;
+            perm[14] = 18;
+            perm[15] = 19;
+            perm[16] = 12;
+            perm[17] = 13;
+            perm[18] = 14;
+            perm[19] = 15;
             break;
           case _pentahedron_15:
-            reorder << 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 9, 10, 11;
+            perm << 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 9, 10, 11;
             break;
           default:
             break;
           }
-          write_reorder[type] = reorder;
+          write_reorder[type] = P;
         }
         write_reorder_initialized = true;
       }
@@ -123,18 +123,20 @@ namespace dumper {
     template <class Derived>
     Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & connectivity,
                            ElementType type, GhostType /*ghost_type*/) const {
-      Vector<Idx> new_connectivity(connectivity.size());
-      auto && reorder = write_reorder[type];
+      auto && P = write_reorder[type];
+      Vector<Idx> new_connectivity = P.transpose() * connectivity;
+
       // Rewriting to global connectivities
-      for (auto && [nc, c] : zip(new_connectivity, reorder)) {
-        nc = mesh.getNodeGlobalId(connectivity(c));
+      for (auto && nc : new_connectivity) {
+        nc = mesh.getNodeGlobalId(nc);
       }
       return new_connectivity;
     }
 
   private:
     const Mesh & mesh;
-    static std::map<ElementType, Vector<Idx>> write_reorder;
+    static std::map<ElementType, Eigen::PermutationMatrix<Eigen::Dynamic>>
+        write_reorder;
     static bool write_reorder_initialized;
   };
 
@@ -143,38 +145,39 @@ namespace dumper {
     toAkantuConnectivity(const Mesh & mesh) : mesh(mesh) {
       if (not write_reorder_initialized) {
         for (auto type : element_types) {
-          Vector<Idx> reorder(Mesh::getNbNodesPerElement(type));
-          for (auto && [i, n] : enumerate(reorder)) {
-            n = i;
-          }
+          Eigen::PermutationMatrix<Eigen::Dynamic> P(
+              Mesh::getNbNodesPerElement(type));
+          P.setIdentity();
+
+          auto & perm = P.indices();
 
           switch (type) {
           case _cohesive_2d_6:
-            reorder << 0, 2, 1, 4, 5, 3;
+            perm << 0, 2, 1, 4, 5, 3;
             break;
           case _cohesive_2d_4:
-            reorder << 0, 1, 3, 2;
+            perm << 0, 1, 3, 2;
             break;
           case _cohesive_3d_12:
-            reorder << 0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11;
+            perm << 0, 1, 2, 6, 7, 8, 3, 4, 5, 9, 10, 11;
             break;
           case _hexahedron_20:
-            reorder[12] = 16;
-            reorder[13] = 17;
-            reorder[14] = 18;
-            reorder[15] = 19;
-            reorder[16] = 12;
-            reorder[17] = 13;
-            reorder[18] = 14;
-            reorder[19] = 15;
+            perm[12] = 16;
+            perm[13] = 17;
+            perm[14] = 18;
+            perm[15] = 19;
+            perm[16] = 12;
+            perm[17] = 13;
+            perm[18] = 14;
+            perm[19] = 15;
             break;
           case _pentahedron_15:
-            reorder << 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 9, 10, 11;
+            perm << 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 9, 10, 11;
             break;
           default:
             break;
           }
-          write_reorder[type] = reorder;
+          write_reorder[type] = P;
         }
         write_reorder_initialized = true;
       }
@@ -183,18 +186,14 @@ namespace dumper {
     template <class Derived>
     Vector<Idx> operator()(const Eigen::MatrixBase<Derived> & connectivity,
                            ElementType type, GhostType /*ghost_type*/) const {
-      Vector<Idx> new_connectivity(connectivity.size());
-      auto && reorder = write_reorder[type];
-      // Rewriting to global connectivities
-      for (auto && [nc, c] : zip(new_connectivity, reorder)) {
-        nc = mesh.getNodeGlobalId(connectivity(c));
-      }
-      return new_connectivity;
+      auto && P = write_reorder[type];
+      return connectivity * P;
     }
 
   private:
     const Mesh & mesh;
-    static std::map<ElementType, Vector<Idx>> write_reorder;
+    static std::map<ElementType, Eigen::PermutationMatrix<Eigen::Dynamic>>
+        write_reorder;
     static bool write_reorder_initialized;
   };
 
@@ -240,4 +239,4 @@ namespace dumper {
 } // namespace dumper
 } // namespace akantu
 
-#endif // AKANTU_DUMPER_FUNCTORS_H_
+#endif // AKANTU_DUMPER_FUNCTORS_HH

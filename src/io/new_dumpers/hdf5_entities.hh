@@ -356,8 +356,123 @@ namespace dumper {
           : Entity<EntityType::_attribute>(location.path), location(location),
             name(name) {}
 
-      void open(hid_t aapl_id = H5P_DEFAULT) {
-        if (H5Aexists(location.id, name.data()) == 0) {
+      [[nodiscard]] bool exists() const {
+        return (H5Aexists(location.id, name.data()) > 0);
+      }
+
+    private:
+      template <class T> void read(T * data) {
+        if (this->id == H5I_INVALID_HID) {
+          open();
+        }
+
+        auto type_id_mem = datatype_id_mem(TIDX(T{}));
+
+        hid_t type_id = H5I_INVALID_HID, native_type_id;
+
+        auto class_id = H5Tget_class(type_id);
+        if (class_id == H5T_STRING) {
+          native_type_id = H5T_C_S1;
+        } else {
+          type_id = H5Aget_type(this->id);
+          native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT);
+        }
+
+        auto status = H5Tequal(native_type_id, type_id_mem);
+        if (status == 0) {
+          AKANTU_EXCEPTION("Cannot read the attribute "
+                           << location.path << "/" << name << " as type "
+                           << debug::demangle(typeid(T).name()));
+        }
+
+        H5Aread(this->id, native_type_id, data);
+
+        H5Tclose(native_type_id);
+        H5Tclose(type_id);
+      }
+
+      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      void write(T * data, hsize_t dim, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        auto type_id = datatype_id_file(TIDX(T{}));
+        auto space_id = H5Screate_simple(1, &dim, &dim);
+
+        create(type_id, space_id, acpl_id, aapl_id);
+
+        H5Awrite(this->id, type_id, data);
+      }
+
+    public:
+      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      void write(const T & t, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        write(&t, 1, acpl_id, aapl_id);
+      }
+
+      void write(std::string_view value, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        const char * str = value.data();
+        write(&str, 1, acpl_id, aapl_id);
+      }
+
+      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      void write(const std::vector<T> & t, hid_t acpl_id = H5P_DEFAULT,
+                 hid_t aapl_id = H5P_DEFAULT) {
+        write(t.data(), t.size(), acpl_id, aapl_id);
+      }
+
+      void write(const std::vector<std::string_view> & ts,
+                 hid_t acpl_id = H5P_DEFAULT, hid_t aapl_id = H5P_DEFAULT) {
+        std::vector<const char *> strs(ts.size());
+        for (auto && [str, t] : zip(strs, ts)) {
+          str = t.data();
+        }
+        write(strs, acpl_id, aapl_id);
+      }
+
+      template <class T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
+      T read() {
+        T t;
+        read(&t);
+        return t;
+      }
+
+      template <class T,
+                std::enable_if_t<std::is_same_v<T, std::string>> * = nullptr>
+      T read() {
+        std::string t;
+        read(t.data());
+        return t;
+      }
+
+      template <class T> void read(std::vector<T> & ts) {
+        open();
+        auto space_id = H5Aget_space(this->id);
+        auto ndims = H5Sget_simple_extent_ndims(space_id);
+        if (ndims != 1) {
+          AKANTU_EXCEPTION("Cannot read the attribute "
+                           << location.path << "/" << name
+                           << " the dimensions do not match");
+        }
+
+        hsize_t dim;
+        H5Sget_simple_extent_dims(space_id, &dim, 1);
+        ts.resize(dim);
+
+        if constexpr (std::is_same_v<T, std::string>) {
+          std::vector<const char *> strs(ts.size());
+          for (auto && [str, t] : zip(strs, ts)) {
+            str = t.data();
+          }
+          read(strs.data());
+        } else {
+          read(ts.data());
+        }
+      }
+
+    private:
+      auto open(hid_t aapl_id = H5P_DEFAULT) {
+        if (not exists()) {
           AKANTU_EXCEPTION("HDF5: Attribute: "
                            << name << " does not exists at location "
                            << location.path.generic_string());
@@ -374,46 +489,6 @@ namespace dumper {
 
         this->id = H5Acreate(location.id, name.c_str(), type_id, space_id,
                              acpl_id, aapl_id);
-      }
-
-      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
-      void write(const T & t, hid_t acpl_id = H5P_DEFAULT,
-                 hid_t aapl_id = H5P_DEFAULT) {
-        auto type_id = datatype_id_file(TIDX(t));
-        auto space_id = H5Screate(H5S_SCALAR);
-
-        create(type_id, space_id, acpl_id, aapl_id);
-
-        H5Awrite(this->id, type_id, &t);
-      }
-
-      void write(std::string_view value, hid_t acpl_id = H5P_DEFAULT,
-                 hid_t aapl_id = H5P_DEFAULT) {
-        const char * str = value.data();
-        write(str, acpl_id, aapl_id);
-      }
-
-      template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
-      void write(const std::vector<T> & t, hid_t acpl_id = H5P_DEFAULT,
-                 hid_t aapl_id = H5P_DEFAULT) {
-        auto type_id = datatype_id_file(TIDX(T{}));
-        std::array<hsize_t, 1> dims{t.size()};
-        auto space_id = H5Screate_simple(1, dims.data(), dims.data());
-
-        create(type_id, space_id, acpl_id, aapl_id);
-
-        H5Awrite(this->id, type_id, t.data());
-      }
-
-      void write(const std::vector<std::string_view> & ts,
-                 hid_t acpl_id = H5P_DEFAULT, hid_t aapl_id = H5P_DEFAULT) {
-        std::vector<const char *> strs(ts.size());
-
-        for (auto && [str, t] : zip(strs, ts)) {
-          str = t.data();
-        }
-
-        write(strs, acpl_id, aapl_id);
       }
     };
   } // namespace HDF5
