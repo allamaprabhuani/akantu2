@@ -69,6 +69,7 @@ int main(int argc, char * argv[]) {
   DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
   Array<Real> x(nb_nodes);
+  x.set(-1);
   dof_manager.registerDOFs("x", x, _dst_nodal);
 
   const auto & local_equation_number =
@@ -101,6 +102,7 @@ int main(int argc, char * argv[]) {
   dof_manager.assembleToResidual("x", b);
 
   solver.solve();
+  Array<Real> & y = dof_manager.getSolution("x");
 
   auto && check = [&](auto && xs) {
     debug::setDebugLevel(dblTest);
@@ -123,13 +125,13 @@ int main(int argc, char * argv[]) {
 
     if (prank == 0) {
       Array<Real> x_gathered(dof_manager.getSystemSize());
-      sync.gather(x, x_gathered);
+      sync.gather(y, x_gathered);
       check(x_gathered);
     } else {
       sync.gather(x);
     }
   } else {
-    check(x);
+    check(y);
   }
 
   finalize();
