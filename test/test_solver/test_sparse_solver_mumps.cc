@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
   }
 
   SparseSolverMumps solver(dof_manager, "A");
-  dof_manager.assembleToResidual("disp", b);
+  dof_manager.assembleToResidual("x", b);
 
   solver.solve();
 
