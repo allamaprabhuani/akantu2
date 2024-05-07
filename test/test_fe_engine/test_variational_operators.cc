@@ -139,8 +139,8 @@ TYPED_TEST(TestFEMFixture, evaluate_field_on_support) {
   NodalTensorField u("disp", support);
 
   Array<Real> u_d;
-  u.eval(u_d); // u evaluated on quadrature points of the support
-  std::cout << u_d << std::endl;
+  // u.eval(u_d); // u evaluated on quadrature points of the support
+  // std::cout << u_d << std::endl;
 }
 
 TYPED_TEST(TestFEMFixture, consistent_force) {
@@ -152,8 +152,8 @@ TYPED_TEST(TestFEMFixture, consistent_force) {
   GradientOperator grad{support};
   IntegrationPointTensorField stress("stress", support);
 
-  auto f = FieldIntegrator::integrate(stress * grad, support);
-  std::cout << f << std::endl;
+  // auto f = FieldIntegrator::integrate(stress * grad, support);
+  // std::cout << f << std::endl;
 }
 
 TYPED_TEST(TestFEMFixture, stiffness_matrix) {
@@ -165,7 +165,7 @@ TYPED_TEST(TestFEMFixture, stiffness_matrix) {
   GradientOperator grad{support};
   IntegrationPointTensorField elastic_tensor("C", support);
 
-  auto f = FieldIntegrator::integrate(grad.transpose() * elastic_tensor * grad,
-                                      support);
-  std::cout << f << std::endl;
+  // auto f = FieldIntegrator::integrate(grad.transpose() * elastic_tensor *
+  // grad, support);
+  // std::cout << f << std::endl;
 }
