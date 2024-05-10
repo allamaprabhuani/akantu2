@@ -29,12 +29,12 @@
 
 namespace akantu {
 
-std::pair<Int, Int> GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
-  if (mesh.getCommunicator().getNbProc() == 1) {
-    return local_nb_new_nodes;
-  }
+std::pair<Int, Int> GlobalIdsUpdater::updateGlobalIDs() {
+  // if (mesh.getCommunicator().getNbProc() == 1) {
+  //   return {local_nb_new_nodes, };
+  // }
 
-  auto total_nb_new_nodes = this->updateGlobalIDsLocally(local_nb_new_nodes);
+  auto && [total_nb_new_nodes, total_nb_new_elements] = this->updateGlobalIDsLocally();
 
   if (mesh.isDistributed()) {
     this->synchronizeGlobalIDs();
@@ -42,59 +42,8 @@ std::pair<Int, Int> GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
   return {total_nb_new_nodes, total_nb_new_elements};
 }
 
-Int GlobalIdsUpdater::updateGlobalIDsLocally(Int local_nb_new_nodes) {
-  const auto & comm = mesh.getCommunicator();
-  auto nb_proc = comm.getNbProc();
-  if (nb_proc == 1) {
-    return local_nb_new_nodes;
-  }
-
-  /// resize global ids array
-  MeshAccessor mesh_accessor(mesh);
-  auto && nodes_global_ids = mesh_accessor.getNodesGlobalIds();
-  auto old_nb_nodes = mesh.getNbNodes() - local_nb_new_nodes;
-
-  nodes_global_ids.resize(mesh.getNbNodes(), -1);
-
-  auto && local_or_master_pred = [this](auto && n) {
-    return this->mesh.isLocalOrMasterNode(n);
-  };
-
-  Vector<Int, 2> local_master_nodes(Vector<Int, 2>::Zero());
-  /// compute the number of global nodes based on the number of old nodes
-  auto range_old = arange(old_nb_nodes);
-  local_master_nodes(0) =
-      std::count_if(range_old.begin(), range_old.end(), local_or_master_pred);
-
-  /// compute amount of local or master doubled nodes
-  auto range_new = arange(old_nb_nodes, mesh.getNbNodes());
-  local_master_nodes(1) =
-      std::count_if(range_new.begin(), range_new.end(), local_or_master_pred);
-
-  auto starting_index = local_master_nodes(1);
-
-  comm.allReduce(local_master_nodes);
-
-  auto old_global_nodes = local_master_nodes(0);
-  auto total_nb_new_nodes = local_master_nodes(1);
-
-  if (total_nb_new_nodes == 0) {
-    return 0;
-  }
-
-  /// set global ids of local and master nodes
-  comm.exclusiveScan(starting_index);
-  starting_index += old_global_nodes;
-
-  for (auto n : range_new) {
-    if (mesh.isLocalOrMasterNode(n)) {
-      nodes_global_ids(n) = starting_index;
-      ++starting_index;
-    }
-  }
-
-  mesh_accessor.setNbGlobalNodes(old_global_nodes + total_nb_new_nodes);
-  return total_nb_new_nodes;
+std::pair<Int, Int> GlobalIdsUpdater::updateGlobalIDsLocally() {
+  return mesh.updateOffsets();
 }
 
 void GlobalIdsUpdater::synchronizeGlobalIDs() {

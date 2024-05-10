@@ -117,6 +117,10 @@ public:
     return this->_mesh.getGlobalElementIDsNC();
   }
 
+  inline auto & getGlobalElementIDs(ElementType type, GhostType ghost_type = _not_ghost) {
+    return this->_mesh.getGlobalElementIDsNC(type, ghost_type);
+  }
+
   /// get the element_to_subelement Array for the given type and
   /// create it if necessary
   [[nodiscard]] inline auto &

@@ -40,11 +40,11 @@ public:
   /// new inserted nodes. It must be called after updating the node
   /// types. (It calls in sequence the functions
   /// updateGlobalIDsLocally and synchronizeGlobalIDs)
-  Int updateGlobalIDs(Int local_nb_new_nodes);
+  std::pair<Int, Int> updateGlobalIDs();
 
   /// function to update the global connectivity (only locally) of new
   /// inserted nodes. It must be called after updating the node types.
-  Int updateGlobalIDsLocally(Int local_nb_new_nodes);
+  std::pair<Int, Int> updateGlobalIDsLocally();
 
   /// function to synchronize the global connectivity of new inserted
   /// nodes among the processors. It must be called after updating the

@@ -350,6 +350,28 @@ inline decltype(auto) Mesh::getSubelementToElementNC(const Element & element) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline const auto & Mesh::getGlobalElementIDs() const {
+  return this->getData<Idx>("global_element_ids");
+}
+
+/* -------------------------------------------------------------------------- */
+inline const auto & Mesh::getGlobalElementIDs(ElementType type,
+                                             GhostType ghost_type) const {
+  return this->getData<Idx>("global_element_ids", type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto & Mesh::getGlobalElementIDsNC()  {
+  return this->getData<Idx>("global_element_ids");
+}
+
+/* -------------------------------------------------------------------------- */
+inline auto & Mesh::getGlobalElementIDsNC(ElementType type,
+                                             GhostType ghost_type)  {
+  return this->getData<Idx>("global_element_ids", type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
 template <class D, std::enable_if_t<aka::is_vector_v<D>> *>
 inline void
 Mesh::getBarycenter(const Element & element,

@@ -33,7 +33,7 @@
 #include "parser.hh"
 #include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
-// #include "dumper_iohelper_paraview.hh"
+// #include "dumper_iohelper_paraview.hh"/
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -43,19 +43,19 @@ namespace akantu {
 class CohesiveMeshGlobalDataUpdater : public MeshGlobalDataUpdater {
 public:
   CohesiveMeshGlobalDataUpdater(SolidMechanicsModelCohesive & model)
-      : model(model), mesh(model.getMesh()),
+      : MeshGlobalDataUpdater(mesh), model(model),
         global_ids_updater(model.getMesh(), model.cohesive_synchronizer.get()) {
   }
 
   /* ------------------------------------------------------------------------ */
-  std::tuple<UInt, UInt>
+  std::pair<Int, Int>
   updateData(NewNodesEvent & nodes_event,
              NewElementsEvent & elements_event) override {
     auto * cohesive_nodes_event =
         dynamic_cast<CohesiveNewNodesEvent *>(&nodes_event);
     if (cohesive_nodes_event == nullptr) {
-      return std::make_tuple(nodes_event.getList().size(),
-                             elements_event.getList().size());
+      return {nodes_event.getList().size(),
+            elements_event.getList().size()};
     }
 
     /// update nodes type
@@ -64,6 +64,7 @@ public:
 
     auto local_nb_new_nodes = new_nodes.size();
     auto nb_new_nodes = local_nb_new_nodes;
+    auto nb_new_elements = elements_event.getList().size();
 
     if (mesh.isDistributed()) {
       MeshAccessor mesh_accessor(mesh);
@@ -76,12 +77,12 @@ public:
       }
 
       model.updateCohesiveSynchronizers(elements_event);
-      nb_new_nodes = global_ids_updater.updateGlobalIDs(new_nodes.size());
+      std::tie(nb_new_nodes, nb_new_elements) = global_ids_updater.updateGlobalIDs();
     }
 
-    auto nb_new_elements = elements_event.getList().size();
-    const auto & comm = mesh.getCommunicator();
-    comm.allReduce(nb_new_elements, SynchronizerOperation::_sum);
+    // auto nb_new_elements = elements_event.getList().size();
+    // const auto & comm = mesh.getCommunicator();
+    // comm.allReduce(nb_new_elements, SynchronizerOperation::_sum);
 
     if (nb_new_elements > 0) {
       mesh.sendEvent(elements_event);
@@ -91,12 +92,11 @@ public:
       mesh.sendEvent(nodes_event);
     }
 
-    return std::make_tuple(nb_new_nodes, nb_new_elements);
+    return {nb_new_nodes, nb_new_elements};
   }
 
 private:
   SolidMechanicsModelCohesive & model;
-  Mesh & mesh;
   GlobalIdsUpdater global_ids_updater;
 };
 

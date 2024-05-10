@@ -258,7 +258,7 @@ public:
   void fillNodesToElements(Int dimension = _all_dimensions);
 
   /// update offsets for parallel dumping of mesh info
-  void updateOffsets(Idx nodes_start_index = 0);
+  std::pair<Int, Int> updateOffsets();
 
 private:
   /// update the global ids, nodes type, ...
@@ -394,9 +394,9 @@ public:
   inline decltype(auto)
   getConnectivityWithPeriodicity(const Element & element) const;
 
-  inline const auto & getGlobalElementIDs() const {
-    return getData<Idx>("global_element_ids");
-  }
+  inline const auto & getGlobalElementIDs() const;
+  inline const auto & getGlobalElementIDs(ElementType type,
+                                          GhostType ghost_type = _not_ghost) const;
 
 protected:
   /// get the element connected to a subelement (element of lower dimension)
@@ -413,9 +413,8 @@ protected:
 
   inline decltype(auto) getConnectivityNC(const Element & element);
 
-  inline  auto & getGlobalElementIDsNC() {
-    return getData<Idx>("global_element_ids");
-  }
+  inline auto & getGlobalElementIDsNC();
+  inline auto & getGlobalElementIDsNC(ElementType type, GhostType ghost_type = _not_ghost);
 
 public:
   /// get a name field associated to the mesh

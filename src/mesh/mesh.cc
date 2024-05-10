@@ -724,9 +724,9 @@ void Mesh::eraseElements(const Array<Element> & elements) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::updateOffsets() {
+std::pair<Int, Int> Mesh::updateOffsets() {
   if (release == offset_release) {
-    return;
+    return {0, 0};
   }
 
   std::vector<Idx> offsets_v, global_sizes_v, global_ids_old_sizes;
@@ -773,8 +773,8 @@ void Mesh::updateOffsets() {
   // Peparing and adding nodal infos
   auto nodes_range = arange(nodes->size());
   Int new_nb_local_nodes =
-      std::count_if(nodes_range.begin(), nodes_range.end() [&](auto && node) {
-          return isLocalOrMaster(node);
+      std::count_if(nodes_range.begin(), nodes_range.end(), [&](auto && node) {
+          return this->isLocalOrMasterNode(node);
         });
 
   // number of new local nodes
@@ -792,12 +792,15 @@ void Mesh::updateOffsets() {
   ElementTypeMap<Int> elements_start_index;
   ElementTypeMap<Int> nb_new_elements;
 
+  Int total_nb_new_elements{0};
+
   // unpack mesh infos
   for (auto ghost_type : ghost_types) {
     for (auto && [i, type] : enumerate(this->elementTypes(_not_ghost))) {
       offsets(type, ghost_type) = offsets_v[i];
 
       nb_new_elements(type, ghost_type) = global_sizes_v[i] - global_sizes(type, ghost_type);
+      total_nb_new_elements += nb_new_elements(type, ghost_type);
       elements_start_index(type, ghost_type) = offsets(type, ghost_type) + global_sizes(type, ghost_type);
 
       global_sizes(type, ghost_type) = global_sizes_v[i];
@@ -832,9 +835,9 @@ void Mesh::updateOffsets() {
 
 
   // adapt the global numbering of local nodes
-  for (auto n : range_new) {
+  for (auto n : arange(nb_local_nodes, new_nb_local_nodes)) {
     if (mesh.isLocalOrMasterNode(n)) {
-      nodes_global_ids(n) = node_start_index++;
+      (*nodes_global_ids)(n) = node_start_index++;
     }
   }
 
@@ -857,7 +860,7 @@ void Mesh::updateOffsets() {
 
   offset_release = mesh.getRelease();
 
-  return offsets_v.back();
+  return {new_nb_local_nodes, total_nb_new_elements};
 }
 
 } // namespace akantu

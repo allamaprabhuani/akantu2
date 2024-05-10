@@ -23,19 +23,21 @@
 #define AKANTU_MESH_GLOBAL_DATA_UPDATER_HH_
 
 namespace akantu {
-
 class NewNodesEvent;
 class NewElementsEvent;
 
 class MeshGlobalDataUpdater {
 public:
+  MeshGlobalDataUpdater(Mesh & mesh) : mesh(mesh) {}
   virtual ~MeshGlobalDataUpdater() = default;
 
-  virtual std::tuple<UInt, UInt> updateData(NewNodesEvent & nodes_event,
-                                            NewElementsEvent & elements_event) {
-    return std::make_tuple(nodes_event.getList().size(),
-                           elements_event.getList().size());
+  virtual std::pair<Int, Int> updateData(NewNodesEvent & /*nodes_event*/,
+                                         NewElementsEvent & /*elements_event*/) {
+    return mesh.updateOffsets();
   }
+
+protected:
+  Mesh & mesh;
 };
 
 } // namespace akantu

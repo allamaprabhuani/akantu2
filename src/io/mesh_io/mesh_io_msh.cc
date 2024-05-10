@@ -664,7 +664,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
         connectivity.push_back(local_connect);
         elem.element = connectivity.size() - 1;
         file.element_tags[elem_tag] = elem;
-        global_ids().push_back(elem.element);
+        global_ids.push_back(elem.element);
 
         bool first = true;
         for (auto it = range.first; it != range.second; ++it) {
