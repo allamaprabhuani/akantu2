@@ -18,11 +18,10 @@
 # with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-
 package_declare(parallel META
   DESCRIPTION "Add parallel support in Akantu"
-  DEPENDS mpi scotch)
+  DEPENDS mpi scotch
+)
 
 set(AKANTU_PARALLEL_TESTS
   test_solid_mechanics_model_bar_traction2d_parallel

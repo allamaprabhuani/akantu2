@@ -551,6 +551,7 @@ public:
   AKANTU_GET_MACRO_AUTO(PeriodicMasterSlaves, periodic_master_slave);
 
   AKANTU_GET_MACRO_AUTO(Release, release);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Release, release);
 
   AKANTU_GET_MACRO_AUTO(Offsets, offsets);
   AKANTU_GET_MACRO_AUTO_NOT_CONST(Offsets, offsets);
@@ -701,7 +702,7 @@ inline constexpr auto Mesh::getNbNodesPerElement(ElementType type) -> Int {
         constexpr ElementType type = aka::decay_v<decltype(enum_type)>;
         return ElementClass<type>::getNbNodesPerElement();
       },
-      type, [](auto && /*type*/) { return 0; });
+      [](auto && /*type*/) { return 0; }, type);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -45,6 +45,7 @@ package_declare_sources(dumpers
   io/new_dumpers/support_tmpl.hh
   io/new_dumpers/dumper_functors.hh
   io/new_dumpers/dumper_internal_types.hh
+  io/new_dumpers/dumper_types.hh
 
   # io/dumper/dumpable_iohelper.hh
   # io/dumper/dumper_compute.hh

@@ -55,9 +55,7 @@ namespace dumper {
         : SupportBase(SupportType::_mesh), mesh(mesh) {
 
       this->positions = make_field(mesh.getNodes(), *this);
-      this->connectivities =
-          make_field(mesh.getConnectivities(), *this, toVTKConnectivity(mesh),
-                     toAkantuConnectivity(mesh));
+      this->connectivities = make_field(mesh.getConnectivities(), *this);
 
       positions->addProperty("name", "position");
       connectivities->addProperty("name", "connectivities");
@@ -73,9 +71,10 @@ namespace dumper {
                                _ek_not_defined);
     }
 
-    [[nodiscard]] Release getRelease() const override {
+    [[nodiscard]] const Release & getRelease() const override {
       return mesh.getRelease();
     }
+    [[nodiscard]] Release & getRelease() override { return mesh.getRelease(); }
 
     [[nodiscard]] Int getNbNodes() const override { return mesh.getNbNodes(); }
     [[nodiscard]] Int getNbLocalNodes() const override {
@@ -158,9 +157,10 @@ namespace dumper {
                                 ghost_type, _ek_not_defined);
     }
 
-    [[nodiscard]] Release getRelease() const override {
-      return inner.getMesh().getRelease();
+    [[nodiscard]] const Release & getRelease() const override {
+      return inner.getRelease();
     }
+    [[nodiscard]] Release & getRelease() override { return inner.getRelease(); }
 
     [[nodiscard]] bool contains(ElementType type,
                                 GhostType ghost_type = _not_ghost) const {
@@ -212,8 +212,7 @@ namespace dumper {
     std::shared_ptr<FieldNodalArrayTemplateBase<Idx>> nodes_list;
   };
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <typename T> auto & SupportBase::addSubSupport(T & type) {
     auto && ptr = make_support(type);
     auto & support = *ptr;
@@ -222,13 +221,11 @@ namespace dumper {
     return support;
   }
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   const auto & SupportBase::getSubSupports() const { return sub_supports_; }
   const auto & SupportBase::getParentSupport() const { return *parent; }
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   inline void SupportBase::addField(const ID & id,
                                     const std::shared_ptr<FieldBase> & field,
                                     FieldUsageType usage) {
@@ -237,8 +234,7 @@ namespace dumper {
     fields_.emplace(id, field);
   }
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class Cont, std::enable_if_t<not std::is_convertible_v<
                             std::decay_t<Cont>, std::shared_ptr<FieldBase>>> *>
   inline void SupportBase::addField(const ID & id, Cont && data,
@@ -247,8 +243,7 @@ namespace dumper {
     this->addField(id, std::move(field), usage);
   }
 
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class Cont, class Func,
             std::enable_if_t<not std::is_convertible_v<
                 std::decay_t<Cont>, std::shared_ptr<FieldBase>>> *>
@@ -257,6 +252,23 @@ namespace dumper {
     auto && field =
         make_field(std::forward<Cont>(data), *this, std::forward<Func>(func));
     this->addField(id, std::move(field), usage);
+  }
+
+  inline decltype(auto) support_cast(SupportBase & support,
+                                     support_type_mesh_t /*unused*/) {
+    return aka::as_type<Support<Mesh>>(support);
+  }
+  inline decltype(auto) support_cast(SupportBase & support,
+                                     support_type_element_group_t /*unused*/) {
+    return aka::as_type<Support<ElementGroup>>(support);
+  }
+  inline decltype(auto) support_cast(const SupportBase & support,
+                                     support_type_mesh_t /*unused*/) {
+    return aka::as_type<Support<Mesh>>(support);
+  }
+  inline decltype(auto) support_cast(const SupportBase & support,
+                                     support_type_element_group_t /*unused*/) {
+    return aka::as_type<Support<ElementGroup>>(support);
   }
 
 } // namespace dumper

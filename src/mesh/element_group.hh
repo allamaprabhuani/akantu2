@@ -144,9 +144,10 @@ public:
   AKANTU_GET_MACRO_AUTO(Name, name);
   AKANTU_GET_MACRO_AUTO(Mesh, mesh);
 
-  [[nodiscard]] inline Release getRelease() const {
+  [[nodiscard]] inline const Release & getRelease() const {
     return elements.getRelease();
   }
+  [[nodiscard]] inline Release & getRelease() { return elements.getRelease(); }
 
   Idx getElementsOffsets(const ElementType & type,
                          const GhostType & ghost_type) const {
@@ -162,7 +163,6 @@ public:
 
   AKANTU_GET_MACRO_AUTO(ElementsOffsets, offsets);
   AKANTU_GET_MACRO_AUTO(NbGlobalElements, global_sizes);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

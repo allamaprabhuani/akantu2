@@ -27,17 +27,20 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "dumper_types.hh"
+/* -------------------------------------------------------------------------- */
 #include "dumper_field.hh"
 #include "dumper_variable.hh"
 #include "support.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DUMPER_FILE_BASE_HH__
-#define __AKANTU_DUMPER_FILE_BASE_HH__
+#ifndef AKANTU_DUMPER_FILE_BASE_HH
+#define AKANTU_DUMPER_FILE_BASE_HH
 
 namespace akantu {
 namespace dumper {
 
+  /* ------------------------------------------------------------------------ */
   class FileBase {
   public:
     /* ---------------------------------------------------------------------- */
@@ -67,27 +70,52 @@ namespace dumper {
 
     /* ---------------------------------------------------------------------- */
     virtual void dump(FieldBase & field) {
-      tuple_dispatch_with_default<AllFieldTypes>(
+      tuple_dispatch<AllFieldTypes>(
           [&](auto field_type) { this->dump(field_cast(field, field_type)); },
-          field.getFieldType(),
-          [&](auto /*field_type*/) { AKANTU_TO_IMPLEMENT(); });
+          field.getFieldType());
+    }
+
+    /* ---------------------------------------------------------------------- */
+    virtual void dump(SupportBase & support) {
+      tuple_dispatch<AllSupportTypes>(
+          [&](auto type) { this->dump(support_cast(support, type)); },
+          support.getType());
+    }
+
+    /* ---------------------------------------------------------------------- */
+    virtual void read(FieldNodalArrayBase & /*field*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
+    /* ---------------------------------------------------------------------- */
+    virtual void read(FieldArrayBase & /*field*/) { AKANTU_TO_IMPLEMENT(); }
+    /* ---------------------------------------------------------------------- */
+    virtual void read(FieldElementMapArrayBase & /*field*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
+    /* ---------------------------------------------------------------------- */
+    virtual void read(Support<Mesh> & /*support*/) { AKANTU_TO_IMPLEMENT(); }
+    /* ---------------------------------------------------------------------- */
+    virtual void read(Support<ElementGroup> & /*support*/) {
+      AKANTU_TO_IMPLEMENT();
+    }
+
+    /* ---------------------------------------------------------------------- */
+    virtual void read(FieldBase & field) {
+      tuple_dispatch<AllFieldTypes>(
+          [&](auto field_type) { this->read(field_cast(field, field_type)); },
+          field.getFieldType());
+    }
+
+    /* ---------------------------------------------------------------------- */
+    virtual void read(SupportBase & support) {
+      tuple_dispatch<AllSupportTypes>(
+          [&](auto type) { this->read(support_cast(support, type)); },
+          support.getType());
     }
 
   public:
     virtual void dump() { dump(support); }
-
-    /* ---------------------------------------------------------------------- */
-    virtual void dump(SupportBase & support) {
-      using dumper::SupportType;
-      switch (support.getType()) {
-      case SupportType::_mesh:
-        dump(aka::as_type<Support<Mesh>>(support));
-        break;
-      case SupportType::_element_group:
-        dump(aka::as_type<Support<ElementGroup>>(support));
-        break;
-      }
-    }
+    virtual void read() { read(support); }
 
   protected:
     SupportBase & support;
@@ -96,4 +124,4 @@ namespace dumper {
 } // namespace dumper
 } // namespace akantu
 
-#endif /* __AKANTU_DUMPER_FILE_BASE_HH__ */
+#endif /* AKANTU_DUMPER_FILE_BASE_HH */

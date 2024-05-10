@@ -19,9 +19,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_error.hh"
+/* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <boost/preprocessor.hpp>
 #include <cstdlib> // std::size_t
+#include <exception>
 #include <string>
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_AKA_ENUM_MACROS_HH_
@@ -72,10 +75,9 @@
   namespace std {                                                              \
   inline auto to_string(const ::akantu::type_name & type) -> std::string {     \
     using namespace akantu;                                                    \
-    static unordered_map<::akantu::type_name, string> convert{                 \
-        BOOST_PP_SEQ_FOR_EACH_I(                                               \
-            AKANTU_PP_ENUM, BOOST_PP_SEQ_SIZE(list),                           \
-            BOOST_PP_SEQ_TRANSFORM(AKANTU_PP_TYPE_TO_STR, prefix, list))};     \
+    static unordered_map<type_name, string> convert{BOOST_PP_SEQ_FOR_EACH_I(   \
+        AKANTU_PP_ENUM, BOOST_PP_SEQ_SIZE(list),                               \
+        BOOST_PP_SEQ_TRANSFORM(AKANTU_PP_TYPE_TO_STR, prefix, list))};         \
     return convert.at(type);                                                   \
   }                                                                            \
   } /* namespace std */                                                        \

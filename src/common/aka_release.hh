@@ -8,6 +8,8 @@ namespace akantu {
 struct Release {
   Release() = default;
   Release(Int release) : release(release) {}
+  // Release(const Release &) = default;
+  // Release & operator=(const Release &) = default;
 
   Release & operator--() {
     --release;

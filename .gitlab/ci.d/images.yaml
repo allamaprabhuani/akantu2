@@ -41,6 +41,7 @@
     CCACHE_DIR: ${CI_PROJECT_DIR}/.ccache
     CCACHE_MAXSIZE: 1Gi
     CCACHE_SLOPINESS: file_macro
+    CCACHE_COMPILERCHECK: content
   before_script:
     - ccache --zero-stats || true
   after_script:

@@ -74,6 +74,7 @@ void DumperHDF5::dumpInternal() {
 
   if (not h5) {
     h5 = std::make_unique<H5File>(support, path);
+    aka::as_type<H5File>(*h5).create();
   } else {
     aka::as_type<H5File>(*h5).open();
   }
@@ -95,11 +96,18 @@ void DumperHDF5::readInternal() {
   }
 
   h5 = std::make_unique<H5File>(support, path);
+  auto & h5file = aka::as_type<H5File>(*h5);
 
-  if (not aka::as_type<H5File>(*h5).isAkantuFile()) {
+  h5file.open();
+
+  if (not h5file.isAkantuFile()) {
     AKANTU_EXCEPTION(
         "Cannot read this hdf5 file, it was not generated with akantu.");
   }
+
+  h5file.read();
+
+  h5file.close();
 }
 
 } // namespace akantu

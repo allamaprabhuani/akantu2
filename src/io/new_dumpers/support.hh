@@ -28,14 +28,13 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_enum_macros.hh"
+#include "dumper_types.hh"
 #include "internal_field.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include <hdf5.h>
-#include <map>
+#include <tuple>
 #include <type_traits>
-#include <typeindex>
 #include <variant>
 /* -------------------------------------------------------------------------- */
 
@@ -44,76 +43,6 @@
 
 namespace akantu {
 namespace dumper {
-  class FieldBase;
-  class FieldNodalArrayBase;
-  class FieldElementalArrayBase;
-  template <class T, class Base> class FieldArrayTemplateBase;
-  template <class T>
-  using FieldNodalArrayTemplateBase =
-      FieldArrayTemplateBase<T, FieldNodalArrayBase>;
-  template <class T>
-  using FieldElementalArrayTemplateBase =
-      FieldArrayTemplateBase<T, FieldElementalArrayBase>;
-  template <class T> class FieldElementMapArrayTemplateBase;
-
-  class VariableBase;
-
-  // clang-format off
-  enum class FieldUsageType : uint8_t {
-    _internal      = 0b10000000,
-    _restart       = 0b00000001,
-    _visualisation = 0b00000010
-  };
-  // clang-format on
-
-  /// Bit-wise operator between access modes
-  inline FieldUsageType operator|(const FieldUsageType & a,
-                                  const FieldUsageType & b) {
-    using ut = std::underlying_type_t<FieldUsageType>;
-    auto tmp = FieldUsageType(ut(a) | ut(b));
-    return tmp;
-  }
-
-  inline bool operator&(const FieldUsageType & a, const FieldUsageType & b) {
-    using ut = std::underlying_type_t<FieldUsageType>;
-    auto tmp = FieldUsageType(ut(a) & ut(b));
-    return ut(tmp) != 0;
-  }
-
-  enum class SupportType {
-    _mesh,
-    _element_group,
-  };
-
-#define AKANTU_FIELD_TYPES                                                     \
-  (not_defined)(array)(                                                        \
-      node_array)(element_array)(element_map_array)(internal_field)
-
-  AKANTU_CLASS_ENUM_DECLARE(FieldType, AKANTU_FIELD_TYPES)
-
-} // namespace dumper
-
-AKANTU_CLASS_ENUM_INPUT_STREAM(dumper::FieldType, AKANTU_FIELD_TYPES)
-AKANTU_CLASS_ENUM_OUTPUT_STREAM(dumper::FieldType, AKANTU_FIELD_TYPES)
-
-namespace dumper {
-
-  namespace {
-    template <FieldType t>
-    using field_type_t = std::integral_constant<FieldType, t>;
-
-// creating a type instead of a using helps to debug
-#define AKANTU_DECLARE_FIELD_TYPES(r, data, ty)                                \
-  using BOOST_PP_CAT(BOOST_PP_CAT(field_type_, ty), _t) =                      \
-      field_type_t<BOOST_PP_CAT(FieldType::_, ty)>;
-    BOOST_PP_SEQ_FOR_EACH(AKANTU_DECLARE_FIELD_TYPES, _, AKANTU_FIELD_TYPES)
-  } // namespace
-
-#define OP_CAT(s, data, ty) field_type_t<BOOST_PP_CAT(FieldType::_, ty)>
-  using AllFieldTypes = std::tuple<BOOST_PP_SEQ_ENUM(
-      BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_FIELD_TYPES))>;
-#undef OP_CAT
-
   /* ------------------------------------------------------------------------ */
   class PropertiesManager {
     using integral_type = std::common_type_t<size_t, hsize_t, hid_t>;
@@ -201,7 +130,8 @@ namespace dumper {
       return getProperty<std::string>("name");
     }
 
-    [[nodiscard]] virtual Release getRelease() const { return Release(); }
+    [[nodiscard]] virtual const Release & getRelease() const { return release; }
+    [[nodiscard]] virtual Release & getRelease() { return release; }
 
     decltype(auto) getPropertiesList() const {
       return make_keys_adaptor(properties);
@@ -209,6 +139,7 @@ namespace dumper {
 
   private:
     std::map<std::string, Property> properties;
+    Release release;
   };
 
   /* ------------------------------------------------------------------------ */

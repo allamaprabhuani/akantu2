@@ -39,14 +39,21 @@ namespace dumper {
             {TIDX(bool{}), ENDIANNESS(H5T_STD_U8)},
             {TIDX(float{}), ENDIANNESS(H5T_IEEE_F32)},
             {TIDX(double{}), ENDIANNESS(H5T_IEEE_F64)},
-            {TIDX(static_cast<const char *>(nullptr)), H5T_C_S1}};
+            {TIDX(static_cast<const char *>(nullptr)), H5T_C_S1},
+            {TIDX(static_cast<char *>(nullptr)), H5T_C_S1},
+        };
 
-        if (TIDX(static_cast<const char *>(nullptr)) == type_idx) {
+        if (TIDX(static_cast<const char *>(nullptr)) == type_idx or
+            TIDX(static_cast<char *>(nullptr)) == type_idx) {
           auto type_id = H5Tcopy(H5T_C_S1);
           H5Tset_size(type_id, H5T_VARIABLE);
           H5Tset_cset(type_id, H5T_CSET_ASCII);
           return type_id;
         }
+
+        AKANTU_DEBUG_ASSERT(type_ids.find(type_idx) != type_ids.end(),
+                            "No HDF5 type known for C++ type "
+                                << debug::demangle(type_idx.name()));
 
         return type_ids.at(type_idx);
       }
@@ -63,14 +70,20 @@ namespace dumper {
             {TIDX(float{}), H5T_NATIVE_FLOAT},
             {TIDX(double{}), H5T_NATIVE_DOUBLE},
             {TIDX(static_cast<const char *>(nullptr)), H5T_C_S1},
+            {TIDX(static_cast<char *>(nullptr)), H5T_C_S1},
         };
 
-        if (TIDX(static_cast<const char *>(nullptr)) == type_idx) {
+        if (TIDX(static_cast<const char *>(nullptr)) == type_idx or
+            TIDX(static_cast<char *>(nullptr)) == type_idx) {
           auto type_id = H5Tcopy(H5T_C_S1);
           H5Tset_size(type_id, H5T_VARIABLE);
           H5Tset_cset(type_id, H5T_CSET_ASCII);
           return type_id;
         }
+
+        AKANTU_DEBUG_ASSERT(type_ids.find(type_idx) != type_ids.end(),
+                            "No HDF5 type known for C++ type "
+                                << debug::demangle(type_idx.name()));
 
         return type_ids.at(type_idx);
       }
@@ -141,6 +154,8 @@ namespace dumper {
 
       ~Entity() override { close(); }
     };
+
+    using Symlink = Entity<HDF5::EntityType::_link>;
 
     /* ---------------------------------------------------------------------- */
     struct PropertyList : public Entity<EntityType::_property> {
@@ -299,6 +314,12 @@ namespace dumper {
     template <EntityType type> void GenericGroup<type>::open(hid_t apl_id) {
       AKANTU_DEBUG_ASSERT(this->id == H5I_INVALID_HID,
                           "HDF5: GenericGroup(" << type << ") already opened");
+
+      if (not exists()) {
+        AKANTU_EXCEPTION("HDF5: " << type << ": " << this->path
+                                  << " does not exists");
+      }
+
       if constexpr (type == EntityType::_group) {
         this->id = H5Gopen(this->parent.id, this->path.c_str(), apl_id);
       } else if constexpr (type == EntityType::_dataset) {
@@ -346,6 +367,12 @@ namespace dumper {
         H5Dwrite(this->id, datatype_id_file(datatype), memoryspace->id,
                  filespace->id, dxpl_id, data);
       }
+
+      void read(void * data, hid_t dxpl_id = H5P_DEFAULT) {
+        AKANTU_DEBUG_INFO("HDF5: Writing dataset " << this->path);
+        H5Dread(this->id, datatype_id_mem(datatype), memoryspace->id,
+                filespace->id, dxpl_id, data);
+      }
     };
 
     /* ---------------------------------------------------------------------- */
@@ -361,34 +388,24 @@ namespace dumper {
       }
 
     private:
-      template <class T> void read(T * data) {
+      template <class T>
+      void read(T * data, hid_t type_id_mem = H5I_INVALID_HID) {
         if (this->id == H5I_INVALID_HID) {
           open();
         }
 
-        auto type_id_mem = datatype_id_mem(TIDX(T{}));
+        AKANTU_DEBUG_INFO("HDF5: Reading attribute " << (this->path / name));
 
-        hid_t type_id = H5I_INVALID_HID, native_type_id;
-
-        auto class_id = H5Tget_class(type_id);
-        if (class_id == H5T_STRING) {
-          native_type_id = H5T_C_S1;
-        } else {
-          type_id = H5Aget_type(this->id);
-          native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT);
+        auto type_id = type_id_mem;
+        if (type_id == H5I_INVALID_HID) {
+          type_id = datatype_id_mem(TIDX(T{}));
         }
 
-        auto status = H5Tequal(native_type_id, type_id_mem);
-        if (status == 0) {
-          AKANTU_EXCEPTION("Cannot read the attribute "
-                           << location.path << "/" << name << " as type "
-                           << debug::demangle(typeid(T).name()));
-        }
+        H5Aread(this->id, type_id, data);
 
-        H5Aread(this->id, native_type_id, data);
-
-        H5Tclose(native_type_id);
-        H5Tclose(type_id);
+        // if (type_id_mem != type_id) {
+        //   H5Tclose(type_id);
+        // }
       }
 
       template <typename T, std::enable_if_t<std::is_scalar_v<T>> * = nullptr>
@@ -396,6 +413,8 @@ namespace dumper {
                  hid_t aapl_id = H5P_DEFAULT) {
         auto type_id = datatype_id_file(TIDX(T{}));
         auto space_id = H5Screate_simple(1, &dim, &dim);
+
+        AKANTU_DEBUG_INFO("HDF5: Writing attribute " << (this->path / name));
 
         create(type_id, space_id, acpl_id, aapl_id);
 
@@ -437,14 +456,6 @@ namespace dumper {
         return t;
       }
 
-      template <class T,
-                std::enable_if_t<std::is_same_v<T, std::string>> * = nullptr>
-      T read() {
-        std::string t;
-        read(t.data());
-        return t;
-      }
-
       template <class T> void read(std::vector<T> & ts) {
         open();
         auto space_id = H5Aget_space(this->id);
@@ -455,19 +466,32 @@ namespace dumper {
                            << " the dimensions do not match");
         }
 
-        hsize_t dim;
-        H5Sget_simple_extent_dims(space_id, &dim, 1);
+        hsize_t dim, maxdim;
+        H5Sget_simple_extent_dims(space_id, &dim, &maxdim);
         ts.resize(dim);
 
         if constexpr (std::is_same_v<T, std::string>) {
-          std::vector<const char *> strs(ts.size());
+          std::vector<char *> strs(ts.size());
+          auto type_id_mem = datatype_id_mem(TIDX(strs[0]));
+
+          read(strs.data(), type_id_mem);
+
           for (auto && [str, t] : zip(strs, ts)) {
-            str = t.data();
+            t = std::string(str);
           }
-          read(strs.data());
+          H5Dvlen_reclaim(type_id_mem, space_id, H5P_DEFAULT, strs.data());
+          H5Tclose(type_id_mem);
         } else {
           read(ts.data());
         }
+      }
+
+      template <class T,
+                std::enable_if_t<std::is_same_v<T, std::string>> * = nullptr>
+      T read() {
+        std::vector<std::string> ts;
+        read(ts);
+        return ts[0];
       }
 
     private:
@@ -491,6 +515,62 @@ namespace dumper {
                              acpl_id, aapl_id);
       }
     };
+
+    extern "C" {
+    inline herr_t hdf5_error_walk(unsigned int n, const H5E_error2_t * err_desc,
+                                  void * client_data) {
+      const int MSG_SIZE = 64;
+      auto & messages =
+          *reinterpret_cast<std::vector<std::string> *>(client_data);
+      char maj[MSG_SIZE];
+      char min[MSG_SIZE];
+      char cls[MSG_SIZE];
+      char file[MSG_SIZE];
+      char func[MSG_SIZE];
+      char desc[MSG_SIZE];
+
+      std::strncpy(file, err_desc->file_name, MSG_SIZE);
+      std::strncpy(func, err_desc->func_name, MSG_SIZE);
+      std::strncpy(desc, err_desc->desc, MSG_SIZE);
+
+      if (H5Eget_class_name(err_desc->cls_id, cls, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      if (H5Eget_msg(err_desc->maj_num, NULL, maj, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      if (H5Eget_msg(err_desc->min_num, NULL, min, MSG_SIZE) < 0) {
+        return -1;
+      }
+
+      char stream[7 * MSG_SIZE];
+      std::snprintf(stream, 7 * MSG_SIZE,
+                    "%s [error: #%03d] - %s (%s: %s) in %s(): [%s:%u]", cls, n,
+                    maj, min, desc, func, file, err_desc->line);
+      messages.emplace_back(stream);
+      return 0;
+    }
+
+    inline herr_t hdf5_error_handler(hid_t estack_id, void * client_data) {
+      auto & file = *reinterpret_cast<fs::path *>(client_data);
+
+      std::vector<std::string> messages;
+      H5Ewalk(estack_id, H5E_WALK_DOWNWARD, hdf5_error_walk, &messages);
+
+      std::stringstream sstr;
+      sstr << "HDF5 errors while accessing file \"" << file.generic_string()
+           << "\":";
+      for (auto && msg : messages) {
+        sstr << "\n" << std::string(4, AKANTU_INDENT) << msg;
+      }
+
+      AKANTU_EXCEPTION(sstr.str());
+
+      return 0;
+    }
+    }
   } // namespace HDF5
 } // namespace dumper
 } // namespace akantu

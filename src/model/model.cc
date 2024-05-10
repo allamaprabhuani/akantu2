@@ -147,22 +147,22 @@ void Model::addDumpGroupFieldToDumper(const std::string & /*field_id*/,
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::addDumpField(const std::string & field_id) {
+void Model::addDumpField(const std::string & /*field_id*/) {
   //  this->addDumpFieldToDumper(mesh.getDefaultDumperName(), field_id);
 }
 /* -------------------------------------------------------------------------- */
 
-void Model::addDumpFieldVector(const std::string & field_id) {
+void Model::addDumpFieldVector(const std::string & /*field_id*/) {
   //  this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::addDumpFieldTensor(const std::string & field_id) {
+void Model::addDumpFieldTensor(const std::string & /*field_id*/) {
   //  this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(), field_id);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setBaseName(const std::string & field_id) {
+void Model::setBaseName(const std::string & /*field_id*/) {
   //  mesh.setBaseName(field_id);
 }
 /* -------------------------------------------------------------------------- */
