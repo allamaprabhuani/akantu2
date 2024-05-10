@@ -729,14 +729,20 @@ void Mesh::updateOffsets() {
     return;
   }
 
-  std::vector<Idx> offsets_v, global_sizes_v;
+  std::vector<Idx> offsets_v, global_sizes_v, global_ids_old_sizes;
 
+  auto & global_ids = getGlobalElementIDsNC();
+
+  // Package all infos to limit communications
+
+  // prepare the the infos for the mesh
   for (auto ghost_type : ghost_types) {
     for (auto type : this->elementTypes(
              _not_ghost)) { // to treat cases where ghosts should be present in
                             // the mesh but not locally
       if (connectivities.exists(type, ghost_type)) {
         global_sizes_v.push_back(connectivities(type, ghost_type).size());
+        global_ids_old_sizes.push_back(global_ids(type, ghost_type).size());
       } else {
         global_sizes_v.push_back(0);
       }
@@ -763,21 +769,43 @@ void Mesh::updateOffsets() {
     offsets_v.push_back(0);
   }
 
-  global_sizes_v.push_back(this->getNbLocalNodes());
+
+  // Peparing and adding nodal infos
+  auto nodes_range = arange(nodes->size());
+  Int new_nb_local_nodes =
+      std::count_if(nodes_range.begin(), nodes_range.end() [&](auto && node) {
+          return isLocalOrMaster(node);
+        });
+
+  // number of new local nodes
+  global_sizes_v.push_back(new_nb_local_nodes - nb_local_nodes);
   offsets_v.push_back(0);
 
+
+  // Do the collective communications
   if (mesh.is_distributed) {
     communicator->exclusiveScan(global_sizes_v, offsets_v);
     communicator->allReduce(global_sizes_v);
   }
 
+
+  ElementTypeMap<Int> elements_start_index;
+  ElementTypeMap<Int> nb_new_elements;
+
+  // unpack mesh infos
   for (auto ghost_type : ghost_types) {
     for (auto && [i, type] : enumerate(this->elementTypes(_not_ghost))) {
       offsets(type, ghost_type) = offsets_v[i];
+
+      nb_new_elements(type, ghost_type) = global_sizes_v[i] - global_sizes(type, ghost_type);
+      elements_start_index(type, ghost_type) = offsets(type, ghost_type) + global_sizes(type, ghost_type);
+
       global_sizes(type, ghost_type) = global_sizes_v[i];
+
     }
   }
 
+  // unpack group infos
   auto i = group_values_offset;
   for (auto && group : mesh.iterateElementGroups()) {
     auto & offsets = group.offsets;
@@ -798,7 +826,38 @@ void Mesh::updateOffsets() {
     ++i;
   }
 
+  // unpack nodal info
+  auto total_nb_new_nodes = global_sizes_v.back();
+  auto node_start_index = offsets_v.back() + nb_global_nodes;
+
+
+  // adapt the global numbering of local nodes
+  for (auto n : range_new) {
+    if (mesh.isLocalOrMasterNode(n)) {
+      nodes_global_ids(n) = node_start_index++;
+    }
+  }
+
+  // adapt the global numbering of local elements
+  for (auto && type : this->elementTypes()) {
+    auto & global_ids_ = global_ids(type);
+    // this should become a if once I am sure what I am doing
+    AKANTU_DEBUG_ASSERT(global_ids_.size() == connectivities(type).size() - nb_new_elements(type), "blip");
+
+    auto size = global_ids_.size();
+    global_ids_.resize(connectivities(type).size());
+
+    for(auto i : arange(size, global_ids_(type))) {
+      global_ids_(i) = elements_start_index(type)++;
+    }
+  }
+
+  nb_local_nodes = new_nb_local_nodes;
+  nb_global_nodes = nb_global_nodes + total_nb_new_nodes;
+
   offset_release = mesh.getRelease();
+
+  return offsets_v.back();
 }
 
 } // namespace akantu

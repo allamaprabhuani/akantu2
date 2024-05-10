@@ -29,7 +29,7 @@
 
 namespace akantu {
 
-Int GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
+std::pair<Int, Int> GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
   if (mesh.getCommunicator().getNbProc() == 1) {
     return local_nb_new_nodes;
   }
@@ -39,7 +39,7 @@ Int GlobalIdsUpdater::updateGlobalIDs(Int local_nb_new_nodes) {
   if (mesh.isDistributed()) {
     this->synchronizeGlobalIDs();
   }
-  return total_nb_new_nodes;
+  return {total_nb_new_nodes, total_nb_new_elements};
 }
 
 Int GlobalIdsUpdater::updateGlobalIDsLocally(Int local_nb_new_nodes) {

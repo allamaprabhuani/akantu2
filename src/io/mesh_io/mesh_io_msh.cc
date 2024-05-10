@@ -627,6 +627,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
       Element elem{akantu_type, 0, _not_ghost};
 
       auto & connectivity = file.mesh_accessor.getConnectivity(akantu_type);
+      auto & global_ids = file.mesh_accessor.getGlobalElementIDs(akantu_type);
       Vector<Idx> local_connect(connectivity.getNbComponent());
       auto && read_order = this->_read_order[akantu_type];
 
@@ -663,6 +664,7 @@ void MeshIOMSH::populateReaders4(File & file, Readers & readers) {
         connectivity.push_back(local_connect);
         elem.element = connectivity.size() - 1;
         file.element_tags[elem_tag] = elem;
+        global_ids().push_back(elem.element);
 
         bool first = true;
         for (auto it = range.first; it != range.second; ++it) {

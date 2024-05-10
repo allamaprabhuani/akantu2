@@ -113,6 +113,10 @@ public:
     return this->_mesh.getGhostsCounters(type, ghost_type);
   }
 
+  inline auto & getGlobalElementIDs() {
+    return this->_mesh.getGlobalElementIDsNC();
+  }
+
   /// get the element_to_subelement Array for the given type and
   /// create it if necessary
   [[nodiscard]] inline auto &

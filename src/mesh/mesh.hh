@@ -258,7 +258,7 @@ public:
   void fillNodesToElements(Int dimension = _all_dimensions);
 
   /// update offsets for parallel dumping of mesh info
-  void updateOffsets();
+  void updateOffsets(Idx nodes_start_index = 0);
 
 private:
   /// update the global ids, nodes type, ...
@@ -310,10 +310,10 @@ public:
   }
 
   /// get the nodes type Array
-  AKANTU_GET_MACRO(NodesFlags, *nodes_flags, const Array<NodeFlag> &);
+  AKANTU_GET_MACRO_AUTO(NodesFlags, *nodes_flags);
 
 protected:
-  AKANTU_GET_MACRO_NOT_CONST(NodesFlags, *nodes_flags, Array<NodeFlag> &);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(NodesFlags, *nodes_flags);
 
 public:
   inline NodeFlag getNodeFlag(Idx local_id) const;
@@ -394,6 +394,10 @@ public:
   inline decltype(auto)
   getConnectivityWithPeriodicity(const Element & element) const;
 
+  inline const auto & getGlobalElementIDs() const {
+    return getData<Idx>("global_element_ids");
+  }
+
 protected:
   /// get the element connected to a subelement (element of lower dimension)
   auto & getElementToSubelementNC();
@@ -408,6 +412,10 @@ protected:
                                   GhostType ghost_type = _not_ghost);
 
   inline decltype(auto) getConnectivityNC(const Element & element);
+
+  inline  auto & getGlobalElementIDsNC() {
+    return getData<Idx>("global_element_ids");
+  }
 
 public:
   /// get a name field associated to the mesh
@@ -621,12 +629,16 @@ private:
 
   /// global number of nodes;
   Int nb_global_nodes{0};
+  Int nb_local_nodes{0};
 
   /// all class of elements present in this mesh (for heterogenous meshes)
   ElementTypeMapArray<Idx> connectivities;
 
   /// count the references on ghost elements
   ElementTypeMapArray<Idx> ghosts_counters;
+
+  /// global element ids
+  ElementTypeMapArray<Idx> global_ids;
 
   /// the spatial dimension of this mesh
   Idx spatial_dimension{0};
@@ -687,6 +699,7 @@ private:
 
   ElementTypeMap<Idx> offsets, global_sizes;
   Release offset_release;
+  Idx nodes_next_local_index;
 };
 
 /// standard output stream operator
