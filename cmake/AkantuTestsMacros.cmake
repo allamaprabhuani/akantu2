@@ -622,19 +622,19 @@ function(register_test test_name)
         CROSSCOMPILING_EMULATOR ${AKANTU_DRIVER_SCRIPT} ${_arguments} -N ${p} -e
     )
 
-    if(_register_test_GTEST AND NOT reference)
-      gtest_discover_tests(${test_name}
-        TEST_SUFFIX "${_suffix}"
-        PROPERTIES ${_properties}
-      )
-    else()
+    # if(_register_test_GTEST AND NOT reference)
+    #   gtest_discover_tests(${test_name}
+    #     TEST_SUFFIX "${_suffix}"
+    #     PROPERTIES ${_properties}
+    #   )
+    # else()
       add_test(
         NAME ${test_name}${_suffix}
         COMMAND ${exe_name} ${_extra_args}
       )
       set_tests_properties(${test_name}${_suffix}
         PROPERTIES ${_properties})
-    endif()
+    # endif()
 
     set_property(
       TARGET ${test_name}
