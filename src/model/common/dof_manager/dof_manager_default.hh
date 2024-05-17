@@ -111,9 +111,6 @@ protected:
                                     SparseSolverVector & array) override;
 
 public:
-  /// update the global dofs vector
-  void updateGlobalBlockedDofs() override;
-
   //   /// apply boundary conditions to jacobian matrix
   //   void applyBoundary(const ID & matrix_id = "J") override;
 

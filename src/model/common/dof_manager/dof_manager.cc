@@ -942,7 +942,7 @@ void DOFManager::onElementsChanged(const Array<Element> &,
 void DOFManager::updateGlobalBlockedDofs() {
   this->previous_global_blocked_dofs_indexes.copy(
       this->global_blocked_dofs_indexes);
-  this->global_blocked_dofs.reserve(this->local_system_size, 0);
+  this->global_blocked_dofs_indexes.reserve(this->local_system_size, 0);
   this->previous_global_blocked_dofs_indexes_release =
       this->global_blocked_dofs_indexes_release;
 
@@ -957,24 +957,34 @@ void DOFManager::updateGlobalBlockedDofs() {
       const auto & dof = std::get<0>(data);
       const auto & is_blocked = std::get<1>(data);
       if (is_blocked) {
-        this->global_blocked_dofs.push_back(dof);
+        this->global_blocked_dofs_indexes.push_back(dof);
       }
     }
   }
 
-  std::sort(this->global_blocked_dofs.begin(), this->global_blocked_dofs.end());
-  auto last = std::unique(this->global_blocked_dofs.begin(),
-                          this->global_blocked_dofs.end());
-  this->global_blocked_dofs.resize(last - this->global_blocked_dofs.begin());
+  std::sort(this->global_blocked_dofs_indexes.begin(),
+            this->global_blocked_dofs_indexes.end());
+  auto last = std::unique(this->global_blocked_dofs_indexes.begin(),
+                          this->global_blocked_dofs_indexes.end());
+  this->global_blocked_dofs_indexes.resize(
+      last - this->global_blocked_dofs_indexes.begin());
 
-  auto are_equal =
-      global_blocked_dofs.size() ==
-          previous_global_blocked_dofs_indexes.size() and
-      std::equal(global_blocked_dofs.begin(), global_blocked_dofs.end(),
-                 previous_global_blocked_dofs_indexes.begin());
+  auto are_equal = global_blocked_dofs_indexes.size() ==
+                       previous_global_blocked_dofs_indexes.size() and
+                   std::equal(global_blocked_dofs_indexes.begin(),
+                              global_blocked_dofs_indexes.end(),
+                              previous_global_blocked_dofs_indexes.begin());
 
   if (not are_equal) {
     ++this->global_blocked_dofs_indexes_release;
+  } else {
+    return;
+  }
+
+  global_blocked_dofs.resize(local_system_size);
+  global_blocked_dofs.set(false);
+  for (const auto & dof : global_blocked_dofs_indexes) {
+    global_blocked_dofs[dof] = true;
   }
 }
 

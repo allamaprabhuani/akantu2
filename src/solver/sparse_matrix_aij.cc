@@ -51,7 +51,7 @@ SparseMatrixAIJ::~SparseMatrixAIJ() = default;
 void SparseMatrixAIJ::applyBoundary(Real block_val) {
   AKANTU_DEBUG_IN();
 
-  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
+  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFsIndexes();
   auto begin = blocked_dofs.begin();
   auto end = blocked_dofs.end();
 

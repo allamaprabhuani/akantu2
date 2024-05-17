@@ -427,29 +427,15 @@ void DOFManagerDefault::onNodesAdded(const Array<Idx> & nodes_list,
 void DOFManagerDefault::resizeGlobalArrays() {
   DOFManager::resizeGlobalArrays();
 
-  this->global_blocked_dofs.resize(this->local_system_size, 1);
-  this->previous_global_blocked_dofs_indexes.resize(this->local_system_size, 1);
+  // this->global_blocked_dofs_indexes.resize(this->local_system_size, 1);
+  // this->previous_global_blocked_dofs_indexes.resize(this->local_system_size,
+  // 1);
 
   matrix_profiled_dofs.clear();
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManagerDefault::updateGlobalBlockedDofs() {
-  DOFManager::updateGlobalBlockedDofs();
 
-  if (this->global_blocked_dofs_indexes_release ==
-      this->previous_global_blocked_dofs_indexes_release) {
-    return;
-  }
-
-  global_blocked_dofs.resize(local_system_size);
-  global_blocked_dofs.set(false);
-  for (const auto & dof : global_blocked_dofs) {
-    global_blocked_dofs[dof] = true;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 static bool dof_manager_is_registered =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
