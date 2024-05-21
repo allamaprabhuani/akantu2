@@ -51,6 +51,8 @@ public:
   /// solve using residual and solution from the dof_manager
   void solve() override;
 
+  DOFManagerDefault & getDOFManager();
+
 private:
   /// build the profile and do the analysis part
   void initialize() override;

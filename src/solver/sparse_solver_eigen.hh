@@ -29,30 +29,43 @@
 #define AKANTU_SOLVER_EIGEN_HH_
 
 namespace akantu {
+class DOFManagerDefault;
+class SparseMatrixAIJ;
+} // namespace akantu
+
+namespace akantu {
 
 class SparseSolverEigen : public SparseSolver {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Constructors/Destructors */
+  /* ------------------------------------------------------------------------
+   */
 public:
   SparseSolverEigen(DOFManager & dof_manager, const ID & matrix_id,
                     const ID & id = "sparse_solver_eigen");
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Methods */
+  /* ------------------------------------------------------------------------
+   */
 public:
   void initialize() override{};
 
   /// solve using residual and solution from the dof_manager
   void solve() override;
 
+  DOFManagerDefault & getDOFManager();
+
 private:
   void setA();
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Class Members */
+  /* ------------------------------------------------------------------------
+   */
 private:
   /// matrix release at last solve
   Int last_profile_release{-1};

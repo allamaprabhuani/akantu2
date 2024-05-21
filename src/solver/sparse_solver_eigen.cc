@@ -71,4 +71,9 @@ void SparseSolverEigen::solve() {
   this->dof_manager.splitSolutionPerDOFs();
 }
 
+/* -------------------------------------------------------------------------- */
+DOFManagerDefault & SparseSolverEigen::getDOFManager() {
+  return aka::as_type<DOFManagerDefault &>(this->dof_manager);
+}
+
 } // namespace akantu

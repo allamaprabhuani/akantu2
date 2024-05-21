@@ -49,6 +49,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  DOFManagerPETSc & getDOFManager();
   /// create the solver context and set the matrices
   virtual void setOperators();
   void solve() override;

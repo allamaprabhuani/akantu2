@@ -35,9 +35,8 @@ namespace akantu {
 SparseSolverPETSc::SparseSolverPETSc(DOFManager & dof_manager,
                                      const ID & matrix_id, const ID & id)
     : SparseSolver(dof_manager, matrix_id, id),
-      matrix(
-          aka::as_type<DOFManagerPETSc &>(dof_manager).getMatrix(matrix_id)) {
-  auto && mpi_comm = aka::as_type<DOFManagerPETSc &>(dof_manager).getMPIComm();
+      matrix(getDOFManager().getMatrix(matrix_id)) {
+  auto && mpi_comm = getDOFManager().getMPIComm();
 
   /// create a solver context
   PETSc_call(KSPCreate, mpi_comm, &this->ksp);
@@ -73,8 +72,8 @@ void SparseSolverPETSc::setOperators() {
 
 /* -------------------------------------------------------------------------- */
 void SparseSolverPETSc::solve() {
-  Vec & rhs(aka::as_type<DOFManagerPETSc &>(dof_manager)._getResidual());
-  Vec & solution(aka::as_type<DOFManagerPETSc &>(dof_manager)._getSolution());
+  Vec & rhs(getDOFManager()._getResidual());
+  Vec & solution(getDOFManager()._getSolution());
 
   this->setOperators();
   MatView(this->matrix.getMat(), PETSC_VIEWER_STDOUT_WORLD);
@@ -87,5 +86,9 @@ void SparseSolverPETSc::solve() {
 }
 
 /* -------------------------------------------------------------------------- */
+
+DOFManagerPETSc & SparseSolverPETSc::getDOFManager() {
+  return aka::as_type<DOFManagerPETSc &>(this->dof_manager);
+}
 
 } // namespace akantu
