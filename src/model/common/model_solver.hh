@@ -65,7 +65,7 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// Callback for the model to instantiate the matricees when needed
+  /// Callback for the model to instantiate the matrices when needed
   virtual void initSolver(TimeStepSolverType /*time_step_solver_type*/,
                           NonLinearSolverType /*non_linear_solver_type*/) {}
 
