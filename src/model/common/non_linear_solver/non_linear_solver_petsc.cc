@@ -85,7 +85,7 @@ public:
 
     prev_iteration = iteration;
 
-    auto & dx = dof_manager.getSolution();
+    auto & dx = dof_manager._getSolution();
     PETSc_call(VecWAXPY, dx, -1., x_prev, x);
     dof_manager.splitSolutionPerDOFs();
 

@@ -267,19 +267,19 @@ SparseSolverVector & DOFManagerPETSc::getNewLumpedMatrix(const ID & id) {
 }
 
 /* -------------------------------------------------------------------------- */
-SparseSolverVectorPETSc & DOFManagerPETSc::getSolution() {
+SparseSolverVectorPETSc & DOFManagerPETSc::_getSolution() {
   return aka::as_type<SparseSolverVectorPETSc>(*this->solution);
 }
 
-const SparseSolverVectorPETSc & DOFManagerPETSc::getSolution() const {
+const SparseSolverVectorPETSc & DOFManagerPETSc::_getSolution() const {
   return aka::as_type<SparseSolverVectorPETSc>(*this->solution);
 }
 
-SparseSolverVectorPETSc & DOFManagerPETSc::getResidual() {
+SparseSolverVectorPETSc & DOFManagerPETSc::_getResidual() {
   return aka::as_type<SparseSolverVectorPETSc>(*this->residual);
 }
 
-const SparseSolverVectorPETSc & DOFManagerPETSc::getResidual() const {
+const SparseSolverVectorPETSc & DOFManagerPETSc::_getResidual() const {
   return aka::as_type<SparseSolverVectorPETSc>(*this->residual);
 }
 

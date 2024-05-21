@@ -29,17 +29,13 @@
 #define AKANTU_SOLVER_EIGEN_HH_
 
 namespace akantu {
-class DOFManagerDefault;
-} // namespace akantu
-
-namespace akantu {
 
 class SparseSolverEigen : public SparseSolver {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SparseSolverEigen(DOFManagerDefault & dof_manager, const ID & matrix_id,
+  SparseSolverEigen(DOFManager & dof_manager, const ID & matrix_id,
                     const ID & id = "sparse_solver_eigen");
 
   /* ------------------------------------------------------------------------ */
@@ -58,9 +54,6 @@ private:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// DOFManager used by the Eigen implementation of the SparseSolver
-  DOFManagerDefault & dof_manager;
-
   /// matrix release at last solve
   Int last_profile_release{-1};
 

@@ -19,7 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "solver_petsc.hh"
+#include "sparse_solver_petsc.hh"
 #include "dof_manager_petsc.hh"
 #include "mpi_communicator_data.hh"
 #include "solver_vector_petsc.hh"
@@ -32,16 +32,18 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SparseSolverPETSc::SparseSolverPETSc(DOFManagerPETSc & dof_manager,
+SparseSolverPETSc::SparseSolverPETSc(DOFManager & dof_manager,
                                      const ID & matrix_id, const ID & id)
-    : SparseSolver(dof_manager, matrix_id, id), dof_manager(dof_manager),
-      matrix(dof_manager.getMatrix(matrix_id)) {
-  auto && mpi_comm = dof_manager.getMPIComm();
+    : SparseSolver(dof_manager, matrix_id, id),
+      matrix(
+          aka::as_type<DOFManagerPETSc &>(dof_manager).getMatrix(matrix_id)) {
+  auto && mpi_comm = aka::as_type<DOFManagerPETSc &>(dof_manager).getMPIComm();
 
   /// create a solver context
   PETSc_call(KSPCreate, mpi_comm, &this->ksp);
 }
-
+/* -------------------------------------------------------------------------- */
+void SparseSolverPETSc::initialize() {}
 /* -------------------------------------------------------------------------- */
 SparseSolverPETSc::~SparseSolverPETSc() {
   if (ksp != nullptr) {
@@ -71,10 +73,17 @@ void SparseSolverPETSc::setOperators() {
 
 /* -------------------------------------------------------------------------- */
 void SparseSolverPETSc::solve() {
-  Vec & rhs(this->dof_manager.getResidual());
-  Vec & solution(this->dof_manager.getSolution());
+  Vec & rhs(aka::as_type<DOFManagerPETSc &>(dof_manager)._getResidual());
+  Vec & solution(aka::as_type<DOFManagerPETSc &>(dof_manager)._getSolution());
+
+  this->setOperators();
+  MatView(this->matrix.getMat(), PETSC_VIEWER_STDOUT_WORLD);
+  VecView(rhs, PETSC_VIEWER_STDOUT_WORLD);
 
   PETSc_call(KSPSolve, ksp, rhs, solution);
+  VecView(solution, PETSC_VIEWER_STDOUT_WORLD);
+
+  this->dof_manager.splitSolutionPerDOFs();
 }
 
 /* -------------------------------------------------------------------------- */

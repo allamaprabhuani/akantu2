@@ -169,11 +169,11 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(ISLocalToGlobalMapping, is_ltog_map,
                              ISLocalToGlobalMapping &);
 
-  SparseSolverVectorPETSc & getSolution();
-  const SparseSolverVectorPETSc & getSolution() const;
+  SparseSolverVectorPETSc & _getSolution();
+  const SparseSolverVectorPETSc & _getSolution() const;
 
-  SparseSolverVectorPETSc & getResidual();
-  const SparseSolverVectorPETSc & getResidual() const;
+  SparseSolverVectorPETSc & _getResidual();
+  const SparseSolverVectorPETSc & _getResidual() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

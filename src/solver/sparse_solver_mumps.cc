@@ -53,8 +53,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 SparseSolverMumps::SparseSolverMumps(DOFManagerDefault & dof_manager,
                                      const ID & matrix_id, const ID & id)
-    : SparseSolver(dof_manager, matrix_id, id), dof_manager(dof_manager),
-      master_rhs_solution(0, 1) {
+    : SparseSolver(dof_manager, matrix_id, id), master_rhs_solution(0, 1) {
   AKANTU_DEBUG_IN();
 
   this->prank = communicator.whoAmI();
@@ -139,7 +138,8 @@ void SparseSolverMumps::setOutputLevel() {
 
 /* -------------------------------------------------------------------------- */
 void SparseSolverMumps::initMumpsData() {
-  auto & A = dof_manager.getMatrix(matrix_id);
+  auto & A =
+      aka::as_type<DOFManagerDefault &>(dof_manager).getMatrix(matrix_id);
 
   // Default Scaling
   icntl(8) = 77;
@@ -250,7 +250,8 @@ void SparseSolverMumps::analysis() {
 void SparseSolverMumps::factorize() {
   AKANTU_DEBUG_IN();
 
-  auto & A = dof_manager.getMatrix(matrix_id);
+  auto & A =
+      aka::as_type<DOFManagerDefault &>(dof_manager).getMatrix(matrix_id);
 
   if (parallel_method == _fully_distributed) {
     this->mumps_data.a_loc = A.a.data();
@@ -308,7 +309,8 @@ void SparseSolverMumps::solveInternal() {
 
   this->checkInitialized();
 
-  const auto & A = dof_manager.getMatrix(matrix_id);
+  const auto & A =
+      aka::as_type<DOFManagerDefault &>(dof_manager).getMatrix(matrix_id);
 
   this->setOutputLevel();
 

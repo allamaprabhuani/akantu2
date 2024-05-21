@@ -40,7 +40,7 @@ class SparseSolverPETSc : public SparseSolver {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SparseSolverPETSc(DOFManagerPETSc & dof_manager, const ID & matrix_id,
+  SparseSolverPETSc(DOFManager & dof_manager, const ID & matrix_id,
                     const ID & id = "solver_petsc");
 
   ~SparseSolverPETSc() override;
@@ -52,11 +52,9 @@ public:
   /// create the solver context and set the matrices
   virtual void setOperators();
   void solve() override;
+  void initialize() override;
 
 private:
-  /// DOFManager correctly typed
-  DOFManagerPETSc & dof_manager;
-
   /// PETSc linear solver
   KSP ksp;
 
