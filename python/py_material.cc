@@ -645,7 +645,12 @@ void register_material(py::module & mod) {
           },
           py::arg("position"), py::arg("normal"), py::arg("type"),
           py::arg("ghost_type") = _not_ghost)
-      .def("getNormalsAtQuads", &MaterialCohesive::getNormalsAtQuads)
+      .def(
+          "getNormalsAtQuads",
+          [](MaterialCohesive & self, ElementType type, GhostType ghost_type) {
+            return self.getNormalsAtQuads(type, ghost_type);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def(
           "computeOpening",
           [](MaterialCohesive & self, const Array<Real> & displacement,
