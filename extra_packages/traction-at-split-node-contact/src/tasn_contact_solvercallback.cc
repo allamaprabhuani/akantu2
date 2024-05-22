@@ -26,27 +26,19 @@ namespace akantu {
 
 TasnContactSolverCallback::TasnContactSolverCallback(
 						     SolidMechanicsModel & solid, NTNBaseContact & contact, NTNBaseFriction & friction)
-    : solid(solid), contact(contact), friction(friction) {}
+    : InterceptSolverCallback(solid), solid(solid), contact(contact), friction(friction) {}
 
 
 /* -------------------------------------------------------------------------- */
   void TasnContactSolverCallback::assembleResidual(){
 
     // Assemble the residual of the solid mechanics problem
-    solid.assembleInternalForces();
-
-    auto & internal_force = solid.getInternalForce();
-    auto & external_force = solid.getExternalForce();
-
-    solid.getDOFManager().assembleToResidual("displacement", external_force, 1);
-    solid.getDOFManager().assembleToResidual("displacement", internal_force, 1);
+    solver_callback.assembleResidual();
 
     // Compute the contact - friction part of the problem and add to the residual
-
     contact.computeContactPressure();
     friction.updateSlip();
     friction.computeFrictionTraction();
-
     // Assemble the global array for the contact pressure and the friction traction
     contact.assembleGlobalContactPressure();
     friction.assembleGlobalFrictionTraction();
@@ -55,12 +47,13 @@ TasnContactSolverCallback::TasnContactSolverCallback(
     auto & friction_traction = friction.getGlobalFrictionTraction();
 
     // The two functions contact.applyContactPressure and friction.applyFrictionTraction() are replaced by assembling the forces to the residual directly
-    
-    solid.getDOFManager().assembleToResidual("displacement", contact_pressure, 1);
-    solid.getDOFManager().assembleToResidual("displacement", friction_traction, 1);
+    auto && dof_manager = solid.getDOFManager();
+    dof_manager.assembleToResidual("displacement", contact_pressure, 1);
+    dof_manager.assembleToResidual("displacement", friction_traction, 1);
     
   }
-  
+
+
 /* -------------------------------------------------------------------------- */
 //TasnContactSolverCallback::~TasnContactSolverCallback() = default;
 

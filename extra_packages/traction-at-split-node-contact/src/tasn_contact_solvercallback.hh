@@ -31,7 +31,7 @@
 
 namespace akantu {
 
-class TasnContactSolverCallback : public SolverCallback {
+class TasnContactSolverCallback : public InterceptSolverCallback {
 
 public:
   TasnContactSolverCallback(SolidMechanicsModel & /*solid*/,
@@ -41,18 +41,6 @@ public:
 public:
   /// implementation of SolverCallback::assembleResidual
   void assembleResidual() override;
-
-    /// implementation of SolverCallback::predictor
-  //  void predictor() override;
-
-  /// implementation of SolverCallback::corrector
-  //  void corrector() override;
-
-  /// implementation of SolverCallback::beforeSolveStep
-  //  void beforeSolveStep() override;
-
-  /// implementation of SolverCallback::afterSolveStep
-  //  void afterSolveStep(bool converged = true) override;
 
 private:
     /// model for the solid mechanics part of the coupling

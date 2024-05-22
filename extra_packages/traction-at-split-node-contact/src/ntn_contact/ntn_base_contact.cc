@@ -75,7 +75,8 @@ NTNBaseContact::NTNBaseContact(SolidMechanicsModel & model, const ID & id)
               std::numeric_limits<Real>::quiet_NaN(), "normals"),
       contact_pressure(
           0, model.getSpatialDimension(), 0, id + ":contact_pressure",
-          std::numeric_limits<Real>::quiet_NaN(), "contact_pressure"),
+          std::numeric_limits<Real>::quiet_NaN(), "contact_pressure"),       
+      global_contact_pressure(std::make_unique<akantu::Array<double>>(0, model.getSpatialDimension(), id + ":global_contact_pressure")), 
       is_in_contact(0, 1, false, id + ":is_in_contact", false, "is_in_contact"),
       lumped_boundary_slaves(0, 1, 0, id + ":lumped_boundary_slaves",
                              std::numeric_limits<Real>::quiet_NaN(),
@@ -107,8 +108,11 @@ NTNBaseContact::NTNBaseContact(SolidMechanicsModel & model, const ID & id)
   this->synch_registry = std::make_unique<SynchronizerRegistry>();
   this->synch_registry->registerDataAccessor(*this);
 
-  auto nb_global_nodes = mesh.getNbNodes();  
-  Array<Real> global_contact_pressure(nb_global_nodes,spatial_dimension);
+  auto nb_nodes = mesh.getNbNodes();  
+  //Array<Real> global_contact_pressure(nb_global_nodes,spatial_dimension);
+
+  this->global_contact_pressure->resize(nb_nodes);
+  //global_contact_pressure.resize(nb_global_nodes, spatial_dimension);
   
   AKANTU_DEBUG_OUT();
 }
@@ -338,22 +342,21 @@ void NTNBaseContact::internalUpdateLumpedBoundary(
 
 /* -------------------------------------------------------------------------- */
 void NTNBaseContact::computeAcceleration(Array<Real> & acceleration) const {
-  auto && dof_manager =
-      dynamic_cast<DOFManagerDefault &>(model.getDOFManager());
-  const auto & b = dof_manager.getResidual();
-  acceleration.resize(b.size());
-  const auto & blocked_dofs = dof_manager.getGlobalBlockedDOFs();
-  const auto & A = dof_manager.getLumpedMatrix("M");
+  auto f_m2a = this->model.getF_M2A();
 
-  Array<bool> blocked_dofs_bool(blocked_dofs.size());
-  for (auto && data : zip(blocked_dofs, blocked_dofs_bool)) {
-    std::get<1>(data) = (std::get<0>(data) != 0);
+  auto && mass = this->model.getMass();
+  auto && internal_force = this->model.getInternalForce();
+  auto && external_force = this->model.getExternalForce();
+  auto && blocked_dofs = this->model.getBlockedDOFs();
+  
+  acceleration.resize(internal_force.size());
+
+  for(auto && [acc, mass, f_int, f_ext, bdofs] : zip(make_view(acceleration),
+                                                     make_view(mass),
+                                                     make_view(internal_force),
+                                                     make_view(external_force), make_view(blocked_dofs))){
+      acc = f_m2a * bdofs * (f_int + f_ext) / mass;
   }
-
-  // pre-compute the acceleration
-  // (not increment acceleration, because residual is still Kf)
-  NonLinearSolverLumped::solveLumped(A, acceleration, b, this->model.getF_M2A(),
-                                     blocked_dofs_bool);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -452,7 +455,6 @@ void NTNBaseContact::computeContactPressure() {
 void NTNBaseContact::assembleGlobalContactPressure(){
   auto nb_contact_nodes = getNbContactNodes();
   auto dim = this->model.getSpatialDimension();
-
   auto & global_contact_pressure = const_cast<Array<Real> &>(this->getGlobalContactPressure());
 
   for (Int n = 0; n < nb_contact_nodes; ++n) {

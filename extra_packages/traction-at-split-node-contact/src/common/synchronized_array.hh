@@ -40,7 +40,7 @@ public:
   SynchronizedArrayBase() = default;
   ~SynchronizedArrayBase() = default;
 
-  virtual ID getID() const { return "call should be virtual"; };
+  virtual ID getID() const { return "call should be virtual"; }
 
   virtual Int syncDeletedElements(std::vector<Idx> & delete_el) = 0;
   virtual Int syncAddedElements(Int nb_added_el) = 0;
@@ -131,19 +131,19 @@ public:
 public:
   AKANTU_SET_MACRO(DefaultValue, default_value, T);
 
-  Int size() const { return this->size_; };
+  Int size() const { return this->size_; }
 
-  using Array<T>::getID;
+  ID getID() const override { return Array<T>::getID(); }
 
   const Array<T> & getArray() const {
     const Array<T> & a = *(dynamic_cast<const Array<T> *>(this));
     return a;
-  };
+  }
 
-    Array<T> & getArray() {
+  Array<T> & getArray() {
     Array<T> & a = *(dynamic_cast<Array<T> *>(this));
     return a;
-  };
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

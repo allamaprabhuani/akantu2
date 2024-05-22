@@ -144,10 +144,8 @@ void NTNContact::addSurfacePair(const ID & slave, const ID & master,
   AKANTU_DEBUG_IN();
 
   const auto & mesh = this->model.getMesh();
-
   const auto & slave_boundary = mesh.getElementGroup(slave);
   const auto & master_boundary = mesh.getElementGroup(master);
-
   this->contact_surfaces.insert(&slave_boundary);
   this->contact_surfaces.insert(&master_boundary);
 
@@ -158,6 +156,7 @@ void NTNContact::addSurfacePair(const ID & slave, const ID & master,
 
   // eliminate pairs which contain a pbc slave node
   Array<Idx> pairs_no_PBC_slaves(0, 2);
+
   for (auto && pair : make_view<2>(pairs)) {
     if (not mesh.isPeriodicSlave(pair(0)) and
         not mesh.isPeriodicSlave(pair(1))) {
@@ -168,6 +167,7 @@ void NTNContact::addSurfacePair(const ID & slave, const ID & master,
   this->addNodePairs(pairs_no_PBC_slaves);
 
   AKANTU_DEBUG_OUT();
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -177,7 +177,7 @@ void NTNContact::addNodePairs(const Array<Idx> & pairs) {
   AKANTU_DEBUG_ASSERT(pairs.getNbComponent() == 2,
                       "Array of node pairs should have nb_component = 2,"
                           << " but has nb_component = "
-                          << pairs.getNbComponent());
+                          << pairs.getNbComponent());             
   for (auto && pair : make_view<2>(pairs)) {
     this->addSplitNode(pair(0), pair(1));
   }
@@ -376,7 +376,7 @@ void NTNContact::assembleGlobalContactPressure(){
   auto dim = this->model.getSpatialDimension();
 
   auto & global_contact_pressure = const_cast<Array<Real> &>(this->getGlobalContactPressure());
-  
+
   for (Int n = 0; n < nb_ntn_pairs; ++n) {
     auto slave = this->slaves(n);
     auto master = this->masters(n);

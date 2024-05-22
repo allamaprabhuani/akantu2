@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  */
-
 /* -------------------------------------------------------------------------- */
 #ifndef AST_NTN_BASE_FRICTION_HH_
 #define AST_NTN_BASE_FRICTION_HH_
@@ -72,7 +71,7 @@ public:
   virtual void computeStickTraction();
 
   /// assemble the friction force
-  virtual void assembleFrictionTraction();
+  virtual void assembleFrictionTraction(){AKANTU_TO_IMPLEMENT();}
 
   /// compute slip
   virtual void updateSlip();
