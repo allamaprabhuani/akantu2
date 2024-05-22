@@ -1,10 +1,10 @@
 /**
- * @file   heat_transfer_interface_model.hh
+ * @file   heat_transfer_interface_model.cc
  *
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @date creation: Thu Apr 13 2023
- * @date last modification: Thu Apr 13 2023
+ * @date last modification: Wed May 22 2024
  *
  * @brief  Implementation of HeatTransferInterfaceModel class
  *
@@ -161,14 +161,6 @@ void HeatTransferInterfaceModel::initModel() {
 
 /* -------------------------------------------------------------------------- */
 HeatTransferInterfaceModel::~HeatTransferInterfaceModel() = default;
-/* -------------------------------------------------------------------------- */
-void HeatTransferInterfaceModel::predictor() {
-  Parent::predictor();
-  // /// to force HeatTransferModel recompute conductivity matrix
-  // ++this->conductivity_release[_not_ghost];
-  // /// same for HeatTransferInterfaceModel
-  // ++opening_release;
-}
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::readMaterials() {
@@ -240,9 +232,7 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
     auto A = ExtendingOperators::getAveragingOperator(type);
     auto C = ExtendingOperators::getDifferencingOperator(type);
 
-    // tangent_conductivity_matrix.zero();
     auto && long_cond = this->k_long_w(type);
-    // auto && perp_cond = this->k_perp_over_w(type);
     Array<Real> at_bt_k_long_w_b_a(nb_element * nb_quadrature_points,
                                    nb_nodes_per_element * nb_nodes_per_element,
                                    "A^t*B^t*k_long*B*A");
@@ -255,7 +245,6 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
 
     Matrix<Real> B_A(spatial_dimension - 1, nb_nodes_per_element);
     Matrix<Real> k_long_w_B_A(spatial_dimension - 1, nb_nodes_per_element);
-    // Matrix<Real> N(spatial_dimension, nb_nodes_per_element);
     Matrix<Real> N_C(1, nb_nodes_per_element);
 
     for (auto && data :
@@ -264,7 +253,7 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
                        nb_nodes_per_element / 2),
              make_view(at_bt_k_long_w_b_a, nb_nodes_per_element,
                        nb_nodes_per_element),
-             /*perp_cond,*/ make_view(shapes, 1, nb_nodes_per_element / 2),
+             make_view(shapes, 1, nb_nodes_per_element / 2),
              make_view(ct_nt_k_perp_n_c, nb_nodes_per_element,
                        nb_nodes_per_element),
              make_view(tangent_conductivity, nb_nodes_per_element,
@@ -279,7 +268,6 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
       At_Bt_k_long_w_B_A.mul<true, false>(k_long_w_B_A, B_A);
 
       // assemble conductivity contribution perpendicular to the crack
-      // const auto & k_perp = std::get<3>(data);
       const auto & N = std::get<3>(data);
       auto & Ct_Nt_k_perp_N_C = std::get<4>(data);
       auto & tangent = std::get<5>(data);
@@ -347,8 +335,7 @@ void HeatTransferInterfaceModel::computeGradAndDeltaT(GhostType ghost_type) {
     }
   }
 }
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::computeTempOnQpoints(GhostType ghost_type) {
 
   Parent::computeTempOnQpoints(ghost_type);
@@ -427,8 +414,7 @@ void HeatTransferInterfaceModel::computeNormalsAtQuadraturePoints(
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     GhostType ghost_type) {
 
@@ -463,39 +449,7 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
 
   AKANTU_DEBUG_OUT();
 }
-/* --------------------------------------------------------------------------
- */
-// void HeatTransferInterfaceModel::computeKTransOnQuadPoints(
-//     GhostType ghost_type) {
-
-//   // if opening did not change, longitudinal conductivity will neither
-//   // if (opening_release == perp_conductivity_release[ghost_type]) {
-//   //   return;
-//   // }
-
-//   for (auto && type :
-//        mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
-//     auto & opening = opening_on_qpoints(type, ghost_type);
-//     auto & trans_cond_over_w = k_perp_over_w(type, ghost_type);
-
-//     for (auto && tuple : zip(trans_cond_over_w, opening)) {
-//       auto & k_perp = std::get<0>(tuple);
-//       auto w = std::get<1>(tuple);
-//       // limiting the lower limit of w to avoid numeric instability
-//       if (w < this->default_opening) {
-//         w = this->default_opening;
-//       }
-
-//       k_perp = transversal_conductivity / w;
-//     }
-//   }
-//   perp_conductivity_release[ghost_type] = opening_release;
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------- */
 void HeatTransferInterfaceModel::assembleInternalHeatRate() {
   AKANTU_DEBUG_IN();
 
@@ -521,8 +475,8 @@ void HeatTransferInterfaceModel::assembleInternalHeatRate() {
 
   AKANTU_DEBUG_OUT();
 }
-/* --------------------------------------------------------------------------
- */
+
+/* -------------------------------------------------*/
 void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   computeKLongOnQuadPoints(ghost_type);
@@ -543,14 +497,8 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
 
     auto A = ExtendingOperators::getAveragingOperator(type);
     Matrix<Real> B_A(spatial_dimension - 1, nb_nodes_per_element);
-    // auto k_long_w_gradT =
-    //     std::make_unique<Array<Real>>(nb_element * nb_quadrature_points,
-    //                                   spatial_dimension - 1,
-    //                                   "k_long_grad_T");
     Array<Real> k_long_w_gradT(nb_element * nb_quadrature_points,
                                spatial_dimension - 1);
-    // auto bt_k_w_gradT = std::make_unique<Array<Real>>(
-    //     nb_element * nb_quadrature_points, nb_nodes_per_element);
     Array<Real> bt_k_w_gradT(nb_element * nb_quadrature_points,
                              nb_nodes_per_element);
     for (auto && values :
@@ -577,8 +525,6 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
       At_Bt_vector.template mul<true>(B_A, k_w_gradT);
     }
 
-    // auto long_heat_rate = std::make_unique<Array<Real>>(
-    //     nb_element, nb_nodes_per_element, "long_heat_rate");
     Array<Real> long_heat_rate(nb_element, nb_nodes_per_element);
 
     fem.integrate(bt_k_w_gradT, long_heat_rate, nb_nodes_per_element, type,
@@ -595,8 +541,6 @@ void HeatTransferInterfaceModel::computeLongHeatRate(GhostType ghost_type) {
  */
 void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  // computeKTransOnQuadPoints(ghost_type);
 
   auto & internal_rate = const_cast<Array<Real> &>(this->getInternalHeatRate());
 
@@ -628,13 +572,10 @@ void HeatTransferInterfaceModel::computeTransHeatRate(GhostType ghost_type) {
              make_view(shapes, size_of_shapes),
              make_view(*nt_k_deltaT, nb_nodes_per_element))) {
       auto & _k_perp_deltaT = std::get<0>(values);
-      // auto & _k_perp_over_w = std::get<1>(values);
       const auto & full_gradT = std::get<1>(values);
       const auto & N = std::get<2>(values);
       auto & Nt_k_deltaT = std::get<3>(values);
 
-      // _k_perp_deltaT_over_w =
-      //     _k_perp_over_w * full_gradT(spatial_dimension - 1);
       _k_perp_deltaT =
           this->transversal_conductivity * full_gradT(spatial_dimension - 1);
 
@@ -770,79 +711,6 @@ void HeatTransferInterfaceModel::setTimeStep(Real time_step,
   this->mesh.getDumper("heat_interfaces").setTimeStep(time_step);
 }
 
-// /*
-// --------------------------------------------------------------------------
-// */ void HeatTransferInterfaceModel::assignPropertyToPhysicalGroup(
-//     const std::string & property_name, const std::string & group_name,
-//     Real value) {
-//   AKANTU_DEBUG_ASSERT(property_name != "conductivity",
-//                       "Scalar was provided instead of a conductivity
-//                       matrix");
-//   auto && el_group = mesh.getElementGroup(group_name);
-//   auto & fem = this->getFEEngine();
-
-//   for (auto ghost_type : ghost_types) {
-//     for (auto && type :
-//          mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-//       auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
-//       auto && elements = el_group.getElements(type, ghost_type);
-
-//       Array<Real>::scalar_iterator field_it;
-//       if (property_name == "density") {
-//         field_it = density_array(type, ghost_type).begin();
-//       } else if (property_name == "capacity") {
-//         field_it = capacity_array(type, ghost_type).begin();
-//       } else {
-//         AKANTU_EXCEPTION(property_name +
-//                          " is not a valid material property name.");
-//       }
-//       for (auto && el : elements) {
-//         for (auto && qpoint : arange(nb_quadrature_points)) {
-//           field_it[el * nb_quadrature_points + qpoint] = value;
-//         }
-//       }
-//       need_to_reassemble_capacity = true;
-//       need_to_reassemble_capacity_lumped = true;
-//     }
-//   }
-// }
-// /*
-// --------------------------------------------------------------------------
-// */ void HeatTransferInterfaceModel::assignPropertyToPhysicalGroup(
-//     const std::string & property_name, const std::string & group_name,
-//     Matrix<Real> cond_matrix) {
-//   AKANTU_DEBUG_ASSERT(property_name == "conductivity",
-//                       "When updating material parameters, only conductivity
-//                       " "accepts matrix as an input");
-//   auto && el_group = mesh.getElementGroup(group_name);
-//   auto & fem = this->getFEEngine();
-//   auto dim = this->getMesh().getSpatialDimension();
-
-//   for (auto ghost_type : ghost_types) {
-//     for (auto && type :
-//          mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-//       auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
-//       auto && elements = el_group.getElements(type, ghost_type);
-
-//       auto init_cond_it =
-//           make_view(initial_conductivity_array(type, ghost_type), dim, dim)
-//               .begin();
-//       auto cond_on_quad_it =
-//           make_view(conductivity_on_qpoints(type, ghost_type), dim, dim)
-//               .begin();
-
-//       for (auto && el : elements) {
-//         for (auto && qpoint : arange(nb_quadrature_points)) {
-//           init_cond_it[el * nb_quadrature_points + qpoint] = cond_matrix;
-//           cond_on_quad_it[el * nb_quadrature_points + qpoint] =
-//           cond_matrix;
-//         }
-//       }
-//     }
-//     conductivity_release[ghost_type] += 1;
-//   }
-// }
-
 /* -------------------------------------------------------------------------*/
 std::shared_ptr<dumpers::Field>
 HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
@@ -896,6 +764,4 @@ HeatTransferInterfaceModel::createElementalField(const std::string & field_name,
   }
   return field;
 }
-/* --------------------------------------------------------------------------
- */
 } // namespace akantu

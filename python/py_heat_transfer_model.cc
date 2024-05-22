@@ -2,9 +2,10 @@
  * @file   py_heat_transfer_model.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epl.ch>
  *
  * @date creation: Sun Jun 16 2019
- * @date last modification: Sun Jun 16 2019
+ * @date last modification: Wed May 22 2024
  *
  * @brief  pybind11 interface to HeatTransferModel
  *

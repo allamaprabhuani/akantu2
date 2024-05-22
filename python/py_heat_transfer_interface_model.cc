@@ -4,7 +4,7 @@
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @date creation: Tue May 16 2023
- * @date last modification: Tue May 16 2023
+ * @date last modification: Wed May 22 2024
  *
  * @brief  pybind11 interface to HeatTransferInterfaceModel
  *
@@ -35,9 +35,7 @@
 #include <heat_transfer_interface_model.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
-// #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
-// #include <pybind11/stl.h>
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */

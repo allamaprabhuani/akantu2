@@ -4,7 +4,7 @@
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @date creation: Thu Apr 13 2023
- * @date last modification: Thu Apr 13 2023
+ * @date last modification: Wed May 22 2024
  *
  * @brief  Model of Heat Transfer expanded to heat diffusion along interfaces
  *
@@ -67,7 +67,6 @@ protected:
   /// initialize the model
   void initModel() override;
 
-  void predictor() override;
   /* ------------------------------------------------------------------------ */
   /* Methods for explicit                                                     */
   /* ------------------------------------------------------------------------ */
@@ -79,9 +78,6 @@ public:
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
 public:
-  // /// calculate the lumped capacity vector for heat transfer problem
-  // void assembleCapacityLumped() override;
-
 public:
   /// compute the internal heat flux
   void assembleInternalHeatRate() override;
@@ -142,9 +138,6 @@ private:
   Matrix<Real> getDifferencingOperator(const ElementType & type,
                                        const UInt & nb_degree_of_freedom = 1);
 
-  // /// compute the thermal energy
-  // Real computeThermalEnergyByNode();
-
 protected:
   /// calculate the lumped capacity vector for heat transfer problem (w
   /// ghost type)
@@ -181,9 +174,6 @@ public:
   AKANTU_GET_MACRO(CapacityInCrack, capacity_in_crack, Real);
   AKANTU_GET_MACRO(DensityInCrack, density_in_crack, Real);
   AKANTU_GET_MACRO(DefaultOpening, default_opening, Real);
-  /// get the conductivity on q points
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TransversalConductivityOnQpoints,
-  //                                        k_perp_over_w, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(LongitudinalConductivityOnQpoints,
                                          k_long_w, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureOnQpointsCoh,
@@ -214,9 +204,6 @@ protected:
   /// longitudinal conductivity tensor (or a scalar in 2D) multiplied by opening
   /// on quadrature points
   ElementTypeMapArray<Real> k_long_w;
-
-  /// transversal conductivity scalar devided by opening on quadrature points
-  // ElementTypeMapArray<Real> k_perp_over_w;
 
   /// @brief boolean enabling opening-rate term into internal heat rate
   bool use_opening_rate{false};

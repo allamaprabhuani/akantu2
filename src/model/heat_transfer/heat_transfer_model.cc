@@ -10,7 +10,7 @@
  * @author Rui Wang <rui.wang@epfl.ch>
  *
  * @date creation: Sun May 01 2011
- * @date last modification: Fri Apr 09 2021
+ * @date last modification: Wed May 22 2024
  *
  * @brief  Implementation of HeatTransferModel class
  *
@@ -378,10 +378,6 @@ void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & temperature_interpolated = temperature_on_qpoints(type, ghost_type);
 
-    // compute the temperature on quadrature points
-    // this->getFEEngine().interpolateOnIntegrationPoints(
-    //     *temperature, temperature_interpolated, 1, type, ghost_type);
-
     auto & cond = conductivity_on_qpoints(type, ghost_type);
     auto & initial_cond = initial_conductivity_array(type, ghost_type);
     auto & T_ref = T_ref_array(type, ghost_type);
@@ -645,14 +641,6 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
     rho_ip = capacity_ip * density_ip;
   }
 
-  // Real * rho_1_val = rho.storage();
-  // /// compute @f$ rho @f$ for each nodes of each element
-  // for (UInt el = 0; el < nb_element; ++el) {
-  //   for (UInt n = 0; n < nb_quadrature_points; ++n) {
-  //     *rho_1_val++ = this->capacity;
-  //   }
-  // }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -734,10 +722,6 @@ Real HeatTransferModel::getThermalEnergy() {
     Array<Real> Eth_per_quad(nb_element * nb_quadrature_points, 1);
 
     auto & temperature_interpolated = temperature_on_qpoints(type);
-
-    // compute the temperature on quadrature points
-    // this->getFEEngine().interpolateOnIntegrationPoints(
-    //     *temperature, temperature_interpolated, 1, type);
 
     auto T_it = temperature_interpolated.begin();
     auto T_end = temperature_interpolated.end();

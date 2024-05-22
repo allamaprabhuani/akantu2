@@ -2,9 +2,10 @@
  * @file   solver_vector_distributed.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @date creation: Thu Feb 21 2013
- * @date last modification: Tue Jan 01 2019
+ * @date last modification: Wed May 22 2024
  *
  * @brief  Solver vector interface for distributed arrays
  *
