@@ -101,6 +101,11 @@ public:
   void updateNormalOpeningAtQuadraturePoints(Array<Real> positions,
                                              GhostType ghost_type);
 
+  /// based on the vector of positions, computes normals at the quad points
+  void computeNormalsAtQuadraturePoints(Array<Real> positions,
+                                        Array<Real> normals,
+                                        GhostType ghost_type);
+
   /// compute temperature on ips
   void computeTempOnQpoints(GhostType ghost_type) override;
 

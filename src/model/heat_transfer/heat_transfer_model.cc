@@ -564,7 +564,7 @@ Real HeatTransferModel::getStableTimeStep() {
                       << ", and the min capacity is : " << capacitymin);
   }
 
-  Real min_dt = 2. * min_el_size * min_el_size / 4. * densitymin * capacitymin /
+  Real min_dt = min_el_size * min_el_size / 4. * densitymin * capacitymin /
                 conductivitymax;
 
   mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);

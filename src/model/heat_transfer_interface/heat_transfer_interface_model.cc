@@ -81,9 +81,7 @@ HeatTransferInterfaceModel::HeatTransferInterfaceModel(
                         ModelType::_heat_transfer_interface_model, dof_manager),
       temperature_on_qpoints_coh("temperature_on_qpoints_coh", id),
       opening_on_qpoints("opening_on_qpoints", id),
-      opening_rate("opening_rate", id), k_long_w("k_long_w", id) /*,
-       k_perp_over_w("k_perp_over_w", id)*/
-{
+      opening_rate("opening_rate", id), k_long_w("k_long_w", id) {
   AKANTU_DEBUG_IN();
 
   registerFEEngineObject<MyFEEngineCohesiveType>("InterfacesFEEngine", mesh,
@@ -213,27 +211,6 @@ void HeatTransferInterfaceModel::assembleCapacity() {
 }
 
 /* -------------------------------------------------------------------------- */
-// void HeatTransferInterfaceModel::assembleCapacityLumped(GhostType ghost_type)
-// {
-//   AKANTU_DEBUG_IN();
-
-//   Parent::assembleCapacityLumped(ghost_type);
-
-//   auto & fem_interface =
-//       this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
-//   heat_transfer_interface::details::ComputeRhoFunctor compute_rho(*this);
-
-//   for (auto && type :
-//        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-//     fem_interface.assembleFieldLumped(compute_rho, "M", "temperature",
-//                                       this->getDOFManager(), type,
-//                                       ghost_type);
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-/* -------------------------------------------------------------------------- */
 void HeatTransferInterfaceModel::assembleConductivityMatrix() {
   AKANTU_DEBUG_IN();
 
@@ -308,7 +285,6 @@ void HeatTransferInterfaceModel::assembleConductivityMatrix() {
       auto & tangent = std::get<5>(data);
 
       N_C.mul<false, false>(N, C);
-      // Ct_Nt_k_perp_N_C.mul<true, false>(N_C, N_C, k_perp);
       Ct_Nt_k_perp_N_C.mul<true, false>(N_C, N_C,
                                         this->transversal_conductivity);
 
@@ -433,9 +409,26 @@ void HeatTransferInterfaceModel::updateNormalOpeningAtQuadraturePoints(
       normal_opening = opening.dot(normal);
     }
   }
-  // ++opening_release;
 }
 /* -------------------------------------------------------------------------- */
+void HeatTransferInterfaceModel::computeNormalsAtQuadraturePoints(
+    Array<Real> positions, Array<Real> normals, GhostType ghost_type) {
+  auto & fem_interface =
+      this->getFEEngineClass<MyFEEngineCohesiveType>("InterfacesFEEngine");
+  for (auto && type :
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)) {
+
+#define COMPUTE_NORMALS(type)                                                  \
+  fem_interface.getShapeFunctions()                                            \
+      .computeNormalsOnIntegrationPoints<type, CohesiveReduceFunctionMean>(    \
+          positions, normals, ghost_type);
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMALS);
+#undef COMPUTE_NORMALS
+  }
+}
+
+/* --------------------------------------------------------------------------
+ */
 void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
     GhostType ghost_type) {
 
@@ -470,7 +463,8 @@ void HeatTransferInterfaceModel::computeKLongOnQuadPoints(
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 // void HeatTransferInterfaceModel::computeKTransOnQuadPoints(
 //     GhostType ghost_type) {
 
@@ -755,8 +749,8 @@ Real HeatTransferInterfaceModel::getStableTimeStep() {
                       << " and the max opening is : " << max_opening_on_qpoint);
   }
 
-  Real min_dt = 2. * min_el_size * min_el_size / 4 * density_in_crack *
-                capacity_in_crack / longitudinal_conductivity;
+  Real min_dt = min_el_size * min_el_size / 4 * this->density_in_crack *
+                this->capacity_in_crack / this->longitudinal_conductivity;
 
   mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
 

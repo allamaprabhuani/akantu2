@@ -287,10 +287,6 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
                    ghost_type);
 
-    /// syncrhonize these two fields
-    // this->model->synchronize(SynchronizationTag::_smmc_normal);
-    // this->model->synchronize(SynchronizationTag::_smmc_opening);
-
     /// check if self-penetration is taking place
     checkPenetration(opening(type, ghost_type), normal(type, ghost_type),
                      penetration(type, ghost_type), type, ghost_type);
