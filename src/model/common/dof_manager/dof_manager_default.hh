@@ -176,9 +176,10 @@ public:
   /* Non Linear Solver                                                        */
   /* ------------------------------------------------------------------------ */
   /// Get instance of a non linear solver
-  NonLinearSolver & getNewNonLinearSolver(
-      const ID & nls_solver_id,
-      const NonLinearSolverType & _non_linear_solver_type) override;
+  NonLinearSolver &
+  getNewNonLinearSolver(const ID & nls_solver_id,
+                        const NonLinearSolverType & _non_linear_solver_type,
+                        const SparseSolverType & _sparse_solver_type) override;
 
   /* ------------------------------------------------------------------------ */
   /* Time-Step Solver                                                         */

@@ -63,7 +63,8 @@ void Model::initNewSolver(const AnalysisMethod & method) {
 
   if (not this->hasSolver(solver_name)) {
     ModelSolverOptions options = this->getDefaultSolverOptions(tss_type);
-    this->getNewSolver(solver_name, tss_type, options.non_linear_solver_type);
+    this->getNewSolver(solver_name, tss_type, options.non_linear_solver_type,
+                       options.sparse_solver_type);
 
     for (auto && is_type : options.integration_scheme_type) {
       if (!this->hasIntegrationScheme(solver_name, is_type.first)) {

@@ -33,7 +33,8 @@ namespace akantu {
 
 NonLinearSolverPETSc::NonLinearSolverPETSc(
     DOFManagerPETSc & dof_manager,
-    const NonLinearSolverType & non_linear_solver_type, const ID & id)
+    const NonLinearSolverType & non_linear_solver_type,
+    const SparseSolverType & sparse_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id) {
   std::unordered_map<NonLinearSolverType, SNESType>
       petsc_non_linear_solver_types{

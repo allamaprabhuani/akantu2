@@ -99,7 +99,8 @@ void PhaseFieldModel::corrector() {
 
 /* -------------------------------------------------------------------------- */
 void PhaseFieldModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                 NonLinearSolverType /*unused*/) {
+                                 NonLinearSolverType /*unused*/,
+                                 SparseSolverType /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->damage, 1, "damage");

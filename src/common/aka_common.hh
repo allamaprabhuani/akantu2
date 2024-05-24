@@ -191,6 +191,28 @@ enum class NonLinearSolverType {
 
 #if !defined(DOXYGEN)
 // clang-format off
+#define AKANTU_SPARSE_SOLVER_TYPES                                     \
+  (mumps)                                                              \
+  (eigen)                                                              \
+  (petsc)                                                              \
+  (auto)
+// clang-format on
+AKANTU_CLASS_ENUM_DECLARE(SparseSolverType, AKANTU_SPARSE_SOLVER_TYPES)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(SparseSolverType, AKANTU_SPARSE_SOLVER_TYPES)
+AKANTU_CLASS_ENUM_INPUT_STREAM(SparseSolverType, AKANTU_SPARSE_SOLVER_TYPES)
+#else
+/// Type of non linear resolution available in akantu
+enum class SparseSolverType {
+  _mumps, ///< mumps solver
+  _eigen, ///< Eigen solver
+  _petsc, ///< PETSc solver
+  _auto,  ///< This will take a default value that make sense in case of
+          ///  model::getNewSolver
+};
+#endif
+
+#if !defined(DOXYGEN)
+// clang-format off
 #define AKANTU_TIME_STEP_SOLVER_TYPE                                    \
   (static)                                                             \
   (dynamic)                                                            \
@@ -516,7 +538,7 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  [[nodiscard]] inline auto get##name() const -> type { return variable; }
+  [[nodiscard]] inline auto get##name() const->type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   [[nodiscard]] inline decltype(auto) get##name() const { return (variable); }
@@ -525,7 +547,7 @@ namespace {
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  [[nodiscard]] inline auto get##name() -> type { return variable; }
+  [[nodiscard]] inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   [[nodiscard]] inline const auto & get##name() const {                        \

@@ -136,6 +136,7 @@ ModelSolver::initDOFManager(const ParserSection & section,
         section.getNbSubSections(ParserType::_non_linear_solver);
 
     auto nls_type = tss_options.non_linear_solver_type;
+    auto ss_type = tss_options.sparse_solver_type;
 
     if (nb_non_linear_solver_section == 1) {
       auto && nls_section = *(sub_solvers_sect.first);
@@ -146,7 +147,7 @@ ModelSolver::initDOFManager(const ParserSection & section,
                        << solver_id);
     }
 
-    this->getNewSolver(solver_id, tss_type, nls_type);
+    this->getNewSolver(solver_id, tss_type, nls_type, ss_type);
     if (nb_non_linear_solver_section == 1) {
       const auto & nls_section = *(sub_solvers_sect.first);
       this->dof_manager->getNonLinearSolver(solver_id).parseSection(
@@ -282,7 +283,8 @@ void ModelSolver::solveStep(const ID & solver_id) {
 /* -------------------------------------------------------------------------- */
 void ModelSolver::getNewSolver(const ID & solver_id,
                                TimeStepSolverType time_step_solver_type,
-                               NonLinearSolverType non_linear_solver_type) {
+                               NonLinearSolverType non_linear_solver_type,
+                               SparseSolverType sparse_solver_type) {
   if (this->default_solver_id.empty()) {
     this->default_solver_id = solver_id;
   }
@@ -303,10 +305,15 @@ void ModelSolver::getNewSolver(const ID & solver_id,
     }
   }
 
-  this->initSolver(time_step_solver_type, non_linear_solver_type);
+  if (sparse_solver_type == SparseSolverType::_auto) {
+    sparse_solver_type = SparseSolverType::_mumps;
+  }
+
+  this->initSolver(time_step_solver_type, non_linear_solver_type,
+                   sparse_solver_type);
 
   NonLinearSolver & nls = this->dof_manager->getNewNonLinearSolver(
-      solver_id, non_linear_solver_type);
+      solver_id, non_linear_solver_type, sparse_solver_type);
 
   this->dof_manager->getNewTimeStepSolver(solver_id, time_step_solver_type, nls,
                                           *this);

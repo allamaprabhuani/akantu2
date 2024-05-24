@@ -124,6 +124,8 @@ ModelSolverOptions SolidMechanicsModel::getDefaultSolverOptions(
     const TimeStepSolverType & type) const {
   ModelSolverOptions options;
 
+  options.sparse_solver_type = SparseSolverType::_auto;
+
   switch (type) {
   case TimeStepSolverType::_dynamic_lumped: {
     options.non_linear_solver_type = NonLinearSolverType::_lumped;
@@ -184,7 +186,8 @@ SolidMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                     NonLinearSolverType /*unused*/) {
+                                     NonLinearSolverType /*unused*/,
+                                     SparseSolverType /*unused*/) {
   auto & dof_manager = this->getDOFManager();
 
   /* ------------------------------------------------------------------------ */

@@ -134,9 +134,10 @@ protected:
   void getLumpedMatrixPerDOFs(const ID & /*dof_id*/, const ID & /*lumped_mtx*/,
                               Array<Real> & /*lumped*/) override {}
 
-  NonLinearSolver & getNewNonLinearSolver(
-      const ID & nls_solver_id,
-      const NonLinearSolverType & non_linear_solver_type) override;
+  NonLinearSolver &
+  getNewNonLinearSolver(const ID & nls_solver_id,
+                        const NonLinearSolverType & non_linear_solver_type,
+                        const SparseSolverType & sparse_solver_type) override;
 
   TimeStepSolver &
   getNewTimeStepSolver(const ID & id, const TimeStepSolverType & type,

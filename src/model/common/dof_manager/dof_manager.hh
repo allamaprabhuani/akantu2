@@ -367,10 +367,11 @@ protected:
 
   template <class NLSType, class DMType>
   NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
-                                            const NonLinearSolverType & type) {
+                                            const NonLinearSolverType & type,
+                                            const SparseSolverType & s_type) {
     ID non_linear_solver_id = this->id + ":nls:" + id;
     std::unique_ptr<NonLinearSolver> nls =
-        std::make_unique<NLSType>(dm, type, non_linear_solver_id);
+        std::make_unique<NLSType>(dm, type, s_type, non_linear_solver_id);
     return this->registerNonLinearSolver(non_linear_solver_id, nls);
   }
 
@@ -448,9 +449,10 @@ public:
   /* Non linear system solver                                                 */
   /* ------------------------------------------------------------------------ */
   /// Get instance of a non linear solver
-  virtual NonLinearSolver & getNewNonLinearSolver(
-      const ID & nls_solver_id,
-      const NonLinearSolverType & _non_linear_solver_type) = 0;
+  virtual NonLinearSolver &
+  getNewNonLinearSolver(const ID & nls_solver_id,
+                        const NonLinearSolverType & _non_linear_solver_type,
+                        const SparseSolverType & _sparse_solver_type) = 0;
 
   /// get instance of a non linear solver
   virtual NonLinearSolver & getNonLinearSolver(const ID & nls_solver_id);

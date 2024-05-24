@@ -196,7 +196,8 @@ SparseMatrixAIJ & DOFManagerDefault::getMatrix(const ID & id) {
 /* -------------------------------------------------------------------------- */
 NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
-                                         const NonLinearSolverType & type) {
+                                         const NonLinearSolverType & type,
+                                         const SparseSolverType & s_type) {
   switch (type) {
   case NonLinearSolverType::_newton_raphson:
     /* FALLTHRU */
@@ -204,15 +205,15 @@ DOFManagerDefault::getNewNonLinearSolver(const ID & id,
   case NonLinearSolverType::_newton_raphson_contact:
   case NonLinearSolverType::_newton_raphson_modified: {
     return this->registerNonLinearSolver<NonLinearSolverNewtonRaphson>(
-        *this, id, type);
+        *this, id, type, s_type);
   }
   case NonLinearSolverType::_linear: {
-    return this->registerNonLinearSolver<NonLinearSolverLinear>(*this, id,
-                                                                type);
+    return this->registerNonLinearSolver<NonLinearSolverLinear>(*this, id, type,
+                                                                s_type);
   }
   case NonLinearSolverType::_lumped: {
-    return this->registerNonLinearSolver<NonLinearSolverLumped>(*this, id,
-                                                                type);
+    return this->registerNonLinearSolver<NonLinearSolverLumped>(*this, id, type,
+                                                                s_type);
   }
   default:
     AKANTU_EXCEPTION("The asked type of non linear solver is not supported by "

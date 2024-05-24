@@ -127,7 +127,8 @@ protected:
 
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType /*time_step_solver_type*/,
-                  NonLinearSolverType /*non_linear_solver_type*/) override;
+                  NonLinearSolverType /*non_linear_solver_type*/,
+                  SparseSolverType /*sparse_solver_type*/) override;
 
   /// callback for the solver, this is called at beginning of solve
   void predictor() override;

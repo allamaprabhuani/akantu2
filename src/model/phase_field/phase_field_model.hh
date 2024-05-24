@@ -61,8 +61,8 @@ protected:
   void initFullImpl(const ModelOptions & options) override;
 
   /// allocate all vectors
-  void initSolver(TimeStepSolverType /*unused*/,
-                  NonLinearSolverType /*unused*/) override;
+  void initSolver(TimeStepSolverType /*unused*/, NonLinearSolverType /*unused*/,
+                  SparseSolverType /*unused*/) override;
 
   /// predictor
   void predictor() override;

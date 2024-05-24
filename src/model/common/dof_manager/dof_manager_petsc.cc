@@ -231,8 +231,10 @@ void DOFManagerPETSc::makeConsistentForPeriodicity(
 /* -------------------------------------------------------------------------- */
 NonLinearSolver &
 DOFManagerPETSc::getNewNonLinearSolver(const ID & id,
-                                       const NonLinearSolverType & type) {
-  return this->registerNonLinearSolver<NonLinearSolverPETSc>(*this, id, type);
+                                       const NonLinearSolverType & type,
+                                       const SparseSolverType & s_type) {
+  return this->registerNonLinearSolver<NonLinearSolverPETSc>(*this, id, type,
+                                                             s_type);
 }
 
 /* -------------------------------------------------------------------------- */

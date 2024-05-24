@@ -24,19 +24,22 @@
 #include "dof_manager_default.hh"
 #include "solver_callback.hh"
 #include "solver_vector.hh"
+#include "sparse_solver_eigen.hh"
+#include "sparse_solver_mumps.hh"
+#include "sparse_solver_petsc.hh"
 /* -------------------------------------------------------------------------- */
 
-#if !defined(AKANTU_USE_MUMPS) && !defined(AKANTU_USE_PETSC)
-#include "sparse_solver_eigen.hh"
-namespace akantu {
-using SparseSolverType = SparseSolverEigen;
-}
-#else
-#include "sparse_solver_mumps.hh"
-namespace akantu {
-using SparseSolverType = SparseSolverMumps;
-}
-#endif
+// #if !defined(AKANTU_USE_MUMPS) && !defined(AKANTU_USE_PETSC)
+// #include "sparse_solver_eigen.hh"
+// namespace akantu {
+// using SparseSolverType = SparseSolverEigen;
+// }
+// #else
+// #include "sparse_solver_mumps.hh"
+// namespace akantu {
+// using SparseSolverType = SparseSolverMumps;
+// }
+// #endif
 
 namespace akantu {
 
@@ -56,11 +59,23 @@ namespace akantu {
 
 NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
     DOFManagerDefault & dof_manager,
-    const NonLinearSolverType & non_linear_solver_type, const ID & id)
-    : NonLinearSolver(dof_manager, non_linear_solver_type, id),
-      sparse_solver(std::make_unique<SparseSolverMumps>(
-          dof_manager, "J", id + ":sparse_solver")) {
+    const NonLinearSolverType & non_linear_solver_type,
+    const SparseSolverType & sparse_solver_type, const ID & id)
+    : NonLinearSolver(dof_manager, non_linear_solver_type, id) {
 
+  switch (sparse_solver_type) {
+  case SparseSolverType::_mumps:
+    sparse_solver = std::make_unique<SparseSolverMumps>(dof_manager, "J",
+                                                        id + ":sparse_solver");
+    break;
+  case SparseSolverType::_eigen:
+    sparse_solver = std::make_unique<SparseSolverEigen>(dof_manager, "J",
+                                                        id + ":sparse_solver");
+    break;
+  case SparseSolverType::_petsc:
+    sparse_solver = std::make_unique<SparseSolverPETSc>(dof_manager, "J",
+                                                        id + ":sparse_solver");
+  }
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson);
