@@ -188,7 +188,7 @@
                --print-summary
                --output coverage.xml
                --object-directory ${CI_PROJECT_DIR}/build
-               --root ${CI_PROJECT_DIR}  -s || true
+               --root ${CI_PROJECT_DIR}  -s || true;
       fi
   artifacts:
     when: always
