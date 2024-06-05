@@ -88,7 +88,7 @@ ModelSolver::initDOFManager(const std::shared_ptr<DOFManager> & dof_manager) {
   auto && [section, is_empty] = this->getParserSection();
 
   if (not is_empty) {
-    solver_type = section.getOption(solver_type);
+    solver_type = section.getParameter("dof_manager_type", solver_type);
     return this->initDOFManager(section, solver_type);
   }
   return this->initDOFManager(solver_type);
@@ -137,6 +137,10 @@ ModelSolver::initDOFManager(const ParserSection & section,
 
     auto nls_type = tss_options.non_linear_solver_type;
     auto ss_type = tss_options.sparse_solver_type;
+
+    ID sparse_solver =
+        section.getParameter("sparse_solver_type", std::to_string(ss_type));
+    ss_type = getOptionToType<SparseSolverType>(sparse_solver);
 
     if (nb_non_linear_solver_section == 1) {
       auto && nls_section = *(sub_solvers_sect.first);
