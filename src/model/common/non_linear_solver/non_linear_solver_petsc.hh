@@ -65,7 +65,7 @@ protected:
   static PetscErrorCode FormJacobian(SNES snes, Vec dx, Mat J, Mat P,
                                      void * ctx);
 
-  void set_param(const ID & param, const std::string & value) override;
+  void updateInternalParameters() override;
 
   /// PETSc non linear solver
   SNES snes;

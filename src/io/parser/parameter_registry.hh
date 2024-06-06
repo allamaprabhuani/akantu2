@@ -163,6 +163,10 @@ public:
   template <typename T, typename V>
   void setMixed(const std::string & name, const V & value);
 
+  /// function called to update the internal parameters when the
+  /// modifiable parameters are modified
+  virtual void updateInternalParameters() {}
+
   /// Set value to a parameter
   template <typename T> void set(const std::string & name, const T & value);
 

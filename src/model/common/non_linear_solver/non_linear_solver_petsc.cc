@@ -36,6 +36,11 @@ NonLinearSolverPETSc::NonLinearSolverPETSc(
     const NonLinearSolverType & non_linear_solver_type,
     const SparseSolverType & sparse_solver_type, const ID & id)
     : NonLinearSolver(dof_manager, non_linear_solver_type, id) {
+
+  if (sparse_solver_type != SparseSolverType::_petsc)
+    AKANTU_EXCEPTION(
+        "petsc non linear solver works only with petsc sparse solver");
+
   std::unordered_map<NonLinearSolverType, SNESType>
       petsc_non_linear_solver_types{
           {NonLinearSolverType::_newton_raphson, SNESNEWTONLS},
@@ -206,20 +211,21 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLinearSolverPETSc::set_param(const ID & param,
-                                     const std::string & value) {
+void NonLinearSolverPETSc::updateInternalParameters() {
+
   std::map<ID, ID> akantu_to_petsc_option = {{"max_iterations", "snes_max_it"},
                                              {"threshold", "snes_stol"}};
 
-  auto it = akantu_to_petsc_option.find(param);
-  auto p = it == akantu_to_petsc_option.end() ? param : it->second;
-
-  PetscOptionsSetValue(nullptr, p.c_str(), value.c_str());
+  for (auto && [param, param_akantu] : akantu_to_petsc_option) {
+    Real value = this->get(param);
+    PetscOptionsSetValue(nullptr, param_akantu.c_str(),
+                         std::to_string(value).c_str());
+  }
   SNESSetFromOptions(snes);
   PetscOptionsClear(nullptr);
 }
-
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void NonLinearSolverPETSc::parseSection(const ParserSection & section) {
   auto parameters = section.getParameters();
   for (auto && param : range(parameters.first, parameters.second)) {

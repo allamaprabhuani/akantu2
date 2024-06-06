@@ -38,6 +38,9 @@ SparseSolverPETSc::SparseSolverPETSc(DOFManager & dof_manager,
       matrix(getDOFManager().getMatrix(matrix_id)) {
   auto && mpi_comm = getDOFManager().getMPIComm();
 
+  this->registerParam("petsc_options", petsc_options, _pat_parsable,
+                      "PETSc options");
+
   /// create a solver context
   PETSc_call(KSPCreate, mpi_comm, &this->ksp);
 }
@@ -89,6 +92,25 @@ void SparseSolverPETSc::solve() {
 
 DOFManagerPETSc & SparseSolverPETSc::getDOFManager() {
   return aka::as_type<DOFManagerPETSc &>(this->dof_manager);
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseSolverPETSc::updateInternalParameters() {
+
+  PetscOptionsInsertString(nullptr, petsc_options.c_str());
+  KSPSetFromOptions(ksp);
+  PetscOptionsClear(nullptr);
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseSolverPETSc::parseSection(const ParserSection & section) {
+  auto parameters = section.getParameters();
+  for (auto && param : range(parameters.first, parameters.second)) {
+    PetscOptionsSetValue(nullptr, param.getName().c_str(),
+                         param.getValue().c_str());
+  }
+  KSPSetFromOptions(ksp);
+  PetscOptionsClear(nullptr);
 }
 
 } // namespace akantu

@@ -491,7 +491,6 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::setParam(const ID & param, T value) {
     AKANTU_EXCEPTION("No parameter " << param << " in the constitutive law "
                                      << getID());
   }
-  updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */

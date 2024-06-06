@@ -75,6 +75,9 @@ NonLinearSolverNewtonRaphson::NonLinearSolverNewtonRaphson(
   case SparseSolverType::_petsc:
     sparse_solver = std::make_unique<SparseSolverPETSc>(dof_manager, "J",
                                                         id + ":sparse_solver");
+    break;
+  case SparseSolverType::_auto:
+    AKANTU_TO_IMPLEMENT();
   }
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_modified);
   this->supported_type.insert(NonLinearSolverType::_newton_raphson_contact);

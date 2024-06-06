@@ -53,6 +53,10 @@ public:
   /// create the solver context and set the matrices
   virtual void setOperators();
   void solve() override;
+
+  void parseSection(const ParserSection & section) override;
+  void updateInternalParameters() override;
+
   void initialize() override;
 
 private:
@@ -61,6 +65,9 @@ private:
 
   /// Matrix defining the system of equations
   SparseMatrixPETSc & matrix;
+
+  /// options to pass to petsc
+  std::string petsc_options;
 };
 
 } // namespace akantu

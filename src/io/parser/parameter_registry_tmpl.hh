@@ -382,6 +382,7 @@ void ParameterRegistry::setMixed(const std::string & name, const V & value) {
 template <typename T>
 void ParameterRegistry::set(const std::string & name, const T & value) {
   this->template setMixed<T>(name, value);
+  updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
