@@ -20,14 +20,12 @@ multi-material (2D)
 
 
 This example is the same as example as `multi-material <https://gitlab.com/akantu/akantu/-/blob/master/examples/python/solid_mechanics_cohesive_model/multi-material/>`_
-The main difference is that in this example there are multiple cohesive laws. The way they are selected is by using a `aka.MaterialCohesiveRulesSelector` :: 
+The main difference is that in this example there are multiple cohesive laws. The way they are selected is by using a `aka.MaterialCohesiveRulesSelector` ::
 
-    cohesive_selector = aka.MaterialCohesiveRulesSelector(model, {
-        ("Top", "Bottom"): "tough",
-        ("Top", "Top"): "soft",
-        ("Bottom", "Bottom"): "soft",
-    })
+  cohesive_selector = aka.MaterialCohesiveRulesSelector(model, {
+    ("Top", "Bottom"): "tough",
+    ("Top", "Top"): "soft",
+    ("Bottom", "Bottom"): "soft",
+  })
 
-    model.setMaterialSelector(cohesive_selector)
-
-    
+  model.setMaterialSelector(cohesive_selector)
