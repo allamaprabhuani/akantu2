@@ -10,6 +10,20 @@ import akantu as aka
 import numpy as np
 
 
+def initialize_model(model):
+    """Initialize the model."""
+    cohesive_selector = aka.MaterialCohesiveRulesSelector(model, {
+        ("Top", "Bottom"): "tough",
+        ("Top", "Top"): "soft",
+        ("Bottom", "Bottom"): "soft",
+    })
+
+    model.setMaterialSelector(cohesive_selector)
+
+    model.initFull(_analysis_method=aka._static, _is_extrinsic=True)
+    model.initNewSolver(aka._explicit_lumped_mass)
+
+
 def set_dumpers(model):
     """Set the dumpers."""
     model.setBaseName("plate")
@@ -26,6 +40,18 @@ def set_dumpers(model):
     model.addDumpFieldVectorToDumper("cohesive elements", "opening")
 
 
+def do_static_step(model):
+    """Do a static step."""
+    solver = model.getNonLinearSolver("static")
+    solver.set("max_iterations", 100)
+    solver.set("threshold", 1e-10)
+    solver.set("convergence_type", aka.SolveConvergenceCriteria.residual)
+
+    model.solveStep("static")
+    model.dump()
+    model.dump("cohesive elements")
+
+
 def solve(material_file, mesh_file, traction):
     """Define the main problem."""
     aka.parseInput(material_file)
@@ -39,18 +65,7 @@ def solve(material_file, mesh_file, traction):
 
     model = aka.SolidMechanicsModelCohesive(mesh)
 
-    #    current_selector = model.getMaterialSelector()
-    cohesive_selector = aka.MaterialCohesiveRulesSelector(model, {
-        ("Top", "Bottom"): "tough",
-        ("Top", "Top"): "soft",
-        ("Bottom", "Bottom"): "soft",
-    })
-
-    model.setMaterialSelector(cohesive_selector)
-
-    model.initFull(_analysis_method=aka._static, _is_extrinsic=True)
-    model.initNewSolver(aka._explicit_lumped_mass)
-
+    initialize_model(model)
     set_dumpers(model)
 
     # -------------------------------------------------------------------------
@@ -67,14 +82,7 @@ def solve(material_file, mesh_file, traction):
     model.getExternalForce()[:] = 0
     model.applyBC(aka.FromTraction(trac), "Traction")
 
-    solver = model.getNonLinearSolver("static")
-    solver.set("max_iterations", 100)
-    solver.set("threshold", 1e-10)
-    solver.set("convergence_type", aka.SolveConvergenceCriteria.residual)
-
-    model.solveStep("static")
-    model.dump()
-    model.dump("cohesive elements")
+    do_static_step(model)
 
     model.setTimeStep(model.getStableTimeStep() * 0.1)
 
