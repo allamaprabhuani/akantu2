@@ -579,6 +579,10 @@ inline auto Mesh::getNodeLocalId(Idx global_id) const {
 inline auto Mesh::getNbGlobalNodes() const {
   return nodes_global_ids ? nb_global_nodes : nodes->size();
 }
+/* -------------------------------------------------------------------------- */
+inline decltype(auto) Mesh::getConnectedElementToNode(Idx node) const {
+  return (*nodes_to_elements[node]);
+}
 
 /* -------------------------------------------------------------------------- */
 inline auto Mesh::getNbNodesPerElementList(const Array<Element> & elements)

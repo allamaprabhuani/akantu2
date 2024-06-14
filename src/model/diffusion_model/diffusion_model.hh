@@ -102,10 +102,10 @@ public:
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityMatrixLumped();
 
-private:
   /// compute the internal flow
   void assembleInternalFlow();
 
+private:
   /// calculate the lumped capacity vector for heat transfer problem (w
   /// ghost type)
   void assembleCapacityLumped(GhostType ghost_type);

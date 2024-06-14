@@ -264,11 +264,13 @@ void register_mesh(py::module & mod) {
       .def("getUpperBounds", &Mesh::getUpperBounds)
       .def("getLowerBounds", &Mesh::getLowerBounds)
       .def("initMeshFacets", &Mesh::initMeshFacets,
-           py::arg("id") = "mesh_facets", py::return_value_policy::reference);
+           py::arg("id") = "mesh_facets", py::return_value_policy::reference)
+      .def("getConnectedElementToNode", &Mesh::getConnectedElementToNode);
 
   /* ------------------------------------------------------------------------ */
   py::class_<MeshUtils>(mod, "MeshUtils")
-      .def_static("buildFacets", &MeshUtils::buildFacets);
+      .def_static("buildFacets", &MeshUtils::buildFacets)
+      .def_static("buildNode2Elements", &MeshUtils::buildNode2Elements);
 
   py::class_<MeshAccessor>(mod, "MeshAccessor")
       .def(py::init<Mesh &>(), py::arg("mesh"))

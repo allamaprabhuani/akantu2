@@ -48,6 +48,7 @@ set(PYAKANTU_SRCS
   py_model.cc
   py_parser.cc
   py_solver.cc
+  py_aka_csr.cc
   )
 
 package_is_activated(solid_mechanics _is_activated)

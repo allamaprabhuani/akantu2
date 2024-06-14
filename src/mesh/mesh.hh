@@ -300,6 +300,9 @@ public:
   /// get the nodes type Array
   AKANTU_GET_MACRO(NodesFlags, *nodes_flags, const Array<NodeFlag> &);
 
+  /// return the elements connected to a node
+  inline decltype(auto) getConnectedElementToNode(Idx node) const;
+
 protected:
   AKANTU_GET_MACRO_NOT_CONST(NodesFlags, *nodes_flags, Array<NodeFlag> &);
 

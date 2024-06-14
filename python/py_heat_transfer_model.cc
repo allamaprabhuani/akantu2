@@ -98,7 +98,10 @@ void register_heat_transfer_model(py::module & mod) {
       .def("setTimeStep", &DiffusionModel::setTimeStep, py::arg("time_step"),
            py::arg("solver_id") = "")
       .def("getStableTimeStep", &DiffusionModel::getStableTimeStep)
-      .def("getBlockedDOFs", &DiffusionModel::getBlockedDOFs);
+      .def("getBlockedDOFs", &DiffusionModel::getBlockedDOFs)
+      .def("assembleDiffisivityMatrix",
+           &DiffusionModel::assembleDiffisivityMatrix)
+      .def("assembleInternalFlow", &DiffusionModel::assembleInternalFlow);
 
   /* ------------------------------------------------------------------------ */
   py::class_<HeatTransferModel, DiffusionModel>(mod, "HeatTransferModel",

@@ -24,6 +24,7 @@
 #include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include "py_aka_common.hh"
+#include "py_aka_csr.hh"
 #include "py_aka_error.hh"
 #include "py_boundary_conditions.hh"
 #include "py_constitutive_law.hh"
@@ -79,6 +80,7 @@ namespace akantu {
 void register_all(pybind11::module & mod) {
   register_initialize(mod);
   register_enums(mod);
+  register_aka_csr(mod);
   register_error(mod);
   register_functions(mod);
   register_parser(mod);
