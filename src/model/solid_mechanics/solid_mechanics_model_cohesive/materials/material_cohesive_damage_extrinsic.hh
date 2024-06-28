@@ -46,26 +46,20 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  //  /// check stress for cohesive elements' insertion
+  /// check stress for cohesive elements' insertion
   void checkInsertion(bool check_only = false) override;
+
+  void computeLambda(GhostType ghost_type = _not_ghost) override;
 
 protected:
   void computeLambdaOnQuad(ElementType type, GhostType ghost_type);
-
-  inline decltype(auto) getArguments(ElementType element_type,
-                                     GhostType ghost_type) {
-    using namespace tuple;
-    return zip_append(
-        MaterialCohesive::getArguments<dim>(element_type, ghost_type),
-        "czm_damage"_n = this->czm_damage(element_type, ghost_type));
-  }
 
   /// constitutive law
   void computeTraction(ElementType el_type,
                        GhostType ghost_type = _not_ghost) override;
 
-  /// compute the traction for a given quadrature point
-  template <typename Args> inline void computeTractionOnQuad(Args && args);
+//  /// compute the traction for a given quadrature point
+//  template <typename Args> inline void computeTractionOnQuad(Args && args);
 
   [[nodiscard]] bool needLambda() const override { return false; }
 
@@ -75,16 +69,17 @@ protected:
 protected:
 
   /// augmented lagrange multiplier
-  CohesiveInternalField<Real> & lambda;
-
-  /// target opening
-  CohesiveInternalField<Real> & err_openings;
+  FacetInternalField<Real> & lambda;
 
   /// cohesive damage
-  CohesiveInternalField<Real> & czm_damage;
+  FacetInternalField<Real> & czm_damage;
 
-  Vector<Real, dim> normal_opening;
-  Real normal_opening_norm{0.};
+  /// stress at insertion
+  CohesiveInternalField<Real> & insertion_stress;
+
+  /// stress at insertion
+  CohesiveInternalField<Real> & is_new_crack;
+
 };
 
 /* -------------------------------------------------------------------------- */

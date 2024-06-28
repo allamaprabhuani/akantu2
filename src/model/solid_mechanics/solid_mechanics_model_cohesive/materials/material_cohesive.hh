@@ -62,6 +62,11 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  /// compute Lagrange multiplier
+  virtual void computeLambda(GhostType /*ghost_type*/ = _not_ghost) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   /// interpolate   stress  on   given   positions  for   each  element   (empty
   /// implemantation to avoid the generic call to be done on cohesive elements)
   virtual void interpolateStress(const ElementType /*type*/,

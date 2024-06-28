@@ -103,6 +103,10 @@ void register_solid_mechanics_model_cohesive(py::module & mod) {
 
       .def("checkCohesiveStress",
            &SolidMechanicsModelCohesive::checkCohesiveStress)
+      .def("checkCohesiveInsertion",
+           &SolidMechanicsModelCohesive::checkCohesiveInsertion)
+      .def("computeLagrangeMultiplier",
+           &SolidMechanicsModelCohesive::computeLagrangeMultiplier)
       .def("getElementInserter",
            &SolidMechanicsModelCohesive::getElementInserter,
            py::return_value_policy::reference)

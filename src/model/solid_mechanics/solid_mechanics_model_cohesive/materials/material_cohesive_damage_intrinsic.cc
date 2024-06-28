@@ -424,22 +424,9 @@ template <Int dim>
 void MaterialCohesiveDamageIntrinsic<dim>::computeTraction(ElementType el_type,
                                                   GhostType ghost_type) {
 
-  for (const auto & type : getElementFilter().elementTypes(
-           spatial_dimension, ghost_type, _ek_cohesive)) {
-    auto & elem_filter = getElementFilter(type, ghost_type);
-    auto nb_element = elem_filter.size();
-    if (nb_element == 0) {
-      continue;
-    }
-
-    /// compute normals @f$\mathbf{n}@f$
-    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
-                  ghost_type);
-
-    /// compute openings @f$\mathbf{\delta}@f$
-    computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
-                   ghost_type);
-
+  auto & elem_filter = getElementFilter(el_type, ghost_type);
+  auto nb_element = elem_filter.size();
+  if (nb_element > 0) {
     computeLambdaOnQuad(el_type, ghost_type);
 
 //    auto & traction = tractions(type, ghost_type);

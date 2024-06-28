@@ -29,17 +29,17 @@
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-template <Int dim>
-template <typename Args>
-inline void MaterialCohesiveDamageExtrinsic<dim>::computeTractionOnQuad(Args && args) {
-  auto && d = args["czm_damage"_n];
-  auto && opening = args["opening"_n];
-  auto && traction = args["traction"_n];
+///* -------------------------------------------------------------------------- */
+//template <Int dim>
+//template <typename Args>
+//inline void MaterialCohesiveDamageExtrinsic<dim>::computeTractionOnQuad(Args && args) {
+//  auto && d = args["czm_damage"_n];
+//  auto && opening = args["opening"_n];
+//  auto && traction = args["traction"_n];
 
-  Real A = this->augmented_stiffness(d);
-  traction = k*A*opening;
-}
+//  Real A = this->augmented_stiffness(d);
+//  traction = k*A*opening;
+//}
 
 } // namespace akantu
 

@@ -132,6 +132,11 @@ public:
   /// elements)
   UInt checkCohesiveStress();
 
+  /// function to perform an insertion check on each facet and insert
+  /// cohesive elements if needed (returns the number of new cohesive
+  /// elements)
+  UInt checkCohesiveInsertion();
+
   /// interpolate stress on facets
   void interpolateStress();
 
@@ -140,6 +145,9 @@ public:
 
   /// insert intrinsic cohesive elements
   void insertIntrinsicElements();
+
+  /// compute Lagrange multiplier
+  void computeLagrangeMultiplier();
 
   // template <SolveConvergenceMethod cmethod, SolveConvergenceCriteria
   // criteria> bool solveStepCohesive(Real tolerance, Real & error, UInt

@@ -531,6 +531,53 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
 }
 
 /* -------------------------------------------------------------------------- */
+UInt SolidMechanicsModelCohesive::checkCohesiveInsertion() {
+  AKANTU_DEBUG_IN();
+
+  if (not is_extrinsic) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  this->for_each_constitutive_law([&](auto && material) {
+    if (aka::is_of_type<MaterialCohesive>(material)) {
+      /// check which not ghost cohesive elements are to be created
+      auto & mat_cohesive = aka::as_type<MaterialCohesive>(material);
+      mat_cohesive.checkInsertion();
+    }
+  });
+
+  /// insert cohesive elements
+  auto nb_new_elements = inserter->insertElements();
+
+  AKANTU_DEBUG_OUT();
+
+  return nb_new_elements;
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::computeLagrangeMultiplier() {
+  AKANTU_DEBUG_IN();
+
+  if (not is_extrinsic) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  interpolateStress();
+
+  this->for_each_constitutive_law([&](auto && material) {
+    if (aka::is_of_type<MaterialCohesive>(material)) {
+      /// check which not ghost cohesive elements are to be created
+      auto & mat_cohesive = aka::as_type<MaterialCohesive>(material);
+      mat_cohesive.computeLambda();
+    }
+  });
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::updateLambdaMesh() {
 //    std::cout << " SolidMechanicsModelCohesive::updateLambdaMesh " << std::endl;
 
