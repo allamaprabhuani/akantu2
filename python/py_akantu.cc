@@ -84,8 +84,8 @@ void register_all(pybind11::module & mod) {
   register_parser(mod);
   register_solvers(mod);
 
-  register_group_manager(mod);
   register_dumpable(mod);
+  register_group_manager(mod);
   register_mesh(mod);
 
   register_fe_engine(mod);

@@ -96,13 +96,6 @@ public:
   integrate(const Ref<const VectorXr> f, ElementType type, Int index,
             GhostType ghost_type = _not_ghost) const override;
 
-  /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
-  /// w_q @f$)
-  void integrateOnIntegrationPoints(
-      const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
-      ElementType type, GhostType ghost_type = _not_ghost,
-      const Array<Idx> & filter_elements = empty_filter) const override;
-
 private:
   template <ElementKind kind_ = kind, typename D1, typename D2, typename D3,
             std::enable_if_t<aka::are_vectors<D1, D3>::value and

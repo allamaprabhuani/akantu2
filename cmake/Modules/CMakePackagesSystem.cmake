@@ -206,9 +206,7 @@ if(__CMAKE_PACKAGES_SYSTEM)
 endif()
 set(__CMAKE_PACKAGES_SYSTEM TRUE)
 
-if(CMAKE_VERSION VERSION_GREATER 3.1.2)
-  cmake_policy(SET CMP0054 NEW)
-endif()
+cmake_policy(SET CMP0054 NEW)
 
 #===============================================================================
 option(AUTO_MOVE_UNKNOWN_FILES

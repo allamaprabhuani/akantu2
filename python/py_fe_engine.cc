@@ -59,13 +59,56 @@ void register_fe_engine(py::module & mod) {
           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("initShapeFunctions", &FEEngine::initShapeFunctions,
            py::arg("ghost_type") = _not_ghost)
+
+      .def(
+          "integrate",
+          [](FEEngine & self, const Array<Real> & f, Array<Real> & intf,
+             Int nb_degree_of_freedom, ElementType type,
+             GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
+                             empty_filter);
+            } else {
+              self.integrate(f, intf, nb_degree_of_freedom, type, ghost_type,
+                             filter_elements);
+            }
+          },
+          py::arg("f"), py::arg("intf"), py::arg("nb_degree_of_freedom"),
+          py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
+      .def(
+          "integrate",
+          [](FEEngine & self, const Array<Real> & f, ElementType type,
+             GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) -> Real {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              return self.integrate(f, type, ghost_type, empty_filter);
+            } else {
+              return self.integrate(f, type, ghost_type, filter_elements);
+            }
+          },
+          py::arg("f"), py::arg("type"), py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
       .def(
           "gradientOnIntegrationPoints",
           [](FEEngine & fem, const Array<Real> & u, Array<Real> & nablauq,
              const Int nb_degree_of_freedom, ElementType type,
              GhostType ghost_type, const Array<Idx> & filter_elements) {
-            fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
-                                            type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
+                                              type, ghost_type, empty_filter);
+            } else {
+              fem.gradientOnIntegrationPoints(u, nablauq, nb_degree_of_freedom,
+                                              type, ghost_type,
+                                              filter_elements);
+            }
           },
           py::arg("u"), py::arg("nablauq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
@@ -75,8 +118,16 @@ void register_fe_engine(py::module & mod) {
           [](FEEngine & self, const Array<Real> & u, Array<Real> & uq,
              Int nb_degree_of_freedom, ElementType type, GhostType ghost_type,
              const Array<Idx> & filter_elements) {
-            self.interpolateOnIntegrationPoints(
-                u, uq, nb_degree_of_freedom, type, ghost_type, filter_elements);
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.interpolateOnIntegrationPoints(
+                  u, uq, nb_degree_of_freedom, type, ghost_type, empty_filter);
+            } else {
+              self.interpolateOnIntegrationPoints(u, uq, nb_degree_of_freedom,
+                                                  type, ghost_type,
+                                                  filter_elements);
+            }
           },
           py::arg("u"), py::arg("uq"), py::arg("nb_degree_of_freedom"),
           py::arg("type"), py::arg("ghost_type") = _not_ghost,
@@ -89,6 +140,75 @@ void register_fe_engine(py::module & mod) {
             self.interpolateOnIntegrationPoints(u, *uq, filter_elements.get());
           },
           py::arg("u"), py::arg("uq"), py::arg("filter_elements") = nullptr)
+
+      .def(
+          "computeBtD",
+          [](FEEngine & self, const Array<Real> & Ds, Array<Real> & BtDs,
+             ElementType type, GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeBtD(Ds, BtDs, type, ghost_type, empty_filter);
+            } else {
+              self.computeBtD(Ds, BtDs, type, ghost_type, filter_elements);
+            }
+          },
+          py::arg("Ds"), py::arg("BtDs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
+
+      .def(
+          "computeBtDB",
+          [](FEEngine & self, const Array<Real> & Ds, Array<Real> & BtDBs,
+             Int order_d, ElementType type, GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeBtDB(Ds, BtDBs, order_d, type, ghost_type,
+                               empty_filter);
+            } else {
+              self.computeBtDB(Ds, BtDBs, order_d, type, ghost_type,
+                               filter_elements);
+            }
+          },
+          py::arg("Ds"), py::arg("BtDBs"), py::arg("order_d"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
+
+      .def(
+          "computeNtb",
+          [](FEEngine & self, const Array<Real> & bs, Array<Real> & Ntbs,
+             ElementType type, GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeNtb(bs, Ntbs, type, ghost_type, empty_filter);
+            } else {
+              self.computeNtb(bs, Ntbs, type, ghost_type, filter_elements);
+            }
+          },
+          py::arg("bs"), py::arg("Ntbs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
+      .def(
+          "computeNtbN",
+          [](FEEngine & self, const Array<Real> & bs, Array<Real> & NtbNs,
+             ElementType type, GhostType ghost_type = _not_ghost,
+             const Array<Idx> & filter_elements = empty_filter) {
+            // Check to overcome the empty_filter that is maped as a numpy array
+            // without an id
+            if (filter_elements.data() == empty_filter.data()) {
+              self.computeNtbN(bs, NtbNs, type, ghost_type, empty_filter);
+            } else {
+              self.computeNtbN(bs, NtbNs, type, ghost_type, filter_elements);
+            }
+          },
+          py::arg("bs"), py::arg("NtbNs"), py::arg("type"),
+          py::arg("ghost_type") = _not_ghost,
+          py::arg("filter_elements") = empty_filter)
       .def(
           "computeIntegrationPointsCoordinates",
           [](FEEngine & self,
@@ -132,7 +252,13 @@ void register_fe_engine(py::module & mod) {
       .def("getNormalsOnIntegrationPoints",
            &FEEngine::getNormalsOnIntegrationPoints, py::arg("type"),
            py::arg("ghost_type") = _not_ghost,
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def("getShapes", &FEEngine::getShapes, py::arg("type"),
+           py::arg("ghost_type") = _not_ghost, py::arg("id") = 0,
+           py::return_value_policy::reference)
+      .def("getShapesDerivatives", &FEEngine::getShapesDerivatives,
+           py::arg("type"), py::arg("ghost_type") = _not_ghost,
+           py::arg("id") = 0, py::return_value_policy::reference);
 
   py::class_<IntegrationPoint>(mod, "IntegrationPoint");
 }
