@@ -19,6 +19,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <coupler_solid_phasefield.hh>
@@ -134,6 +135,12 @@ void register_phase_field_coupler(py::module & mod) {
            &CouplerSolidPhaseField::getSolidMechanicsModel,
            py::return_value_policy::reference)
       .def("getPhaseFieldModel", &CouplerSolidPhaseField::getPhaseFieldModel,
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def("computeStrainOnQuadPoints",
+           &CouplerSolidPhaseField::computeStrainOnQuadPoints,
+           py::arg("ghost_type") = _not_ghost)
+      .def("computeDamageOnQuadPoints",
+           &CouplerSolidPhaseField::computeDamageOnQuadPoints,
+           py::arg("ghost_type") = _not_ghost);
 }
 } // namespace akantu

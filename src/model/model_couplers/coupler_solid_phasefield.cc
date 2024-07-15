@@ -24,6 +24,8 @@
 #include "element_synchronizer.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
+#include "solver_vector_default.hh"
+#include "solver_vector_distributed.hh"
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper_paraview.hh"
 /* -------------------------------------------------------------------------- */
@@ -415,6 +417,24 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
   // this->computeDamageOnQuadPoints(_ghost);
 
   solid->assembleInternalForces();
+}
+
+/* ------------------------------------------------------------------------- */
+void CouplerSolidPhaseField::degradeMass() {
+  Array<Real> & mass = aka::as_type<SolverVectorDefault>(
+                 solid->getDOFManager().getLumpedMatrix("M"))
+                 .getVector();
+  Array<Real> & damage = phase->getDamage();
+
+  auto d_it = damage.begin();
+  auto m_it = mass.begin();
+  
+  for (Int n = 0; n < damage.size(); ++n, ++d_it) {
+    for (Int i = 0; i < this->spatial_dimension; ++i) {
+      *m_it *= (1 - *d_it) * (1 - *d_it);
+      ++m_it;
+    }
+  }
 }
 
 /* ------------------------------------------------------------------------- */
