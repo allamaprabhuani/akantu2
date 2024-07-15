@@ -421,6 +421,7 @@ void CouplerSolidPhaseField::solve(const ID & solid_solver_id,
 
 /* ------------------------------------------------------------------------- */
 void CouplerSolidPhaseField::degradeMass() {
+  phase->synchronize(SynchronizationTag::_pfm_damage);
   Array<Real> & mass = aka::as_type<SolverVectorDefault>(
                  solid->getDOFManager().getLumpedMatrix("M"))
                  .getVector();
