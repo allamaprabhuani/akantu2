@@ -244,6 +244,7 @@ private:
   Array<Real> * external_force{nullptr};
 
   Array<Real> initial_mass;
+  bool mass_initialized{false};
 };
 
 } // namespace akantu

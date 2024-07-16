@@ -57,12 +57,6 @@ CouplerSolidPhaseField::CouplerSolidPhaseField(Mesh & mesh, Int dim,
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_damage);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_csp_strain);
   }
-
-  Array<Real> & mass = aka::as_type<SolverVectorDefault>(
-                           solid->getDOFManager().getLumpedMatrix("M"))
-                           .getVector();
-
-  this->initial_mass = Array<Real>(mass);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -431,6 +425,11 @@ void CouplerSolidPhaseField::degradeMass() {
   Array<Real> & mass = aka::as_type<SolverVectorDefault>(
                            solid->getDOFManager().getLumpedMatrix("M"))
                            .getVector();
+  if (!this->mass_initialized) {
+    this->initial_mass = Array<Real>(mass);
+    this->mass_initialized = true;
+  }
+
   Array<Real> & damage = phase->getDamage();
 
   auto d_it = damage.begin();
