@@ -429,10 +429,12 @@ void CouplerSolidPhaseField::degradeMass() {
 
   auto d_it = damage.begin();
   auto m_it = mass.begin();
+  Real eta = 1e-13;
   
   for (Int n = 0; n < damage.size(); ++n, ++d_it) {
     for (Int i = 0; i < this->spatial_dimension; ++i) {
       *m_it *= (1 - *d_it) * (1 - *d_it);
+      *m_it = std::max(*m_it, eta);
       ++m_it;
     }
   }
